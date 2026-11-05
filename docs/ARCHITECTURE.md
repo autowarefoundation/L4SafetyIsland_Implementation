@@ -13,7 +13,7 @@ processor:
 | Platform | **NXP S32Z2** — 8 × Cortex-R52 (lockstep/split), DSP, 19 MB SRAM | **Renesas R-Car X5H** — 6 × Cortex-R52 lockstep + 32 × Cortex-A720AE |
 | Forward camera | 1, low-res mono, 100BASE-T1 Ethernet | 1, GMSL / CSI-2, higher resolution |
 | Radar | none → **`N6` absent** | 4 (front pair, rear pair) → **`N6` present** |
-| 2D lidar | 1 → **`N13` present** | none → **`N13` absent** |
+| Lidar (rank 5, optional) | 1 → **`N13` present**. Design: 2D lidar; **the S32Z2 lab build uses a solid-state 3D LiDAR** in the same confirming-only role ([PLAN-S32Z2.md](PLAN-S32Z2.md) §1.3) | none → **`N13` absent** |
 | Ultrasonic, IMU/GNSS | 5, 1 | 5, 1 |
 | `I19` AEB input | `N13` lidar `PointCloud2` | `N6` radar point cloud |
 | `N19` visibility test | contrast + lidar-vs-camera | contrast + 2 × radar-vs-camera |

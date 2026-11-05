@@ -23,7 +23,7 @@ behaviours) are those of the design. Section references (§) point into the desi
 | Radar (rank 2) | **none**, so **`N6` is not built for this platform** |
 | Ultrasonic (rank 3) | 5: three across the front, two on the kerb side |
 | IMU / GNSS (rank 4) | 1 |
-| 2D lidar (rank 5) | 1, so **`N13` is built**, and it is `I19`'s AEB input |
+| Lidar (rank 5) | 1 × **solid-state 3D LiDAR** (in the lab), in place of the design's 2D lidar (§1.3); **`N13` is built**, and it is `I19`'s AEB input |
 | Island ODD | City-road class, about 30 km/h fallback speed, fair weather |
 | First vehicle | NTU golf cart (steering angle + velocity interface; `I15` not needed) |
 
@@ -64,7 +64,7 @@ behaviours) are those of the design. Section references (§) point into the desi
 | N10 | `si_envelope_monitor` | T1 | P1 | WP8 |
 | N11 | `si_event_recorder` | T3 | P4 | WP10 |
 | N12 | `si_time_quality_monitor` | T1 | P1 | WP2 |
-| N13 | `si_scan_guard`: 2D lidar | T1s | P2 | WP5 |
+| N13 | `si_scan_guard`: 3D LiDAR (design: 2D lidar; §1.3) | T1s | P2 | WP5 |
 | N14 | `si_vision_guard`: camera; **the mandatory sensing node** | T1s | P2 | WP5 |
 | N15 | `si_proximity_guard`: ultrasonic | T1s | P2 | WP5 |
 | N16 | `si_safety_world_model` | T1s | P2 | WP5 |
@@ -78,6 +78,41 @@ behaviours) are those of the design. Section references (§) point into the desi
 
 **HPC-side nodes (§7)** are built on the Autoware side in parallel. They are dependencies of the
 island WPs, listed in §3.3.
+
+### 1.3 Lab deviation: a solid-state 3D LiDAR in place of the 2D lidar
+
+The V1.0 design gives the Least-Cost branch a single-plane **2D lidar** (rank 5, optional). The lab
+has a **solid-state 3D LiDAR** available now, so the S32Z2 island uses it in that slot. This is a
+deviation of the implementation from the design, recorded here; the released design is unchanged.
+
+**What does not change.** The lidar keeps its rank-5 role exactly (§6.2, §9.4 rung E): it is
+optional, it may **confirm or disqualify** (a refuge, a corridor, free space) and add hazards, and it
+may **never qualify a refuge, supply a corridor, or lift a blackout**. It "adds confidence, never
+capability". Therefore the island ODD claim stays as §9.5 states it: city-road class, about 30 km/h,
+fair weather. A 3D lidar loses range in fog and spray together with the camera, as the 2D one does.
+
+**What changes, node by node.**
+
+| Node | With the 2D lidar (design) | With the 3D LiDAR (this plan) |
+| :-- | :-- | :-- |
+| `N13` scan guard | ~1080 points per scan, planar occupancy | Crop to the ego corridor and near field, ground segmentation, voxel downsample to a **fixed-capacity** `PointCloud2`; free-space distance ahead, nearest in-path return, kerb height and position |
+| `I19` AEB | Planar returns: a low or overhanging obstacle can be missed | Height-resolved returns: fewer ground false positives, catches low and overhanging obstacles |
+| `I20` collision detector | Planar near field | 3D near field, limited by the LiDAR's minimum range and field of view; the ultrasonics still guard the last metre |
+| `N16` world model | Confirming channel | Same role, richer confirmation |
+| `N18` pull-over | Confirms the physical edge | Confirms the edge **and measures kerb height**, which can disqualify an unsafe refuge |
+| `N19` ODD monitor | Lidar-vs-camera divergence; return range and intensity | Same test with more returns per frame; multi-echo if the sensor provides it |
+| `N22` B5 stream | Planar scan | Downsampled cloud only, within the stream's bit-rate bound |
+
+**What it costs on the S32Z2.** A 2D scanner delivers about 43 k points/s (1080 × 40 Hz). Solid-state
+3D LiDARs typically deliver 10^5 to several 10^5 points/s, at tens of Mbit/s over Ethernet. That
+moves `N13` from about 5 Mop/s (§9.5) to the largest P2 load after `N14`, and its frame buffer to
+roughly a megabyte or more of the 19 MB SRAM. `N13` must reduce each frame to its fixed output
+bound inside its P2 period, and Q9 below has to be answered before WP5 sizes it.
+
+**What it could enable later (not taken here).** A 3D LiDAR's forward range would cover the 43 m
+stopping distance at 60 km/h that §9.5 says a low-cost 2D lidar cannot. Using that to raise the
+Least-Cost `v_odd` would make the lidar a capability, which contradicts its rank-5 role; it is a
+**design change for the WG**, not something this plan assumes.
 
 ---
 
@@ -242,9 +277,9 @@ bring-up step. WP1 only puts the island's own structure on it.
 
 | | |
 | :-- | :-- |
-| Builds | `N14` vision guard (Ethernet camera, 640 × 400 mono, 15 Hz; classical IPM, gradient, line fitting, column scan; lane lines, road edge, drivable lateral space); `N13` scan guard (2D lidar; bounded `PointCloud2`); `N15` proximity guard (5 ultrasonics); `N17` sensor health (full: frame rate, blockage, degradation); `N16` safety world model (conservative fusion, camera-anchored corridor, explicit **no-valid-source**); `I19` AEB on `N13`; `I20` collision detector on `N13` + `N15` |
+| Builds | `N14` vision guard (Ethernet camera, 640 × 400 mono, 15 Hz; classical IPM, gradient, line fitting, column scan; lane lines, road edge, drivable lateral space); `N13` scan guard (**3D LiDAR**, §1.3: corridor and near-field crop, ground segmentation, voxel downsample to a fixed-capacity `PointCloud2`; free space ahead, nearest in-path return, kerb height); `N15` proximity guard (5 ultrasonics); `N17` sensor health (full: frame rate, blockage, degradation); `N16` safety world model (conservative fusion, camera-anchored corridor, explicit **no-valid-source**); `I19` AEB on `N13`; `I20` collision detector on `N13` + `N15` |
 | Depends on | WP1 (partition map; sensor I/O on the board); **open decision 8** (classical CV or a certified smart camera) settled for the camera chosen |
-| Tests | Recorded and synthetic camera sequences with ground-truth lanes (detection rate, lateral error, latency; ≈ 0.3 Gop/s fits the budget); lidar and ultrasonic replay; fusion rules: any source can add a hazard, only the camera can create a corridor, lower ranks may only narrow; **blackout is distinguishable from an empty road**; AEB raises an ERROR for an in-path target at 30 km/h with the 13 m stopping distance of §9.5 |
+| Tests | Recorded and synthetic camera sequences with ground-truth lanes (detection rate, lateral error, latency; ≈ 0.3 Gop/s fits the budget); 3D LiDAR and ultrasonic replay; **`N13` holds its output bound and its P2 period at the sensor's full point rate on the board**; ground segmentation on slopes, ramps and kerbs; a low obstacle (below a 2D scan plane) is detected; fusion rules: any source can add a hazard, only the camera can create a corridor, lower ranks may only narrow; **blackout is distinguishable from an empty road**; AEB raises an ERROR for an in-path target at 30 km/h with the 13 m stopping distance of §9.5 |
 | Exit | Obstacle-aware stop: the island stops for what it sees (WP4's stop now shortens for obstacles) |
 
 #### WP6: B2, lane hold after HPC loss
@@ -260,7 +295,7 @@ bring-up step. WP1 only puts the island's own structure on it.
 
 | | |
 | :-- | :-- |
-| Builds | `N18` pull-over manager (`OperateMrm` server in the existing `pull_over_manager` slot; refuge go / no-go; the abort ladder; the **island-detected refuge** from `N14`, with the side ultrasonic pair able to disqualify it and the lidar confirming the edge); `N7` lateral displacement path; `I7` selects the pull-over MRM |
+| Builds | `N18` pull-over manager (`OperateMrm` server in the existing `pull_over_manager` slot; refuge go / no-go; the abort ladder; the **island-detected refuge** from `N14`, with the side ultrasonic pair able to disqualify it and the 3D LiDAR confirming the edge and measuring kerb height, which may disqualify the refuge but never approve it); `N7` lateral displacement path; `I7` selects the pull-over MRM |
 | Depends on | WP6. HPC side: **H8** (refuge publisher) |
 | Tests | The three search outcomes are kept apart (*found* / *positively none* → in-lane stop / *inconclusive* → B4) within `T_refuge`; each abort-ladder rung removes a requirement and never adds one; pull-over to the instrumented (kerb) side only; long indicator dwell and low lateral rate in place of rear-corner radar |
 | Demo **D3** | **HPC lost and does not return: the golf cart pulls over** to a nominated refuge, and to an island-detected one when `H8` offers none |
@@ -381,5 +416,6 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 | Q4 | Camera: classical CV or certified smart camera (open decision 8) | WP5 |
 | Q5 | Blackout owner and debounce (§2.4 above; open decision 15) | WP3 |
 | Q6 | The remaining §2.4 gaps: hazard-lamp owner, MRM longitudinal owner, odometry arbiter | WP2–WP4 |
-| Q7 | Sensor placement on the golf cart (open decision 21(c)) | WP5 |
+| Q7 | Sensor placement on the golf cart (open decision 21(c)), now including the 3D LiDAR's mounting and field of view | WP5 |
 | Q8 | Do the migrated `I*` nodes stay C++ ports? **Proposed: yes**; only the new `N*` nodes are Rust (see [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §5) | WP0 |
+| Q9 | The lab's 3D LiDAR: model, Ethernet interface and speed, point rate, field of view, minimum range, multi-echo, time sync. Sets `N13`'s budget and the S32Z2 Ethernet port it needs | WP5 |
