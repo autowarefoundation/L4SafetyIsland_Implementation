@@ -9,7 +9,8 @@ is touched. Inside it, every link to an issue list of this repository
 (`.../issues?q=...`) gets its count rewritten as ` (closed / open)`, where both
 numbers are counted over the link's labels with the open/closed filter removed.
 A new row written in the same style is therefore counted without changing this
-script. The date in `<!-- progress-counts:date -->YYYY-MM-DD` is set to today.
+script. The date in `<!-- progress-counts:date -->YYYY-MM-DD` is set to today
+only when a count changed, so an unchanged run commits nothing.
 
 Needs the GitHub CLI (`gh`) with GH_TOKEN set, and GITHUB_REPOSITORY
 (`owner/name`), both of which GitHub Actions provides.
@@ -55,8 +56,10 @@ def refresh(section):
     def sub(m):
         labels = labels_of(m.group(2))
         return f"{m.group(1)} ({count('closed', labels)} / {count('open', labels)})"
-    section = LINK.sub(sub, section)
-    return DATE.sub(lambda m: m.group(1) + datetime.date.today().isoformat(), section)
+    counted = LINK.sub(sub, section)
+    if counted == section:
+        return section          # nothing changed: keep the date, so no commit
+    return DATE.sub(lambda m: m.group(1) + datetime.date.today().isoformat(), counted)
 
 
 def main():
