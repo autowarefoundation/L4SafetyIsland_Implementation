@@ -382,3 +382,4 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 | Q5 | Blackout owner and debounce (§2.4 above; open decision 15) | WP3 |
 | Q6 | The remaining §2.4 gaps: hazard-lamp owner, MRM longitudinal owner, odometry arbiter | WP2–WP4 |
 | Q7 | Sensor placement on the golf cart (open decision 21(c)) | WP5 |
+| Q8 | Do the migrated `I*` nodes stay C++ ports? **Proposed: yes**; only the new `N*` nodes are Rust (see [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §5) | WP0 |
