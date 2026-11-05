@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="implementation-and-demo-plan-safety-island-on-nxp-s32z2">Implementation and Demo Plan — Safety Island on NXP S32Z2</h1>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Design baseline</td>
+<td style="text-align: left;"><em>L4 Safety Island for Autoware — Software Design</em>, <strong>Release V1.0</strong> (version 20261023)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Platform</td>
+<td style="text-align: left;"><strong>NXP S32Z2</strong> on the <strong>X-S32Z27X-DC</strong> evaluation board, <strong>FreeRTOS + nano-ros</strong>: the Least-Cost branch of design D10 / §9.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Status</td>
+<td style="text-align: left;">Plan, for review. No code is written against it yet.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Companion</td>
+<td style="text-align: left;"><a href="ARCHITECTURE.md">ARCHITECTURE.md</a> — how S32Z2 and R-Car X5H share one code base</td>
+</tr>
+</tbody>
+</table>
+<p>Node identifiers (<code>I*</code> migrated Autoware nodes, <code>N*</code> new island nodes, <code>H*</code> new HPC nodes, <code>B1</code>–<code>B6</code> behaviours) are those of the design. Section references (§) point into the design document.</p>
+<hr />
+<h2 id="what-is-being-built">1. What is being built</h2>
+<h3 id="the-s32z2-island">1.1 The S32Z2 island</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Item</th>
+<th style="text-align: left;">Least-Cost branch on S32Z2 (§9.5)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Processor</td>
+<td style="text-align: left;">S32Z2: 8 × Cortex-R52 (lockstep or split), Neon, DSP/ML processor, 19 MB on-chip SRAM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Forward camera (rank 1)</td>
+<td style="text-align: left;">1 × low-resolution mono, 100BASE-T1 Ethernet; encodes its own B5 video stream</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Radar (rank 2)</td>
+<td style="text-align: left;"><strong>none</strong>, so <strong><code>N6</code> is not built for this platform</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ultrasonic (rank 3)</td>
+<td style="text-align: left;">5: three across the front, two on the kerb side</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IMU / GNSS (rank 4)</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Lidar (rank 5)</td>
+<td style="text-align: left;">1 × <strong>solid-state 3D LiDAR</strong> (in the lab), in place of the design's 2D lidar (§1.3); <strong><code>N13</code> is built</strong>, and it is <code>I19</code>'s AEB input</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Island ODD</td>
+<td style="text-align: left;">City-road class, about 30 km/h fallback speed, fair weather</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">First vehicle</td>
+<td style="text-align: left;">NTU golf cart (steering angle + velocity interface; <code>I15</code> not needed)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="node-inventory-for-this-platform">1.2 Node inventory for this platform</h3>
+<p><strong>Migrated Autoware nodes (§4.1)</strong>: 17 built, 1 not needed on the golf cart.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">#</th>
+<th style="text-align: left;">Package</th>
+<th style="text-align: left;">Tier</th>
+<th style="text-align: left;">Partition</th>
+<th style="text-align: left;">Status</th>
+<th style="text-align: left;">Work package</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">I1</td>
+<td style="text-align: left;"><code>control_command_gate</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I2</td>
+<td style="text-align: left;"><code>command_mode_decider</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port; <strong>plugins replaced by a static table</strong></td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I3</td>
+<td style="text-align: left;"><code>command_mode_switcher</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port; static configuration</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I4</td>
+<td style="text-align: left;"><code>command_mode_types</code></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">lib</td>
+<td style="text-align: left;">port (header-only)</td>
+<td style="text-align: left;">WP0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I5</td>
+<td style="text-align: left;"><code>stop_mode_operator</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port; already ported in the evaluation island</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I6</td>
+<td style="text-align: left;"><code>mrm_emergency_stop_operator</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port; already ported in the evaluation island</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I7</td>
+<td style="text-align: left;"><code>mrm_handler</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">port; already ported. Availability re-sourced from <code>N2</code>; timeout re-parameterised (500 ms breaks the 70 ms budget)</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I8</td>
+<td style="text-align: left;"><code>control_validator</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">port</td>
+<td style="text-align: left;">WP4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I9–I12</td>
+<td style="text-align: left;"><code>trajectory_follower_node</code>, MPC lateral, PID longitudinal, follower base</td>
+<td style="text-align: left;">T2</td>
+<td style="text-align: left;">P3</td>
+<td style="text-align: left;"><strong>already ported (phase 0)</strong>; retarget to S32Z2; OSQP iteration cap + time budget on I10</td>
+<td style="text-align: left;">WP1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I13</td>
+<td style="text-align: left;"><code>pure_pursuit</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">port</td>
+<td style="text-align: left;">WP4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I14</td>
+<td style="text-align: left;"><code>shift_decider</code></td>
+<td style="text-align: left;">T2</td>
+<td style="text-align: left;">P3</td>
+<td style="text-align: left;">port (optional: <code>I5</code> auto-park covers gear P)</td>
+<td style="text-align: left;">WP4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I15</td>
+<td style="text-align: left;"><code>raw_vehicle_cmd_converter</code></td>
+<td style="text-align: left;">T2</td>
+<td style="text-align: left;">P3</td>
+<td style="text-align: left;"><strong>not built for the golf cart</strong>; per vehicle</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I16</td>
+<td style="text-align: left;">vehicle interface</td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;"><strong>new per vehicle</strong> (golf-cart CAN FD); E2E-protected</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I19</td>
+<td style="text-align: left;"><code>autonomous_emergency_braking</code></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">port; input = <code>N13</code> lidar <code>PointCloud2</code></td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I20</td>
+<td style="text-align: left;"><code>collision_detector</code></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">port; input = <code>N13</code> + <code>N15</code></td>
+<td style="text-align: left;">WP5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>New island nodes (§6)</strong>: 21 built (18 safety nodes plus <code>N21</code>–<code>N23</code> for B5/B6), <code>N6</code> not built, <code>N20</code> optional.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">#</th>
+<th style="text-align: left;">Node</th>
+<th style="text-align: left;">Tier</th>
+<th style="text-align: left;">Partition</th>
+<th style="text-align: left;">Work package</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">N1</td>
+<td style="text-align: left;"><code>si_safety_gateway</code>: E2E ingress / egress</td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N2</td>
+<td style="text-align: left;"><code>si_hpc_supervisor</code>: liveness, <code>OperationModeAvailability</code>, recovery verdict</td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">WP2 (+ recovery verdict in WP6)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N3</td>
+<td style="text-align: left;"><code>si_state_machine</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">WP3 (states grow WP6–WP9)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N4</td>
+<td style="text-align: left;"><code>si_vehicle_state_estimator</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N5</td>
+<td style="text-align: left;"><code>si_corridor_monitor</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N7</td>
+<td style="text-align: left;"><code>si_mrm_planner</code> (also called <code>si_mrm_profile</code>)</td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP4 (ramp) → WP6 (<code>v_hold</code>) → WP7 (pull-over path)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N8</td>
+<td style="text-align: left;"><code>si_fault_manager</code></td>
+<td style="text-align: left;">T0</td>
+<td style="text-align: left;">P0</td>
+<td style="text-align: left;">WP3 (sources added in every later WP)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N9</td>
+<td style="text-align: left;"><code>si_actuator_supervisor</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N10</td>
+<td style="text-align: left;"><code>si_envelope_monitor</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N11</td>
+<td style="text-align: left;"><code>si_event_recorder</code></td>
+<td style="text-align: left;">T3</td>
+<td style="text-align: left;">P4</td>
+<td style="text-align: left;">WP10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N12</td>
+<td style="text-align: left;"><code>si_time_quality_monitor</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N13</td>
+<td style="text-align: left;"><code>si_scan_guard</code>: 3D LiDAR (design: 2D lidar; §1.3)</td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N14</td>
+<td style="text-align: left;"><code>si_vision_guard</code>: camera; <strong>the mandatory sensing node</strong></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N15</td>
+<td style="text-align: left;"><code>si_proximity_guard</code>: ultrasonic</td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N16</td>
+<td style="text-align: left;"><code>si_safety_world_model</code></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N17</td>
+<td style="text-align: left;"><code>si_sensor_health</code>: declares the blackout</td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP3 (camera validity only) → WP5 (full)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N18</td>
+<td style="text-align: left;"><code>si_pull_over_manager</code></td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N19</td>
+<td style="text-align: left;"><code>si_odd_monitor</code></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N20</td>
+<td style="text-align: left;"><code>si_object_digest</code> <em>(optional, §3.5)</em></td>
+<td style="text-align: left;">T1s</td>
+<td style="text-align: left;">P2</td>
+<td style="text-align: left;">WP10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N21</td>
+<td style="text-align: left;"><code>si_rcc_link</code> <em>(RCC comms deferred in V1.0)</em></td>
+<td style="text-align: left;">T1/T3</td>
+<td style="text-align: left;">P1/P4</td>
+<td style="text-align: left;">WP9 (interface + stub)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">N22</td>
+<td style="text-align: left;"><code>si_teleop_streamer</code>: forwards the camera's own stream</td>
+<td style="text-align: left;">T3</td>
+<td style="text-align: left;">P3s</td>
+<td style="text-align: left;">WP9 (stub)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">N23</td>
+<td style="text-align: left;"><code>si_local_control</code>: wired joystick</td>
+<td style="text-align: left;">T1</td>
+<td style="text-align: left;">P1</td>
+<td style="text-align: left;">WP9</td>
+</tr>
+</tbody>
+</table>
+<p><strong>HPC-side nodes (§7)</strong> are built on the Autoware side in parallel. They are dependencies of the island WPs, listed in §3.3.</p>
+<h3 id="lab-deviation-a-solid-state-3d-lidar-in-place-of-the-2d-lidar">1.3 Lab deviation: a solid-state 3D LiDAR in place of the 2D lidar</h3>
+<p>The V1.0 design gives the Least-Cost branch a single-plane <strong>2D lidar</strong> (rank 5, optional). The lab has a <strong>solid-state 3D LiDAR</strong> available now, so the S32Z2 island uses it in that slot. This is a deviation of the implementation from the design, recorded here; the released design is unchanged.</p>
+<p><strong>What does not change.</strong> The lidar keeps its rank-5 role exactly (§6.2, §9.4 rung E): it is optional, it may <strong>confirm or disqualify</strong> (a refuge, a corridor, free space) and add hazards, and it may <strong>never qualify a refuge, supply a corridor, or lift a blackout</strong>. It &quot;adds confidence, never capability&quot;. Therefore the island ODD claim stays as §9.5 states it: city-road class, about 30 km/h, fair weather. A 3D lidar loses range in fog and spray together with the camera, as the 2D one does.</p>
+<p><strong>What changes, node by node.</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Node</th>
+<th style="text-align: left;">With the 2D lidar (design)</th>
+<th style="text-align: left;">With the 3D LiDAR (this plan)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>N13</code> scan guard</td>
+<td style="text-align: left;">~1080 points per scan, planar occupancy</td>
+<td style="text-align: left;">Crop to the ego corridor and near field, ground segmentation, voxel downsample to a <strong>fixed-capacity</strong> <code>PointCloud2</code>; free-space distance ahead, nearest in-path return, kerb height and position</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>I19</code> AEB</td>
+<td style="text-align: left;">Planar returns: a low or overhanging obstacle can be missed</td>
+<td style="text-align: left;">Height-resolved returns: fewer ground false positives, catches low and overhanging obstacles</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>I20</code> collision detector</td>
+<td style="text-align: left;">Planar near field</td>
+<td style="text-align: left;">3D near field, limited by the LiDAR's minimum range and field of view; the ultrasonics still guard the last metre</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>N16</code> world model</td>
+<td style="text-align: left;">Confirming channel</td>
+<td style="text-align: left;">Same role, richer confirmation</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>N18</code> pull-over</td>
+<td style="text-align: left;">Confirms the physical edge</td>
+<td style="text-align: left;">Confirms the edge <strong>and measures kerb height</strong>, which can disqualify an unsafe refuge</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>N19</code> ODD monitor</td>
+<td style="text-align: left;">Lidar-vs-camera divergence; return range and intensity</td>
+<td style="text-align: left;">Same test with more returns per frame; multi-echo if the sensor provides it</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>N22</code> B5 stream</td>
+<td style="text-align: left;">Planar scan</td>
+<td style="text-align: left;">Downsampled cloud only, within the stream's bit-rate bound</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What it costs on the S32Z2.</strong> A 2D scanner delivers about 43 k points/s (1080 × 40 Hz). Solid-state 3D LiDARs typically deliver 10^5 to several 10^5 points/s, at tens of Mbit/s over Ethernet. That moves <code>N13</code> from about 5 Mop/s (§9.5) to the largest P2 load after <code>N14</code>, and its frame buffer to roughly a megabyte or more of the 19 MB SRAM. <code>N13</code> must reduce each frame to its fixed output bound inside its P2 period, and Q9 below has to be answered before WP5 sizes it.</p>
+<p><strong>What it could enable later (not taken here).</strong> A 3D LiDAR's forward range would cover the 43 m stopping distance at 60 km/h that §9.5 says a low-cost 2D lidar cannot. Using that to raise the Least-Cost <code>v_odd</code> would make the lidar a capability, which contradicts its rank-5 role; it is a <strong>design change for the WG</strong>, not something this plan assumes.</p>
+<hr />
+<h2 id="dependencies-among-the-nodes">2. Dependencies among the nodes</h2>
+<h3 id="source-and-method">2.1 Source and method</h3>
+<p>Every edge comes from the edge catalogue in <code>messageflow/L4SafetyIsland-MessageFlow.md</code> (§3, tables A–F, and the E / V badges), restricted to this platform: <code>N6</code> removed, <code>N13</code> kept, <code>I15</code> dropped. An edge <em>u → v</em> means <strong>v consumes a message u produces</strong>. Taken literally, 24 of the island's nodes form a single cycle. The vehicle closes the loop (<code>I1 → I16 → N4 → I9 → I1</code>), and every behaviour reports its status back to the node that commanded it. To get a build order, the plan separates two kinds of edge:</p>
+<ul>
+<li><strong>Forward edges</strong>: a node needs this input to do its job. They set the order.</li>
+<li><strong>Feedback edges</strong>: the actuator command path (<code>I1 → I16</code>, <code>I1 → N9</code>) and the status and acknowledgement replies (<code>N7 → N3</code>, <code>N5 → N3</code>, <code>N18 → N3</code>, <code>N18 → I7</code>, <code>I6 → I7</code>, <code>N10 → N2</code>, <code>N18 → N19</code>, <code>N3 → N5</code>, <code>N3 → N21</code>). Node tests stub them, and only integration closes them.</li>
+</ul>
+<h3 id="dependency-levels">2.2 Dependency levels</h3>
+<p>A node at level <em>k</em> needs only nodes at levels below <em>k</em> (forward edges only):</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Level</th>
+<th style="text-align: left;">Nodes</th>
+<th style="text-align: left;">Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>L0</strong></td>
+<td style="text-align: left;"><code>I16</code> · <code>N12</code> · <code>N13</code> · <code>N14</code> · <code>N15</code> · <code>N17</code> · <code>N23</code></td>
+<td style="text-align: left;">hardware and the HPC only</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L1</strong></td>
+<td style="text-align: left;"><code>I5</code> · <code>N1</code> · <code>N9</code> · <code>N16</code></td>
+<td style="text-align: left;"><code>I16</code>; <code>N12</code>; the sensing ingest</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>L2</strong></td>
+<td style="text-align: left;"><code>N2</code> · <code>N4</code></td>
+<td style="text-align: left;"><code>N1</code>, <code>I16</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L3</strong></td>
+<td style="text-align: left;"><code>I9</code> (+ I10–I12) · <code>I19</code> · <code>I20</code> · <code>N5</code> · <code>N19</code> · <code>N21</code> · <code>N22</code></td>
+<td style="text-align: left;"><code>N4</code>, <code>N1</code>, sensing</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>L4</strong></td>
+<td style="text-align: left;"><code>I8</code> · <code>I14</code> · <code>N10</code></td>
+<td style="text-align: left;"><code>I9</code>, <code>N4</code>, <code>N16</code>, <code>N19</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L5</strong></td>
+<td style="text-align: left;"><code>N8</code></td>
+<td style="text-align: left;"><strong>11 producers</strong>: <code>I8 I19 I20 N1 N2 N5 N9 N16 N17 N21 N23</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>L6</strong></td>
+<td style="text-align: left;"><code>N3</code></td>
+<td style="text-align: left;"><code>N2 N8 N16 N19</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L7</strong></td>
+<td style="text-align: left;"><code>I2</code> · <code>I7</code> · <code>N11</code></td>
+<td style="text-align: left;"><code>N3</code>, <code>N8</code>, <code>I8</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>L8</strong></td>
+<td style="text-align: left;"><code>I3</code> · <code>I6</code> · <code>N18</code></td>
+<td style="text-align: left;"><code>I2</code>; <code>I7</code>; <code>I7 N1 N4 N16</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L9</strong></td>
+<td style="text-align: left;"><code>N7</code></td>
+<td style="text-align: left;"><code>N1 N3 N4 N5 N16 N18</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>L10</strong></td>
+<td style="text-align: left;"><code>I13</code></td>
+<td style="text-align: left;"><code>N1 N4 N7</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>L11</strong></td>
+<td style="text-align: left;"><code>I1</code></td>
+<td style="text-align: left;"><strong>12 command sources</strong>: <code>I3 I5 I6 I7 I9 I13 I14 N1 N7 N10 N21 N23</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart LR
+  subgraph HW[&quot;L0 · hardware ingest&quot;]
+    I16[&quot;I16 vehicle IF&quot;]; N12[&quot;N12 time&quot;]; N14[&quot;N14 camera&quot;]; N13[&quot;N13 lidar&quot;]; N15[&quot;N15 ultrasonic&quot;]; N17[&quot;N17 sensor health&quot;]; N23[&quot;N23 joystick&quot;]
+  end
+  N1[&quot;N1 gateway&quot;]; N4[&quot;N4 ego state&quot;]; N2[&quot;N2 HPC supervisor&quot;]; N9[&quot;N9 actuator sup.&quot;]; I5[&quot;I5 stop op.&quot;]
+  N16[&quot;N16 world model&quot;]; I19[&quot;I19 AEB&quot;]; I20[&quot;I20 collision det.&quot;]; N5[&quot;N5 corridor&quot;]; N19[&quot;N19 ODD&quot;]
+  I9[&quot;I9–I12 nominal ctrl&quot;]; I8[&quot;I8 validator&quot;]; N10[&quot;N10 envelope&quot;]
+  N8[&quot;N8 fault mgr&quot;]; N3[&quot;N3 state machine&quot;]; I2[&quot;I2 decider&quot;]; I3[&quot;I3 switcher&quot;]; I7[&quot;I7 mrm_handler&quot;]; I6[&quot;I6 e-stop op.&quot;]
+  N18[&quot;N18 pull-over&quot;]; N7[&quot;N7 MRM planner&quot;]; I13[&quot;I13 pure pursuit&quot;]; I1[&quot;I1 gate&quot;]
+  N12--&gt;N1; I16--&gt;N4; N1--&gt;N4; N1--&gt;N2; I16--&gt;N2; I16--&gt;N9; I16--&gt;I5
+  N14--&gt;N16; N13--&gt;N16; N15--&gt;N16; N17--&gt;N16; N13--&gt;I19; N13--&gt;I20; N15--&gt;I20; N4--&gt;I19
+  N14--&gt;N5; N16--&gt;N5; N4--&gt;N5; N14--&gt;N19; N17--&gt;N19; N4--&gt;N19
+  N4--&gt;I9; N1--&gt;I9; I9--&gt;I8; N16--&gt;N10; N19--&gt;N10
+  I8--&gt;N8; I19--&gt;N8; I20--&gt;N8; N2--&gt;N8; N5--&gt;N8; N9--&gt;N8; N16--&gt;N8; N17--&gt;N8
+  N8--&gt;N3; N2--&gt;N3; N16--&gt;N3; N19--&gt;N3
+  N3--&gt;I2; N8--&gt;I2; I2--&gt;I3; N3--&gt;I7; N2--&gt;I7; I7--&gt;I6; I7--&gt;N18; N16--&gt;N18
+  N3--&gt;N7; N5--&gt;N7; N16--&gt;N7; N18--&gt;N7; N7--&gt;I13
+  I3--&gt;I1; I5--&gt;I1; I6--&gt;I1; I7--&gt;I1; I9--&gt;I1; I13--&gt;I1; N7--&gt;I1; N10--&gt;I1; N23--&gt;I1
+  I1-.feedback.-&gt;I16</code></pre>
+<h3 id="what-the-dependency-structure-means-for-the-plan">2.3 What the dependency structure means for the plan</h3>
+<ol type="1">
+<li><strong>The hubs are built interface-first.</strong> <code>I1</code> (12 command sources) and <code>N8</code> (11 fault sources) sit at the bottom of the order, but every behaviour needs them. Each is built <strong>early, with all of its ports declared</strong>, and the ports are filled as producers arrive. An unconnected <code>I1</code> port is a source that never wins arbitration. An unconnected <code>N8</code> source is a row in the fault table with no producer yet. Neither blocks the other work packages.</li>
+<li><strong>The message definitions are everyone's dependency.</strong> Every edge is a typed topic, so <code>autoware_safety_island_msgs</code> (Part 3 of the design) and the E2E profiles come before any node: WP0.</li>
+<li><strong>The B4 path is a closed sub-graph at the root of the order.</strong> The nine nodes <code>N4 N3 N8 N17 I7 I6    I1 I16 I5</code> consume no exteroceptive topic. Only <code>N17</code>'s camera-validity verdict reaches them, through <code>N8</code>. They are therefore built and demonstrated first (WP2–WP3). Every later WP adds capability <em>above</em> a floor that already works.</li>
+<li><strong>Sensing is a parallel track.</strong> <code>N13</code>–<code>N17</code> and <code>N16</code> sit at L0–L1 with no dependency on P0, as §12 of the design notes. WP5 runs alongside WP2–WP4 and joins at <code>N8</code>, <code>N3</code>, <code>N5</code> and <code>N7</code>.</li>
+<li><strong>Behaviours are built in dependency order, not number order.</strong> B2 needs <code>N5</code>, which needs the camera corridor (<code>N14</code>, <code>N16</code>). B3 needs <code>N18</code> and the B2 machinery in <code>N7</code>. B1 needs <code>N19</code>, which needs the sensing chain. So the order is <strong>B4 → B2 → B3 → B1</strong>, then B6 and B5.</li>
+</ol>
+<h3 id="design-gaps-that-block-a-work-package">2.4 Design gaps that block a work package</h3>
+<p>The message-flow companion (§5 there) found places where V1.0 names a message but not one of its ends. Each must be settled before the WP that implements it. This plan does not change the design.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Gap</th>
+<th style="text-align: left;">Blocks</th>
+<th style="text-align: left;">Proposed handling</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Remote / external command has no §8.1 interface row</td>
+<td style="text-align: left;">WP3 (<code>I1</code> port), WP9</td>
+<td style="text-align: left;">Reserve the <code>I1</code> port in WP3; define the row before WP9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>N17</code> and <code>N16</code> both declare the sensing blackout</td>
+<td style="text-align: left;">WP3, WP5</td>
+<td style="text-align: left;">Ask the WG for one owner (and the open-decision-15 debounce) before WP3 exits</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>N7</code> and <code>I7</code> both command the hazard lamps</td>
+<td style="text-align: left;">WP3, WP4</td>
+<td style="text-align: left;">One owner, decided before WP4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">No node named as the odometry arbiter (HPC vs <code>N4</code>)</td>
+<td style="text-align: left;">WP2</td>
+<td style="text-align: left;">Implement in <code>N4</code>, as the companion draws it; confirm with the WG</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Who closes the longitudinal loop during an MRM (<code>N7</code> profile vs <code>I11</code> PID)</td>
+<td style="text-align: left;">WP4</td>
+<td style="text-align: left;">Decide before WP4; §9.4 recommends <code>I11</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>N7</code> has two names</td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">Use <code>si_mrm_planner</code> (§6.3, §9.4)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="work-packages">3. Work packages</h2>
+<p>Each WP lists what it builds, what it depends on, how it is tested, and the demo or exit criterion. Tests are summarised here and detailed in §4.</p>
+<h3 id="sequence-and-tracks">3.1 Sequence and tracks</h3>
+<pre><code>Track A — authority and control   WP0 ─ WP1 ─ WP2 ─ WP3 ─ WP4 ─┬─ WP6 (B2) ─ WP7 (B3) ─ WP8 (B1) ─ WP9 (B6/B5) ─ WP10
+Track B — island sensing                 └──────── WP5 ─────────┘
+Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ────────── H3 ────────── H8 ────────── H4</code></pre>
+<h3 id="the-work-packages">3.2 The work packages</h3>
+<h4 id="wp0-foundations-no-node-depends-on-anything-that-is-not-here">WP0: Foundations (no node depends on anything that is not here)</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>autoware_safety_island_msgs</code>: every <em>new</em> type in §8.1–§8.2 with fixed-capacity bounds (<code>SafetyCorridor</code>, <code>HpcCapability</code>, <code>OddStatus</code>, <code>HpcHeartbeat</code>, <code>PullOverRefuge</code>, <code>IslandState</code>, <code>SafetyWorldState</code>, <code>IslandSensorHealth</code>, <code>OddVerdict</code>, <code>FallbackAvailability</code>, <code>SafetyEnvelopeCommand</code>); <code>I4</code> command-mode types; <strong>SI-E2E/A and /B as a configuration of nano-ros's built-in E2E protocol</strong> (decision Q1: it covers both profiles, so no E2E library is written): Data ID per interface, counter width, CRC and length per profile, and the §8.1 age limits; one <code>*.contract.yaml</code> per node, taken from §8 and §9 (rates, age limits, partitions, the hazard <code>hpc_loss</code> with FTTI 70 ms); the test harness (scripted publishers, recorders, golden-trace comparison)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">Design V1.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Message size bounds (static); E2E: every row of the §8.4 threat table is detected (corruption, repetition, reordering, loss, delay, masquerade, wrong interface, truncation); the contract checker passes on the declared rate hierarchy and the 70 ms budget</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;">Contracts check clean in CI; the E2E configuration passes the threat table</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp1-phase-0-on-the-x-s32z27x-dc">WP1: Phase 0 on the X-S32Z27X-DC</h4>
+<p>FreeRTOS + nano-ros already run on this board (earlier evaluation), so there is no platform bring-up step. WP1 only puts the island's own structure on it.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;">Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with <code>N14</code>'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores); nano-ros with Cyclone DDS on the HPC boundary; <strong><code>I9</code>–<code>I12</code> retargeted from the evaluation island to the board</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP0; the evaluated FreeRTOS + nano-ros setup on the X-S32Z27X-DC</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;"><code>I9</code>–<code>I12</code> closed loop against the Autoware planning simulator; OSQP iteration cap holds <code>I10</code> inside its budget; P3 overload does not disturb P0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;"><strong>Phase 0 reproduced on the board</strong>: trajectory following on the island against unmodified Autoware</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp2-base-layer-l0l2-the-inputs-of-the-safety-core">WP2: Base layer, L0–L2 (the inputs of the safety core)</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>I16</code> golf-cart vehicle interface (CAN FD TX/RX, SI-E2E/B); <code>N12</code> time quality; <code>N1</code> E2E gateway (ingress + egress), <strong>a thin adapter over nano-ros's E2E</strong> that turns every verification failure into a safety event for <code>N8</code> (§8.4, §9.3 risk 4); <code>N4</code> ego-state estimator (wheel speed, steering, ESC yaw/accel; island IMU/GNSS; cross-check against the HPC reference); <code>N2</code> HPC supervisor (heartbeat, per-topic rate, latency, island-local <code>OperationModeAvailability</code>); <code>N9</code> actuator supervisor; <code>I5</code> stop-mode operator</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP1. HPC side: <strong>H1</strong> (E2E egress), <strong>H7</strong> (heartbeat), <strong>H2</strong> (capability vector), <strong>H5</strong> (trajectory conditioner)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;"><code>N1</code>: every E2E failure is a safety event, never a dropped message; age limits per §8.1; a lost time base (<code>N12</code>) invalidates age checks. <code>N2</code>: three missed 100 Hz heartbeats is detected in ≤ 30 ms. <code>N4</code>: dead-reckoning drift against a reference trajectory; switches to island-only odometry on divergence. <code>N9</code>: commanded vs achieved mismatch and response-time faults are detected. <code>I16</code>: CAN FD timing, E2E on actuator commands and feedback</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;">Island sees HPC liveness and its own ego state; fault events reach a stub <code>N8</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp3-the-safety-floor-authority-core-and-b4-design-phase-1">WP3: The safety floor: authority core and B4 (design phase 1)</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N8</code> fault manager (static fault tree, DTC store, reaction table; <strong>all 11 source ports declared</strong>, first sources <code>N1 N2 N9</code>, the FSI line); <code>N3</code> state machine (all states of §6.1; guards for B2/B3/B1 stubbed false); <code>I2</code>/<code>I3</code> static table-driven; <code>I7</code> with re-sourced availability; <code>I6</code>; <strong><code>I1</code> with all 12 ports declared</strong> and its built-in stop; <code>N17</code> reduced to camera validity and the blackout declaration</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">State machine: every transition of §6.1, including <code>EMERGENCY_STOP</code> from <strong>every</strong> state with no guard; one-way transitions cannot be reversed. Gate: source arbitration per §10.4; built-in stop on selected-source timeout. <code>I7</code> ↔ <code>I6</code> <code>OperateMrm</code> service path (<strong>phase-1 exit criterion of §9.3</strong>). Fault-reaction budget ≤ 70 ms, measured with target tracing</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demo <strong>D1</strong></td>
+<td style="text-align: left;"><strong>HPC loss and island blindness, on the bench.</strong> The HPC heartbeat is cut: the island takes authority and stops the vehicle model on a bounded ramp. Then the camera is unplugged: B4 emergency stop, hazard lamps at entry, auto-park at standstill. Run on S32Z2 hardware-in-the-loop with the planning simulator as the HPC</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;">The nine-node B4 path works and is measured inside budget</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp4-fallback-control-tier-part-of-design-phase-2">WP4: Fallback control tier (part of design phase 2)</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N7</code> MRM planner (bounded <code>Trajectory</code> ≤ 50 points; lateral-acceleration, steering-rate and jerk bounds); <code>I13</code> pure pursuit; <code>I11</code>/<code>I9</code> as the MRM longitudinal law (§9.4 recommendation); <code>I8</code> control validator (reject ⇒ switch to fallback tier); <code>I14</code> (optional)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP3 (<code>N3</code> activation, <code>I1</code> port); WP1 (<code>I9</code>–<code>I12</code>)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;"><code>I13</code> tracks <code>N7</code>'s path within the corridor bound; the two-tier switch happens within one cycle when <code>I10</code> overruns or <code>I8</code> rejects; <code>N7</code> never emits a profile outside its hard bounds; P3 is shed before P2 under overload</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;"><strong>In-lane bounded stop</strong> on a remembered trajectory after HPC loss</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp5-island-sensing-chain-design-phase-3-parallel-with-wp2wp4">WP5: Island sensing chain (design phase 3; parallel with WP2–WP4)</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N14</code> vision guard (Ethernet camera, 640 × 400 mono, 15 Hz; classical IPM, gradient, line fitting, column scan; lane lines, road edge, drivable lateral space); <code>N13</code> scan guard (<strong>3D LiDAR</strong>, §1.3: corridor and near-field crop, ground segmentation, voxel downsample to a fixed-capacity <code>PointCloud2</code>; free space ahead, nearest in-path return, kerb height); <code>N15</code> proximity guard (5 ultrasonics); <code>N17</code> sensor health (full: frame rate, blockage, degradation); <code>N16</code> safety world model (conservative fusion, camera-anchored corridor, explicit <strong>no-valid-source</strong>); <code>I19</code> AEB on <code>N13</code>; <code>I20</code> collision detector on <code>N13</code> + <code>N15</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP1 (partition map; sensor I/O on the board); <strong>open decision 8</strong> (classical CV or a certified smart camera) settled for the camera chosen</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Recorded and synthetic camera sequences with ground-truth lanes (detection rate, lateral error, latency; ≈ 0.3 Gop/s fits the budget); 3D LiDAR and ultrasonic replay; <strong><code>N13</code> holds its output bound and its P2 period at the sensor's full point rate on the board</strong>; ground segmentation on slopes, ramps and kerbs; a low obstacle (below a 2D scan plane) is detected; fusion rules: any source can add a hazard, only the camera can create a corridor, lower ranks may only narrow; <strong>blackout is distinguishable from an empty road</strong>; AEB raises an ERROR for an in-path target at 30 km/h with the 13 m stopping distance of §9.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;">Obstacle-aware stop: the island stops for what it sees (WP4's stop now shortens for obstacles)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp6-b2-lane-hold-after-hpc-loss">WP6: B2, lane hold after HPC loss</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N5</code> corridor monitor (camera required once the island drives; <code>H3</code> refines while fresh); <code>N3</code> <code>LANE_KEEP_HOLD</code> with <code>T_hold</code>, the latched ODD class and the fork to B3 / B4; <code>N7</code> <code>v_hold</code> ramp (running minimum of five bounds, monotone non-increasing); <code>N2</code> recovery verdict and hand-back</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP4, WP5. HPC side: <strong>H3</strong> (corridor), <strong>H6</strong> (island state client)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Descent to <code>v_odd</code> = 30 km/h inside the hold window (50→30 km/h in 2.8 s at 2 m/s²); hand-back only after the full confirmation window; <code>T_hold</code> expiry forks to B3 with camera, B4 without; corridor lost ⇒ B4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demo <strong>D2</strong></td>
+<td style="text-align: left;"><strong>HPC fails on a city road, the island holds the lane, the HPC comes back.</strong> Run as software-in-the-loop, then on the golf cart at ≤ 30 km/h on a closed course</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp7-b3-pull-over">WP7: B3, pull over</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N18</code> pull-over manager (<code>OperateMrm</code> server in the existing <code>pull_over_manager</code> slot; refuge go / no-go; the abort ladder; the <strong>island-detected refuge</strong> from <code>N14</code>, with the side ultrasonic pair able to disqualify it and the 3D LiDAR confirming the edge and measuring kerb height, which may disqualify the refuge but never approve it); <code>N7</code> lateral displacement path; <code>I7</code> selects the pull-over MRM</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP6. HPC side: <strong>H8</strong> (refuge publisher)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">The three search outcomes are kept apart (<em>found</em> / <em>positively none</em> → in-lane stop / <em>inconclusive</em> → B4) within <code>T_refuge</code>; each abort-ladder rung removes a requirement and never adds one; pull-over to the instrumented (kerb) side only; long indicator dwell and low lateral rate in place of rear-corner radar</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demo <strong>D3</strong></td>
+<td style="text-align: left;"><strong>HPC lost and does not return: the golf cart pulls over</strong> to a nominated refuge, and to an island-detected one when <code>H8</code> offers none</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp8-b1-odd-degradation-and-the-guardian-role">WP8: B1, ODD degradation, and the guardian role</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N19</code> ODD monitor (camera contrast + <strong>lidar-versus-camera</strong> divergence; IMU friction; asymmetric hysteresis; the ODD-switch demand, <code>T_ack</code>, <code>T_odd</code> and the two-part acceptance test); <code>N10</code> envelope monitor and <code>SafetyEnvelopeCommand</code>; <code>N2</code> compliance supervision</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP5, WP6. HPC side: <strong>H4</strong> (ODD reporter, declared domain)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Visibility loss is detected, and a fog domain declared by the HPC <strong>fails verification</strong> on this branch, as §9.5 requires; <code>T_odd</code> expiry picks its successor in the §3.2 order (blackout → B4, HPC lost → B2, otherwise → B3); the HPC is constrained before it is overridden</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demo <strong>D4</strong></td>
+<td style="text-align: left;">Camera visibility degraded (fogged lens or occluder): the island demands an ODD switch, the HPC answers, and the island verifies the answer or escalates</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp9-b6-joystick-and-b5-tele-operation">WP9: B6 joystick and B5 tele-operation</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N23</code> local control (wired joystick, dead-man, <code>v_local</code>, <code>T_local</code>; local source outranks remote); B5 path: <code>N21</code> command-and-liveness interface, <code>N22</code> forwarding the camera's own encoded stream, both <strong>as stubs against a test RCC</strong>, because V1.0 defers the RCC communication design (§8.6)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Depends on</td>
+<td style="text-align: left;">WP3 (<code>I1</code> ports). The remote-command interface row (§2.4) must be defined</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Every row of the §6.6 failure table: cable pulled, enabling switch released, link loss, video freeze, replayed or corrupted command, B6 pre-empting B5, camera lost during B5 ⇒ B4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demo <strong>D5</strong></td>
+<td style="text-align: left;">Operator drives the stopped vehicle off the road with the joystick at creep speed (B6)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="wp10-audit-and-options">WP10: Audit and options</h4>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Builds</td>
+<td style="text-align: left;"><code>N11</code> event recorder (pre/post-event ring buffer, UDS/DTC export, P4); <code>N20</code> object digest <em>(optional)</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;">Graded-reaction step 4 (audit) met; digest is conservative-only (never removes a hazard, never validates a corridor) and goes invalid on its carry-over bounds</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Exit</td>
+<td style="text-align: left;"><strong>Required before any pilot</strong> (§9.4: the recorder is not needed for a bench demo)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hpc-side-dependencies">3.3 HPC-side dependencies</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">HPC node</th>
+<th style="text-align: left;">Needed by</th>
+<th style="text-align: left;">Purpose on the link</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">H1 <code>si_bridge_hpc</code></td>
+<td style="text-align: left;">WP2</td>
+<td style="text-align: left;">E2E egress, the only HPC writer to the island; uses the same nano-ros E2E profiles, so it is also a thin adapter</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">H7 <code>hpc_heartbeat</code></td>
+<td style="text-align: left;">WP2</td>
+<td style="text-align: left;">100 Hz heartbeat, 20 ms age</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">H2 <code>hpc_capability_reporter</code></td>
+<td style="text-align: left;">WP2</td>
+<td style="text-align: left;">Fixed-size capability vector</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">H5 <code>hpc_trajectory_conditioner</code></td>
+<td style="text-align: left;">WP2</td>
+<td style="text-align: left;">250-point bounded trajectory</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">H6 <code>hpc_island_state_client</code></td>
+<td style="text-align: left;">WP6</td>
+<td style="text-align: left;">Island verdict back into the AD API</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">H3 <code>hpc_corridor_publisher</code></td>
+<td style="text-align: left;">WP6</td>
+<td style="text-align: left;">Map corridor for <code>N5</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">H8 <code>hpc_refuge_publisher</code></td>
+<td style="text-align: left;">WP7</td>
+<td style="text-align: left;">Lawful refuge for <code>N18</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">H4 <code>hpc_odd_reporter</code></td>
+<td style="text-align: left;">WP8</td>
+<td style="text-align: left;">Declared domain for the B1 exchange</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">H9 <code>hpc_shadow_control_monitor</code></td>
+<td style="text-align: left;">optional</td>
+<td style="text-align: left;">Field monitoring only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="minimal-pull-over-island">3.4 Minimal pull-over island</h3>
+<p>§9.4 and §12 recommend the shortest path to a demonstrable L4 fallback: phases 1, 3 and 4 reduced to their mandatory nodes, deferring the guardian role. On S32Z2 that is <strong>WP2 + WP3 + WP4 (<code>N7</code>, <code>I13</code>, <code>I9</code>/<code>I11</code>/<code>I12</code>) + WP5 + WP7 (<code>N18</code>)</strong>, which delivers D1 and D3. It is 21 mandatory nodes with <code>N13</code> in place of <code>N6</code>, plus the 3 recommended. WP6's B2 hold and WP8's guardian role (<code>I8</code>, <code>N10</code>) can follow.</p>
+<hr />
+<h2 id="testing">4. Testing</h2>
+<h3 id="test-levels">4.1 Test levels</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Level</th>
+<th style="text-align: left;">Where</th>
+<th style="text-align: left;">What it proves</th>
+<th style="text-align: left;">Used from</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>T1 Unit</strong></td>
+<td style="text-align: left;">Host</td>
+<td style="text-align: left;">Node logic against its specification. Migrated nodes bring their Autoware test suites with them; new nodes get tests written from the §6 tables</td>
+<td style="text-align: left;">WP0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>T2 Node-in-the-loop</strong></td>
+<td style="text-align: left;">Host build: FreeRTOS POSIX port, or nano-ros on POSIX</td>
+<td style="text-align: left;">One node with scripted inputs and golden output traces; contract terms (rate, age, latency) checked by the contract tooling; feedback edges stubbed (§2.1)</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>T3 Software-in-the-loop</strong></td>
+<td style="text-align: left;">Autoware planning simulator as the HPC + island as a host build, Cyclone DDS</td>
+<td style="text-align: left;">Behaviours end-to-end, with every edge closed. The setup already used for the evaluation island</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>T4 Hardware-in-the-loop</strong></td>
+<td style="text-align: left;">X-S32Z27X-DC + HPC PC + CAN FD vehicle simulator + sensor replay</td>
+<td style="text-align: left;">Timing on the real target: target traces, the ≤ 70 ms reaction budget, partition isolation under overload, memory fit</td>
+<td style="text-align: left;">WP1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>T5 Vehicle</strong></td>
+<td style="text-align: left;">NTU golf cart, closed course, ≤ 30 km/h, fair weather</td>
+<td style="text-align: left;">The Least-Cost ODD as claimed</td>
+<td style="text-align: left;">WP6</td>
+</tr>
+</tbody>
+</table>
+<p>The S32Z2 board is in the lab, so T4 is available from WP1 onward and no emulated target is needed on the critical path. One board is shared by every work package, so T2 and T3 on the host build carry the day-to-day regression load, and T4 runs on merge and for timing measurements.</p>
+<h3 id="fault-injection-matrix">4.2 Fault-injection matrix</h3>
+<p>Taken from the design's Part 4 list (§12) and the §6.6 failure table, restricted to this branch.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Fault</th>
+<th style="text-align: left;">Injected at</th>
+<th style="text-align: left;">Expected response</th>
+<th style="text-align: left;">Verified in</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">HPC hang (heartbeat stops)</td>
+<td style="text-align: left;">HPC process suspended</td>
+<td style="text-align: left;"><code>N2</code> detects ≤ 30 ms; authority to the island; B2 (or bounded stop before WP6)</td>
+<td style="text-align: left;">WP3, WP6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HPC link flood</td>
+<td style="text-align: left;">Traffic generator on TSN</td>
+<td style="text-align: left;">Rate limits hold; P0 unaffected</td>
+<td style="text-align: left;">WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Stale trajectory</td>
+<td style="text-align: left;">Delay injector</td>
+<td style="text-align: left;"><code>N1</code> age reject → last valid trajectory → <code>N7</code> profile</td>
+<td style="text-align: left;">WP2, WP4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">E2E corruption, replay, masquerade</td>
+<td style="text-align: left;">Frame mutator</td>
+<td style="text-align: left;">Safety event to <code>N8</code>; never a silent drop</td>
+<td style="text-align: left;">WP0, WP2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Actuator non-response</td>
+<td style="text-align: left;">CAN FD simulator</td>
+<td style="text-align: left;"><code>N9</code> → B4; during B4 → gate built-in stop + FSI line</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Camera lost</td>
+<td style="text-align: left;">Unplug / blank frames</td>
+<td style="text-align: left;"><code>N17</code> blackout → B4 from <strong>any</strong> state</td>
+<td style="text-align: left;">WP3, WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">All island sensors blind at once</td>
+<td style="text-align: left;">Every sensor stream cut</td>
+<td style="text-align: left;">B4, unchanged; the nine-node path consumes no exteroceptive topic</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Lidar lost</td>
+<td style="text-align: left;">Unplug</td>
+<td style="text-align: left;">AEB disarmed and recorded; camera behaviours continue</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ultrasonic lost</td>
+<td style="text-align: left;">Unplug</td>
+<td style="text-align: left;">No tight-to-kerb end; stop within the shoulder</td>
+<td style="text-align: left;">WP7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FSI <code>SOC_ERROR</code></td>
+<td style="text-align: left;">GPIO driven</td>
+<td style="text-align: left;">Highest-priority fault, ≤ 1 ms detection</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Power loss of the HPC</td>
+<td style="text-align: left;">Supply cut</td>
+<td style="text-align: left;">As HPC hang</td>
+<td style="text-align: left;">WP6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Overload of the island</td>
+<td style="text-align: left;">CPU hog in P3 / P3s</td>
+<td style="text-align: left;">P3 shed first; P0–P2 keep their periods</td>
+<td style="text-align: left;">WP4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Visibility loss</td>
+<td style="text-align: left;">Fogged lens / occluder</td>
+<td style="text-align: left;"><code>N19</code> demand; fog domain fails verification</td>
+<td style="text-align: left;">WP8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Joystick cable pulled, enabling switch released</td>
+<td style="text-align: left;">Hardware</td>
+<td style="text-align: left;">Immediate stop, <code>I6</code> then <code>I5</code></td>
+<td style="text-align: left;">WP9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RCC link loss mid-B5</td>
+<td style="text-align: left;">Test RCC</td>
+<td style="text-align: left;">In-lane stop, or B4 without the camera</td>
+<td style="text-align: left;">WP9</td>
+</tr>
+</tbody>
+</table>
+<h3 id="evidence-carried-forward-to-the-safety-case">4.3 Evidence carried forward to the safety case</h3>
+<ul>
+<li>The contract checker's verdicts in CI (rates, budgets, ladders that terminate), per commit.</li>
+<li>Timing traces from the target for every reaction path in the table above.</li>
+<li>nano-ros's own verification evidence for its E2E protocol (Kani / Verus), inherited for SI-E2E/A and /B (Q1).</li>
+<li>nano-ros's allocation-site report (<code>rmw-alloc-sites.py</code>) for the T0 partition (§9.3).</li>
+<li>Structural coverage and static-analysis results for P0 and P1 code, to the level the ASIL allocation in Part 4 requires.</li>
+</ul>
+<hr />
+<h2 id="decisions">5. Decisions</h2>
+<h3 id="taken">5.1 Taken</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">#</th>
+<th style="text-align: left;">Decision</th>
+<th style="text-align: left;">Consequence for the plan</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Q1</td>
+<td style="text-align: left;"><strong>nano-ros's built-in E2E protocol satisfies SI-E2E/A and /B</strong> (§8.4, §9.3 risk 4)</td>
+<td style="text-align: left;">WP0 configures the profiles instead of writing an E2E library; <code>N1</code> and <code>H1</code> are thin adapters; the island inherits the middleware's own verification evidence for the protocol</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Q2</td>
+<td style="text-align: left;"><strong>Rust on the safety island</strong>: the new island nodes are written in Rust on nano-ros</td>
+<td style="text-align: left;">New <code>N*</code> nodes are <code>no_std</code> Rust (R4 and D5's memory-safety requirement met at the language level); node logic is shared Rust crates, per <a href="ARCHITECTURE.md">ARCHITECTURE.md</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="still-open">5.2 Still open</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">#</th>
+<th style="text-align: left;">Question</th>
+<th style="text-align: left;">Needed by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Q3</td>
+<td style="text-align: left;">Intra-island transport for P0 (open decision 7)</td>
+<td style="text-align: left;">WP1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Q4</td>
+<td style="text-align: left;">Camera: classical CV or certified smart camera (open decision 8)</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Q5</td>
+<td style="text-align: left;">Blackout owner and debounce (§2.4 above; open decision 15)</td>
+<td style="text-align: left;">WP3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Q6</td>
+<td style="text-align: left;">The remaining §2.4 gaps: hazard-lamp owner, MRM longitudinal owner, odometry arbiter</td>
+<td style="text-align: left;">WP2–WP4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Q7</td>
+<td style="text-align: left;">Sensor placement on the golf cart (open decision 21(c)), now including the 3D LiDAR's mounting and field of view</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Q8</td>
+<td style="text-align: left;">Do the migrated <code>I*</code> nodes stay C++ ports? <strong>Proposed: yes</strong>; only the new <code>N*</code> nodes are Rust (see <a href="WP0-WP3-SafetyFloor.md">WP0-WP3-SafetyFloor.md</a> §5)</td>
+<td style="text-align: left;">WP0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Q9</td>
+<td style="text-align: left;">The lab's 3D LiDAR: model, Ethernet interface and speed, point rate, field of view, minimum range, multi-echo, time sync. Sets <code>N13</code>'s budget and the S32Z2 Ethernet port it needs</td>
+<td style="text-align: left;">WP5</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

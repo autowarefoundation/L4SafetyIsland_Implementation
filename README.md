@@ -22,8 +22,12 @@ plan is in [docs/](docs/); the work is tracked in GitHub issues (below).
 ## Progress
 
 GitHub keeps the live state: an open issue is work still to do, a closed one is done. The links
-below open the current lists. The counts in brackets are (completed / open) issues as of
-2026-11-05; the linked lists are always current.
+below open the current lists.
+
+<!-- progress-counts:start -->
+The counts in brackets are (completed / open) issues, recounted by the
+[progress workflow](.github/workflows/update-progress.yml) whenever an issue changes
+(last update: <!-- progress-counts:date -->2026-11-05).
 
 | View | Link (completed / open) |
 | :-- | :-- |
@@ -33,6 +37,7 @@ below open the current lists. The counts in brackets are (completed / open) issu
 | Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 1) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 2) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 5) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 2) |
 | Open issues in the safety core (partition P0) | [open `P0`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3AP0) (0 / 7) |
 | Completed | [closed issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aclosed) (0 / 14) |
+<!-- progress-counts:end -->
 
 ### Imported Autoware nodes (S32Z2)
 

@@ -1,0 +1,45 @@
+name: Update progress counts
+
+# Recount the (completed / open) issues shown in README.md's Progress section
+# whenever an issue changes state or labels, and commit the README if it changed.
+
+on:
+  issues:
+    types: [opened, closed, reopened, deleted, transferred, labeled, unlabeled]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 0 * * *"   # daily backstop, 00:17 UTC
+
+permissions:
+  contents: write
+  issues: read
+
+concurrency:
+  group: update-progress-counts
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Recount issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/update_progress_counts.py README.md
+
+      - name: Commit README if the counts changed
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "README: update progress counts"
+          git pull --rebase origin main
+          git push origin HEAD:main

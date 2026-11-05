@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="l4-safety-island-for-autoware-implementation-and-demo">L4 Safety Island for Autoware — Implementation and Demo</h1>
+<p>Implementation and demonstration of the L4 Safety Island software design for Autoware, built on <a href="https://github.com/NEWSLabNTU/nano-ros">nano-ros</a>.</p>
+<h2 id="design-baseline">Design baseline</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Item</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Design document</td>
+<td style="text-align: left;"><em>L4 Safety Island for Autoware — Software Design</em>, Part 1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Design version</td>
+<td style="text-align: left;"><strong>20261023</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Source</td>
+<td style="text-align: left;"><a href="https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign"><code>autowarefoundation/RFC_L4_SafetyIslandDesign</code></a>, commit <code>a585e95</code></td>
+</tr>
+</tbody>
+</table>
+<p>Node identifiers used in this repository (<code>I*</code> migrated Autoware nodes, <code>N*</code> new island nodes, <code>H*</code> new HPC nodes, behaviours <code>B1</code>–<code>B6</code>) follow the design document.</p>
+<h2 id="status">Status</h2>
+<p><strong>Planning stage.</strong> This repository currently holds the implementation and demo plan only; no code is written here yet.</p>
+<h2 id="platforms">Platforms</h2>
+<p>Two safety-island platforms, one shared code base (design §9.5, D10):</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Design branch</th>
+<th style="text-align: left;">Platform</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Least-Cost</td>
+<td style="text-align: left;">NXP S32Z2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Maximum-Safety</td>
+<td style="text-align: left;">Renesas R-Car X5H</td>
+</tr>
+</tbody>
+</table>
+<h2 id="planning-documents">Planning documents</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Document</th>
+<th style="text-align: left;">Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><a href="docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a></td>
+<td style="text-align: left;">How the two platforms share code: layers, rules, node placement, open points</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><a href="docs/WP0-WP3-SafetyFloor.md">docs/WP0-WP3-SafetyFloor.md</a></td>
+<td style="text-align: left;">WP0–WP3 node by node: messages, inputs/outputs, build tasks, tests, demo D1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><a href="docs/PLAN-S32Z2.md">docs/PLAN-S32Z2.md</a></td>
+<td style="text-align: left;">Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
