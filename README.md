@@ -8,7 +8,7 @@ Implementation and demonstration of the L4 Safety Island software design for Aut
 | Item | Value |
 | :-- | :-- |
 | Design document | *L4 Safety Island for Autoware — Software Design*, Part 1 |
-| Design version | **20261023** (to be updated once the 2026-10-30 revision is published) |
+| Design version | **20261023** |
 | Source | [`autowarefoundation/RFC_L4_SafetyIslandDesign`](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign), commit `a585e95` |
 
 Node identifiers used in this repository (`I*` migrated Autoware nodes, `N*` new island nodes,
@@ -16,8 +16,21 @@ Node identifiers used in this repository (`I*` migrated Autoware nodes, `N*` new
 
 ## Status
 
-Repository created; implementation scope and demo target to be decided.
+**Planning stage.** This repository currently holds the implementation and demo plan only; no code
+is written here yet.
 
-## Layout
+## Platforms
 
-To be defined with the implementation scope.
+Two safety-island platforms, one shared code base (design §9.5, D10):
+
+| Design branch | Platform |
+| :-- | :-- |
+| Least-Cost | NXP S32Z2 |
+| Maximum-Safety | Renesas R-Car X5H |
+
+## Planning documents
+
+| Document | Content |
+| :-- | :-- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
+| [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
