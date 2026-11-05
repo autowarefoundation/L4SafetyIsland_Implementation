@@ -49,7 +49,7 @@ code a merge problem.
 │ crates/si-nodes    I*/N* node logic as pure step functions             │  shared
 │ crates/si-core     state machine (§3.2), v_hold ramp, timers, faults   │  shared
 │ crates/si-msgs     message types, fixed capacity                       │  shared
-│ crates/si-e2e      SI-E2E/A, /B protection                             │  shared
+│ (E2E)              SI-E2E/A, /B = nano-ros built-in E2E, configured    │  middleware
 │ crates/si-sensors  radar / lidar / ultrasonic / IMU / camera decoding  │  shared
 ├──────────────────────────────────────────────────────────────────────┤
 │ crates/si-hal      traits: clock, watchdog, CAN FD, Ethernet, camera…  │  shared (traits only)
@@ -58,10 +58,10 @@ code a merge problem.
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-> **Language.** The layer names above are written as Rust crates. That is not settled: the
-> evaluation island ported the Autoware MRM nodes to nano-ros near verbatim in **C++**, and the
-> migrated `I*` nodes will most likely stay C++. The language of the new `N*` nodes is decision Q2 in
-> [PLAN-S32Z2.md](PLAN-S32Z2.md). The rules below hold in either language.
+> **Language: Rust on the safety island** (decision Q2 in [PLAN-S32Z2.md](PLAN-S32Z2.md)). The new
+> island nodes and the shared crates are `no_std` Rust on nano-ros. **E2E** is not a crate of ours:
+> nano-ros's built-in protocol satisfies SI-E2E/A and /B (decision Q1) and is configured, not
+> implemented.
 
 Rules that keep it that way:
 

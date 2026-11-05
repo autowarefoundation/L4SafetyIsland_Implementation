@@ -193,10 +193,10 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 
 | | |
 | :-- | :-- |
-| Builds | `autoware_safety_island_msgs`: every *new* type in §8.1–§8.2 with fixed-capacity bounds (`SafetyCorridor`, `HpcCapability`, `OddStatus`, `HpcHeartbeat`, `PullOverRefuge`, `IslandState`, `SafetyWorldState`, `IslandSensorHealth`, `OddVerdict`, `FallbackAvailability`, `SafetyEnvelopeCommand`); `I4` command-mode types; the SI-E2E/A and /B library, unless nano-ros's built-in E2E covers them (§8.4: **settle this first**); one `*.contract.yaml` per node, taken from §8 and §9 (rates, age limits, partitions, the hazard `hpc_loss` with FTTI 70 ms); the test harness (scripted publishers, recorders, golden-trace comparison) |
+| Builds | `autoware_safety_island_msgs`: every *new* type in §8.1–§8.2 with fixed-capacity bounds (`SafetyCorridor`, `HpcCapability`, `OddStatus`, `HpcHeartbeat`, `PullOverRefuge`, `IslandState`, `SafetyWorldState`, `IslandSensorHealth`, `OddVerdict`, `FallbackAvailability`, `SafetyEnvelopeCommand`); `I4` command-mode types; **SI-E2E/A and /B as a configuration of nano-ros's built-in E2E protocol** (decision Q1: it covers both profiles, so no E2E library is written): Data ID per interface, counter width, CRC and length per profile, and the §8.1 age limits; one `*.contract.yaml` per node, taken from §8 and §9 (rates, age limits, partitions, the hazard `hpc_loss` with FTTI 70 ms); the test harness (scripted publishers, recorders, golden-trace comparison) |
 | Depends on | Design V1.0 |
 | Tests | Message size bounds (static); E2E: every row of the §8.4 threat table is detected (corruption, repetition, reordering, loss, delay, masquerade, wrong interface, truncation); the contract checker passes on the declared rate hierarchy and the 70 ms budget |
-| Exit | Contracts check clean in CI; E2E library passes the threat table |
+| Exit | Contracts check clean in CI; the E2E configuration passes the threat table |
 
 #### WP1: Phase 0 on the X-S32Z27X-DC
 
@@ -214,7 +214,7 @@ bring-up step. WP1 only puts the island's own structure on it.
 
 | | |
 | :-- | :-- |
-| Builds | `I16` golf-cart vehicle interface (CAN FD TX/RX, SI-E2E/B); `N12` time quality; `N1` E2E gateway (ingress + egress); `N4` ego-state estimator (wheel speed, steering, ESC yaw/accel; island IMU/GNSS; cross-check against the HPC reference); `N2` HPC supervisor (heartbeat, per-topic rate, latency, island-local `OperationModeAvailability`); `N9` actuator supervisor; `I5` stop-mode operator |
+| Builds | `I16` golf-cart vehicle interface (CAN FD TX/RX, SI-E2E/B); `N12` time quality; `N1` E2E gateway (ingress + egress), **a thin adapter over nano-ros's E2E** that turns every verification failure into a safety event for `N8` (§8.4, §9.3 risk 4); `N4` ego-state estimator (wheel speed, steering, ESC yaw/accel; island IMU/GNSS; cross-check against the HPC reference); `N2` HPC supervisor (heartbeat, per-topic rate, latency, island-local `OperationModeAvailability`); `N9` actuator supervisor; `I5` stop-mode operator |
 | Depends on | WP1. HPC side: **H1** (E2E egress), **H7** (heartbeat), **H2** (capability vector), **H5** (trajectory conditioner) |
 | Tests | `N1`: every E2E failure is a safety event, never a dropped message; age limits per §8.1; a lost time base (`N12`) invalidates age checks. `N2`: three missed 100 Hz heartbeats is detected in ≤ 30 ms. `N4`: dead-reckoning drift against a reference trajectory; switches to island-only odometry on divergence. `N9`: commanded vs achieved mismatch and response-time faults are detected. `I16`: CAN FD timing, E2E on actuator commands and feedback |
 | Exit | Island sees HPC liveness and its own ego state; fault events reach a stub `N8` |
@@ -295,7 +295,7 @@ bring-up step. WP1 only puts the island's own structure on it.
 
 | HPC node | Needed by | Purpose on the link |
 | :-- | :-- | :-- |
-| H1 `si_bridge_hpc` | WP2 | E2E egress, the only HPC writer to the island |
+| H1 `si_bridge_hpc` | WP2 | E2E egress, the only HPC writer to the island; uses the same nano-ros E2E profiles, so it is also a thin adapter |
 | H7 `hpc_heartbeat` | WP2 | 100 Hz heartbeat, 20 ms age |
 | H2 `hpc_capability_reporter` | WP2 | Fixed-size capability vector |
 | H5 `hpc_trajectory_conditioner` | WP2 | 250-point bounded trajectory |
@@ -357,18 +357,26 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 
 - The contract checker's verdicts in CI (rates, budgets, ladders that terminate), per commit.
 - Timing traces from the target for every reaction path in the table above.
+- nano-ros's own verification evidence for its E2E protocol (Kani / Verus), inherited for SI-E2E/A and /B (Q1).
 - nano-ros's allocation-site report (`rmw-alloc-sites.py`) for the T0 partition (§9.3).
 - Structural coverage and static-analysis results for P0 and P1 code, to the level the ASIL
   allocation in Part 4 requires.
 
 ---
 
-## 5. Decisions needed before or during the work
+## 5. Decisions
+
+### 5.1 Taken
+
+| # | Decision | Consequence for the plan |
+| :-- | :-- | :-- |
+| Q1 | **nano-ros's built-in E2E protocol satisfies SI-E2E/A and /B** (§8.4, §9.3 risk 4) | WP0 configures the profiles instead of writing an E2E library; `N1` and `H1` are thin adapters; the island inherits the middleware's own verification evidence for the protocol |
+| Q2 | **Rust on the safety island**: the new island nodes are written in Rust on nano-ros | New `N*` nodes are `no_std` Rust (R4 and D5's memory-safety requirement met at the language level); node logic is shared Rust crates, per [ARCHITECTURE.md](ARCHITECTURE.md) |
+
+### 5.2 Still open
 
 | # | Question | Needed by |
 | :-- | :-- | :-- |
-| Q1 | Does nano-ros's built-in E2E satisfy SI-E2E/A and /B? (§8.4, §9.3 risk 4) | WP0 |
-| Q2 | Implementation language of the new nodes. The evaluation island ported Autoware nodes to nano-ros near verbatim in **C++**; new nodes could be C++ or Rust. [ARCHITECTURE.md](ARCHITECTURE.md)'s sharing rules hold either way | WP0 |
 | Q3 | Intra-island transport for P0 (open decision 7) | WP1 |
 | Q4 | Camera: classical CV or certified smart camera (open decision 8) | WP5 |
 | Q5 | Blackout owner and debounce (§2.4 above; open decision 15) | WP3 |
