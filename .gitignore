@@ -1,0 +1,21 @@
+# Rust
+target/
+**/*.rs.bk
+# ROS 2 / colcon
+build/
+install/
+log/
+# Zephyr / west
+.west/
+# LaTeX
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+*.synctex.gz
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
