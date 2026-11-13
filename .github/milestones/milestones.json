@@ -1,0 +1,29 @@
+{
+  "doc": "docs/MILESTONES.md",
+  "milestones": [
+    {"title": "M0 Foundations and phase 0 on the board",
+     "description": "WP0 + WP1. Phase 0 reproduced on the X-S32Z27X-DC; contracts and the E2E threat table pass in CI.",
+     "issues": [2]},
+    {"title": "M1 Safety floor - D1",
+     "description": "WP2 + WP3, design phase 1 (autonomous fallback). HPC: H1 H7 H2 H5. Exit: demo D1, HPC loss and island blindness on the bench, B4 within 70 ms.",
+     "issues": [3, 4, 5, 6, 7, 8, 9]},
+    {"title": "M2 Obstacle-aware bounded stop",
+     "description": "WP4 (without I8) + WP5, design phase 3 and the phase-2 fallback tier. Exit: in-lane bounded stop after HPC loss, shortened for obstacles.",
+     "issues": [10, 12, 13, 14]},
+    {"title": "M3 Minimal pull-over island - D3",
+     "description": "WP7, design phase 4. HPC: H8. Exit: demo D3, the golf cart pulls over when the HPC does not return.",
+     "issues": []},
+    {"title": "M4 Lane hold after HPC loss - D2",
+     "description": "WP6 (B2). HPC: H6 H3. Exit: demo D2, the island holds the lane and hands back to the HPC; D3 re-run via the B2-to-B3 fork.",
+     "issues": []},
+    {"title": "M5 Guardian role and ODD degradation - D4",
+     "description": "I8 + WP8, design phases 2 (complete) and 5. HPC: H4. Exit: demo D4, degraded visibility, ODD switch demanded and verified.",
+     "issues": [11]},
+    {"title": "M6 Local control - D5",
+     "description": "WP9 (B6; B5 stubs). Exit: demo D5, wired joystick drives the stopped cart off the road. Can start after M1.",
+     "issues": []},
+    {"title": "M7 Pilot readiness",
+     "description": "WP10 (N11 event recorder, N20 optional). Exit: audit step met; required before any pilot.",
+     "issues": []}
+  ]
+}

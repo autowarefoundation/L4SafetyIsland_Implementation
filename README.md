@@ -32,6 +32,7 @@ The counts in brackets are (completed / open) issues, recounted by the
 | View | Link (completed / open) |
 | :-- | :-- |
 | Tracking issue: pickup order, dependencies, open decisions | [#1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/1) |
+| Milestones M0–M7 (phase + demo; see [MILESTONES.md](docs/MILESTONES.md)) | [milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/milestones) |
 | **All open issues** | [open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen) (0 / 15) |
 | Open imported-node issues | [open `imported-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aimported-node) (0 / 14) |
 | Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 1) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 2) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 5) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 2) |
@@ -77,5 +78,6 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 | :-- | :-- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
+| [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; minimal pull-over island first |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
 | [slides/L4SafetyIsland-ImplementationPlan.pdf](slides/L4SafetyIsland-ImplementationPlan.pdf) | Slide deck presenting the plan: phases, work packages, partitions, issues; every slide links back to these documents ([source](slides/L4SafetyIsland-ImplementationPlan.tex)) |
