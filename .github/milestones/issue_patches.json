@@ -1,0 +1,15 @@
+{
+ "note": "Exact-text edits to existing issues, applied once by create_milestones.py. An edit whose new text is already in the issue is skipped; one whose old text is gone is reported and skipped.",
+ "patches": [
+  {"issue": 1, "old": "| #11 | `I8` control_validator | WP4 | P1 | Port |", "new": "| #11 | `I8` control_validator | WP7 | P1 | Port |"},
+  {"issue": 5, "old": "- Validation reject from `I8` (D19, WP4)", "new": "- Validation reject from `I8` (D19, WP7)"},
+  {"issue": 6, "old": "- `MrmBehaviorStatus` from `I6` (D12) and `N18` (D11, WP7)", "new": "- `MrmBehaviorStatus` from `I6` (D12) and `N18` (D11, WP6)"},
+  {"issue": 6, "old": "`/system/mrm/pull_over_manager/operate` (D11, WP7)", "new": "`/system/mrm/pull_over_manager/operate` (D11, WP6)"},
+  {"issue": 9, "old": "Reserve the port; define the row before WP9.", "new": "Reserve the port; define the row before WP8."},
+  {"issue": 11, "old": "**Work package** WP4 · **Dependency level** L4", "new": "**Work package** WP7 · **Dependency level** L4"},
+  {"issue": 11, "old": "Checks the control command against the trajectory and vehicle limits. A reject switches to the fallback tier.",
+   "new": "Checks the control command against the trajectory and vehicle limits. A reject switches to the fallback tier.\n\nPart of the **guardian role**, so it moved from WP4 to WP7 (milestone M4) in the 2026-11-13 reorder: design §9.4 excludes it from the minimal pull-over island. Until then the fallback-tier switch is tested on an `I10` overrun only, and this node's source row in `N8` stays declared with no producer."},
+  {"issue": 15, "old": "This issue collects the discussion and records what the WG decides.\n",
+   "new": "This issue collects the discussion and records what the WG decides.\n\n> **Note, added after the meeting:** the plan was reordered on 2026-11-13: the pull-over island first, then the guardian role and ODD degradation, lane hold last. **Work-package numbers in the questions below are those from before the reorder.** Old → new: WP6 (B2 lane hold) → **WP9** · WP7 (B3 pull over) → **WP6** · WP8 (B1 and guardian) → **WP7** · WP9 (B6 / B5) → **WP8**; `I8` moved from WP4 to WP7. The reorder answers two points below: the minimal pull-over path no longer depends on B2 (B3 is built without `N5`, design §9.4), and `I8` now sits with the guardian role. See [MILESTONES.md §2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md#2-what-the-order-changes-and-why-it-stays-inside-the-design). The open questions are left unticked for the WG.\n"}
+ ]
+}

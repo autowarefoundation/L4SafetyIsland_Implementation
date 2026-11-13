@@ -9,6 +9,10 @@ listed issue is then set to its milestone. Every description ends with a link to
 docs/MILESTONES.md. No due dates are set. A label that does not exist yet is
 created with the colour of the label it replaces.
 
+issue_patches.json: exact-text edits to existing issues (for example after a plan
+change). Each runs once: skipped when its new text is already there, reported and
+skipped when its old text is gone.
+
 issues.json: each issue carries a stable "key", written into its body as a hidden
 marker (<!-- issue-key: KEY -->). An issue whose marker already exists is never
 re-created and its title, body and labels are left alone (people edit issues);
@@ -166,11 +170,40 @@ def issues(path):
     print(f"{created} issue(s) {'would be' if DRY else ''} created".replace("  ", " "))
 
 
+def patch_issues(path):
+    if not os.path.exists(path):
+        return
+    by_issue = {}
+    for p in json.load(open(path, encoding="utf-8"))["patches"]:
+        by_issue.setdefault(p["issue"], []).append(p)
+    for n, patches in sorted(by_issue.items()):
+        cur = gh(f"repos/{REPO}/issues/{n}")
+        title, body = cur["title"], cur.get("body") or ""
+        for p in patches:
+            if p["new"] in title or p["new"] in body:
+                continue
+            if p["old"] in title:
+                title = title.replace(p["old"], p["new"], 1)
+            elif p["old"] in body:
+                body = body.replace(p["old"], p["new"], 1)
+            else:
+                print(f"patch   #{n}: old text not found, skipped: {p['old'][:60]}")
+                continue
+            print(f"patch   #{n}: {p['old'][:50]} -> {p['new'][:50]}")
+        if (title, body) != (cur["title"], cur.get("body") or "") and not DRY:
+            r = subprocess.run(["gh", "api", f"repos/{REPO}/issues/{n}", "-X", "PATCH", "--input", "-"],
+                               input=json.dumps({"title": title, "body": body}),
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                sys.exit(f"patching #{n} failed:\n{r.stderr or r.stdout}")
+
+
 def main():
     spec = json.load(open(os.path.join(HERE, "milestones.json"), encoding="utf-8"))
     milestones(spec)
     relabel(spec)
     issues(os.path.join(HERE, "issues.json"))
+    patch_issues(os.path.join(HERE, "issue_patches.json"))
 
 
 if __name__ == "__main__":
