@@ -33,14 +33,14 @@ The counts in brackets are (completed / open) issues, recounted by the
 | :-- | :-- |
 | Tracking issue: pickup order, dependencies, open decisions | [#1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/1) |
 | Milestones M0–M7 (phase + demo; see [MILESTONES.md](docs/MILESTONES.md)) | [milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/milestones) |
-| **All open issues** | [open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen) (0 / 15) |
+| **All open issues** | [open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen) (0 / 63) |
 | Open imported-node issues | [open `imported-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aimported-node) (0 / 14) |
-| Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 1) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 2) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 5) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 2) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 2) · [WP7](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp7) (0 / 1) |
-| Open new island-node issues (`N*`) | [open `island-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aisland-node) |
-| Open HPC-side node issues (`H*`) | [open `hpc-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ahpc-node) |
-| Demos D1–D5 | [open `demo`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ademo) |
-| Open issues in the safety core (partition P0) | [open `P0`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3AP0) (0 / 7) |
-| Completed | [closed issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aclosed) (0 / 15) |
+| Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 5) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 11) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 9) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 7) · [WP7](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp7) (0 / 9) |
+| Open new island-node issues (`N*`) | [open `island-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aisland-node) (0 / 26) |
+| Open HPC-side node issues (`H*`) | [open `hpc-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ahpc-node) (0 / 9) |
+| Demos D1–D5 | [open `demo`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ademo) (0 / 5) |
+| Open issues in the safety core (partition P0) | [open `P0`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3AP0) (0 / 14) |
+| Completed | [closed issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aclosed) (0 / 63) |
 <!-- progress-counts:end -->
 
 ### Imported Autoware nodes (S32Z2)
