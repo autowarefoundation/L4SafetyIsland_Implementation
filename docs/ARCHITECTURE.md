@@ -10,7 +10,7 @@ processor:
 
 | | Least-Cost | Maximum-Safety |
 | :-- | :-- | :-- |
-| Platform | **NXP S32Z2** — 8 × Cortex-R52 (lockstep/split), DSP, 19 MB SRAM | **Renesas R-Car X5H** — 6 × Cortex-R52 lockstep + 32 × Cortex-A720AE |
+| Platform | **NXP S32Z2** (S32Z280 on the **S32Z280-400EVB**) — 8 × Cortex-R52 (lockstep/split), DSP, 19 MB SRAM | **Renesas R-Car X5H** — 6 × Cortex-R52 lockstep + 32 × Cortex-A720AE |
 | Forward camera | 1, low-res mono, 100BASE-T1 Ethernet | 1, GMSL / CSI-2, higher resolution |
 | Radar | none → **`N6` absent** | 4 (front pair, rear pair) → **`N6` present** |
 | Lidar (rank 5, optional) | 1 → **`N13` present**. Design: 2D lidar; **the S32Z2 lab build uses a solid-state 3D LiDAR** in the same confirming-only role ([PLAN-S32Z2.md](PLAN-S32Z2.md) §1.3) | none → **`N13` absent** |
@@ -76,7 +76,7 @@ Rules that keep it that way:
 4. **`no_std`, no heap after init** in every shared crate (R4; §9.3's allocation-policy decision).
    `std` is only in `platforms/host` and `platforms/x5h/a720`.
 5. **One RTOS on both safety clusters if possible.** If both R52 clusters run the same RTOS
-   (**FreeRTOS**, which already runs nano-ros on the S32Z2 board; see §5), the nano-ros glue is shared as well, and the only per-platform
+   (**FreeRTOS**, which already runs nano-ros on the S32Z2; see §5), the nano-ros glue is shared as well, and the only per-platform
    code is drivers and memory maps.
 
 ## 4. Where each node runs
@@ -94,9 +94,9 @@ The X5H's A720AE side is the one real asymmetry. It runs the same `si-nodes` cod
 
 | # | Question | Why it matters |
 | :-- | :-- | :-- |
-| P1 | RTOS on the X5H R52 cluster. The S32Z2 runs **FreeRTOS + nano-ros** (evaluated on the X-S32Z27X-DC), so FreeRTOS on the X5H is preferred; is a FreeRTOS port for the X5H R52 cluster available? | Determines whether rule 5 holds |
+| P1 | RTOS on the X5H R52 cluster. The S32Z2 runs **FreeRTOS + nano-ros** (evaluated on the X-S32Z27X-DC; the target board is the S32Z280-400EVB), so FreeRTOS on the X5H is preferred; is a FreeRTOS port for the X5H R52 cluster available? | Determines whether rule 5 holds |
 | P2 | X5H A720AE side: Linux + ROS 2, or nano-ros `std`? | Cross-cluster transport and freedom from interference (open decision 23(d)) |
-| P3 | Hardware on hand: **X-S32Z27X-DC in the lab**; X5H evaluation board still to be confirmed | What the first X5H work can run on |
+| P3 | Hardware: the Least-Cost target is the **S32Z280-400EVB** (to be procured; the X-S32Z27X-DC evaluation board is in the lab); X5H evaluation board still to be confirmed | What the first S32Z2 and X5H work can run on |
 | P4 | Start from `autoware-safety-island` (nano-ros branch, already `I9`–`I12`) or fresh | Reuse of the existing controller port |
 
 ## 6. Measuring "as much shared code as possible"

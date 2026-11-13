@@ -2,7 +2,7 @@
   "doc": "docs/MILESTONES.md",
   "milestones": [
     {"title": "M0 Foundations and phase 0 on the board",
-     "description": "WP0 + WP1. Phase 0 reproduced on the X-S32Z27X-DC; contracts and the E2E threat table pass in CI.",
+     "description": "WP0 + WP1. S32Z280-400EVB brought up and phase 0 reproduced on it; contracts and the E2E threat table pass in CI.",
      "issues": [2]},
     {"title": "M1 Safety floor - D1",
      "description": "WP2 + WP3, design phase 1 (autonomous fallback). HPC: H1 H7 H2 H5. Exit: demo D1, HPC loss and island blindness on the bench, B4 within 70 ms.",

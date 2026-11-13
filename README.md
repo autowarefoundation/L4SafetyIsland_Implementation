@@ -16,7 +16,7 @@ Node identifiers used in this repository (`I*` migrated Autoware nodes, `N*` new
 
 ## Status
 
-**Importing the Autoware nodes onto the S32Z2 island** (X-S32Z27X-DC, FreeRTOS + nano-ros). The
+**Importing the Autoware nodes onto the S32Z2 island** (S32Z280-400EVB, FreeRTOS + nano-ros). The
 plan is in [docs/](docs/); the work is tracked in GitHub issues (below).
 
 ## Progress
@@ -69,7 +69,7 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 
 | Design branch | Platform |
 | :-- | :-- |
-| Least-Cost | NXP S32Z2 (X-S32Z27X-DC board, FreeRTOS + nano-ros) |
+| Least-Cost | NXP S32Z2: S32Z280 on the S32Z280-400EVB, FreeRTOS + nano-ros ([platform choice](docs/PLATFORM-CHOICE.md)) |
 | Maximum-Safety | Renesas R-Car X5H |
 
 ## Planning documents
@@ -79,5 +79,6 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
 | [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; pull-over island first, then guardian and ODD degradation; lane hold last |
+| [docs/PLATFORM-CHOICE.md](docs/PLATFORM-CHOICE.md) | Why the S32Z280-400EVB is the Least-Cost board; the S32K389EVB-Q437 assessed and not chosen |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
 | [slides/L4SafetyIsland-ImplementationPlan.pdf](slides/L4SafetyIsland-ImplementationPlan.pdf) | Slide deck presenting the plan: phases, work packages, partitions, issues; every slide links back to these documents ([source](slides/L4SafetyIsland-ImplementationPlan.tex)) |

@@ -4,7 +4,7 @@
 | :-- | :-- |
 | Parent plan | [PLAN-S32Z2.md](PLAN-S32Z2.md), work packages WP0–WP3 |
 | Design baseline | Release V1.0 (version 20261023) |
-| Goal | The board structure and phase 0 (WP1), then the nine-node B4 path plus the authority core, running on the X-S32Z27X-DC, demonstrated as demo D1 |
+| Goal | The board structure and phase 0 (WP1), then the nine-node B4 path plus the authority core, running on the S32Z280-400EVB, demonstrated as demo D1 |
 | Edge IDs | `A*`–`F*` are rows of the edge catalogue in `messageflow/L4SafetyIsland-MessageFlow.md` §3 |
 
 **Language.** New nodes (`N*`) are `no_std` Rust on nano-ros (decision Q2). Migrated nodes (`I*`)
@@ -56,10 +56,12 @@ Autoware types reused unchanged: `Trajectory` (≤ 250 points), `Odometry`, `Acc
 
 ---
 
-## 2. WP1: phase 0 on the X-S32Z27X-DC
+## 2. WP1: phase 0 on the S32Z280-400EVB
 
-FreeRTOS + nano-ros already run on this board (earlier evaluation), so WP1 has **no bring-up or
-driver step**. It puts the island's own structure on the board: the partitions every later node is
+FreeRTOS + nano-ros were evaluated on another S32Z2 board, the X-S32Z27X-DC. WP1 first **brings up
+the S32Z280-400EVB**: the evaluated setup is retargeted to this board's pin-out, Ethernet PHYs, CAN
+transceivers and flash boot. It is the same processor family, so this is a board step, not a
+platform port. WP1 then puts the island's own structure on the board: the partitions every later node is
 placed into, the HPC boundary, and the measurement setup the 70 ms budget is checked with. Then it
 moves the phase-0 controller onto that structure. WP1 writes **no new node**: `I9`–`I12` are the only
 nodes it runs, and they are already ported.
@@ -94,7 +96,8 @@ answered.
 | Intra-island transport | Open decision 7 (plan Q3). WP1 picks a **provisional** backend, recorded and flagged, so WP2 can start. It is a `system.toml` choice, so revisiting it later touches no node source |
 | Allocation baseline | `rmw-alloc-sites.py` run on the board build: the first entry of the T0 allocation-site report (plan §4.3) |
 | Target tracing | Trace points at executor release and completion and at CAN FD transmit. This is the instrument WP3 uses to measure detection 30 ms + decision 20 ms + command 20 ms |
-| HIL rig (T4) | X-S32Z27X-DC + HPC PC running the Autoware planning simulator + CAN FD vehicle simulator; the one rig every later T4 test uses |
+| Board bring-up | FreeRTOS + nano-ros on the S32Z280-400EVB, retargeted from the X-S32Z27X-DC evaluation; Ethernet port allocation per plan Q10 (HPC link and camera on the two on-board ports); CAN FD to the golf cart; boot from the on-board flash |
+| HIL rig (T4) | S32Z280-400EVB + HPC PC running the Autoware planning simulator + CAN FD vehicle simulator; the one rig every later T4 test uses |
 | Host build (T2/T3) | `platforms/host` built from the **same** partition configuration (FreeRTOS POSIX port or nano-ros on POSIX), so the WP0 harness and the software-in-the-loop runs match the board |
 
 ### `I9`–`I12` trajectory_follower_node (hosting `mpc_lateral_controller`, `pid_longitudinal_controller`, `trajectory_follower_base`) · C++ (already ported, phase 0) · P3 · L3

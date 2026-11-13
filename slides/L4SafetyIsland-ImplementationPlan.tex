@@ -44,6 +44,8 @@
       \gh{\repo}{L4SafetyIsland\_Implementation} \\
     Implementation plan, S32Z2 & Nodes, dependency order, work packages, tests, demos, decisions &
       \gh{\docs/PLAN-S32Z2.md}{docs/PLAN-S32Z2.md} \\
+    Platform choice & Why the S32Z280-400EVB; the S32K389 assessed &
+      \gh{\docs/PLATFORM-CHOICE.md}{docs/PLATFORM-CHOICE.md} \\
     Milestones & M0--M7: phase reached and demo shown, in build order &
       \gh{\docs/MILESTONES.md}{docs/MILESTONES.md} \\
     WP0--WP3 node by node & Messages, WP1 partition map, the safety-floor nodes, demo D1 &
@@ -66,7 +68,7 @@
 
 % ===================================================================
 \begin{frame}{What is being built}
-  \framesubtitle{The Least-Cost branch of design D10 / §9.5, on the board in the lab}
+  \framesubtitle{The Least-Cost branch of design D10 / §9.5, on the S32Z280-400EVB}
   \footnotesize
 
   \begin{cols}
@@ -74,7 +76,7 @@
       \eyebrow{The S32Z2 island}\\[1mm]
       \begin{tabularx}{\linewidth}{@{}l X@{}}
         \toprule
-        Board & X-S32Z27X-DC, \textbf{FreeRTOS + nano-ros} (already evaluated) \\
+        Board & S32Z280-400EVB (S32Z280, 400 MAPBGA); \textbf{FreeRTOS + nano-ros} evaluated on the X-S32Z27X-DC \\
         Processor & 8 $\times$ Cortex-R52 (lockstep / split), DSP, 19\,MB SRAM \\
         Camera (rank 1) & 1 mono, 100BASE-T1 --- \textbf{mandatory} \\
         Radar (rank 2) & none \arrow{} \texttt{N6} not built \\
@@ -332,7 +334,7 @@
     and is measured inside the 70\,ms budget.}
 
   \source{\gh{\docs/WP0-WP3-SafetyFloor.md}{WP0-WP3-SafetyFloor.md}
-    \;\textbullet\; \gh{\docs/WP0-WP3-SafetyFloor.md\#2-wp1-phase-0-on-the-x-s32z27x-dc}{§2 WP1}}
+    \;\textbullet\; \gh{\docs/WP0-WP3-SafetyFloor.md\#2-wp1-phase-0-on-the-s32z280-400evb}{§2 WP1}}
 \end{frame}
 
 \begin{frame}{Testing and demos}
@@ -347,7 +349,7 @@
         T1 Unit & Host; node logic; Autoware's own suites for \texttt{I*} & WP0 \\
         T2 Node-in-the-loop & Host build; golden traces; contract terms & WP2 \\
         T3 SIL & Planning simulator as the HPC + host island & WP3 \\
-        T4 HIL & X-S32Z27X-DC + HPC PC + CAN FD simulator & WP1 \\
+        T4 HIL & S32Z280-400EVB + HPC PC + CAN FD simulator & WP1 \\
         T5 Vehicle & Golf cart, closed course, $\leq$\,30\,km/h & WP4 \\
         \bottomrule
       \end{tabularx}
@@ -546,6 +548,7 @@
     Q7 & Sensor placement on the golf cart, including the 3D LiDAR (open decision 21(c)) & WP5 \\
     Q8 & Migrated \texttt{I*} nodes stay C++ ports (proposed: yes) & WP0 \\
     Q9 & The lab 3D LiDAR: model, interface, point rate, field of view, time sync & WP5 \\
+    Q10 & S32Z280-400EVB Ethernet: two ports for three links (HPC, camera, LiDAR); PHY types & WP1, WP5 \\
     \bottomrule
   \end{tabularx}
 

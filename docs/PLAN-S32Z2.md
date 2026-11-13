@@ -3,7 +3,7 @@
 | | |
 | :-- | :-- |
 | Design baseline | *L4 Safety Island for Autoware — Software Design*, **Release V1.0** (version 20261023) |
-| Platform | **NXP S32Z2** on the **X-S32Z27X-DC** evaluation board, **FreeRTOS + nano-ros**: the Least-Cost branch of design D10 / §9.5 |
+| Platform | **NXP S32Z280** on the **S32Z280-400EVB** evaluation board (400 MAPBGA), **FreeRTOS + nano-ros**: the Least-Cost branch of design D10 / §9.5. Platform choice: [PLATFORM-CHOICE.md](PLATFORM-CHOICE.md) |
 | Status | Plan, for review. No code is written against it yet. |
 | Companion | [ARCHITECTURE.md](ARCHITECTURE.md) — how S32Z2 and R-Car X5H share one code base |
 
@@ -18,7 +18,8 @@ behaviours) are those of the design. Section references (§) point into the desi
 
 | Item | Least-Cost branch on S32Z2 (§9.5) |
 | :-- | :-- |
-| Processor | S32Z2: 8 × Cortex-R52 (lockstep or split), Neon, DSP/ML processor, 19 MB on-chip SRAM |
+| Processor | S32Z280: 8 × Cortex-R52 at up to 1 GHz (lockstep or split), Neon, DSP/ML processor, 19 MB on-chip SRAM, TSN Ethernet switch, CAN FD |
+| Board | **S32Z280-400EVB** (400 MAPBGA): 2 × 1 Gbps Ethernet, 2 × CAN FD, 2 × CAN XL, LIN, SPI, HyperFlash + serial flash, SDHC, JTAG and Aurora trace; S32X-MB I/O extension. No LPDDR4, which the island does not need (§9.5 keeps every buffer on chip). User guide UG10272 |
 | Forward camera (rank 1) | 1 × low-resolution mono, 100BASE-T1 Ethernet; encodes its own B5 video stream |
 | Radar (rank 2) | **none**, so **`N6` is not built for this platform** |
 | Ultrasonic (rank 3) | 5: three across the front, two on the kerb side |
@@ -235,16 +236,18 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──────────�
 | Tests | Message size bounds (static); E2E: every row of the §8.4 threat table is detected (corruption, repetition, reordering, loss, delay, masquerade, wrong interface, truncation); the contract checker passes on the declared rate hierarchy and the 70 ms budget |
 | Exit | Contracts check clean in CI; the E2E configuration passes the threat table |
 
-#### WP1: Phase 0 on the X-S32Z27X-DC
+#### WP1: Phase 0 on the S32Z280-400EVB
 
-FreeRTOS + nano-ros already run on this board (earlier evaluation), so there is no platform
-bring-up step. WP1 only puts the island's own structure on it. Detailed in
+FreeRTOS + nano-ros were evaluated on another S32Z2 board, the X-S32Z27X-DC. The S32Z280-400EVB
+has the same processor family, so WP1 has a **board bring-up step** but no platform port: the
+evaluated setup is retargeted to this board's pin-out, Ethernet PHYs, CAN transceivers and flash
+boot. Then WP1 puts the island's own structure on it. Detailed in
 [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §2.
 
 | | |
 | :-- | :-- |
-| Builds | Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with `N14`'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores), with a synthetic load in every partition that has no node yet; the Least-Cost branch profile; nano-ros with Cyclone DDS on the HPC boundary and a provisional intra-island transport (Q3); target tracing; the HIL rig and the host build from the same configuration; **`I9`–`I12` retargeted from the evaluation island to the board** |
-| Depends on | WP0; the evaluated FreeRTOS + nano-ros setup on the X-S32Z27X-DC |
+| Builds | Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with `N14`'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores), with a synthetic load in every partition that has no node yet; the Least-Cost branch profile; nano-ros with Cyclone DDS on the HPC boundary and a provisional intra-island transport (Q3); target tracing; the HIL rig and the host build from the same configuration; **board bring-up** (FreeRTOS + nano-ros, Ethernet, CAN FD, boot from flash, retargeted from the X-S32Z27X-DC evaluation); **`I9`–`I12` retargeted from the evaluation island to the board** |
+| Depends on | WP0; the S32Z280-400EVB delivered; the FreeRTOS + nano-ros setup evaluated on the X-S32Z27X-DC; Q10 (the board's Ethernet ports) |
 | Tests | `I9`–`I12` closed loop against the Autoware planning simulator; OSQP iteration cap holds `I10` inside its budget; the P0/P1/P2 bands pass the nano-ros scheduling-matrix check (§9.3 risk 3); P3 overload and an `I10` overrun leave the **synthetic** P0–P2 loads at their periods (repeated with the real nodes in WP3 and WP4) |
 | Exit | **Phase 0 reproduced on the board**: trajectory following on the island against unmodified Autoware; all partitions run at their §9.1 periods; tracing works end to end on the HIL rig |
 
@@ -363,11 +366,11 @@ monitor that WP7 already provides.
 | **T1 Unit** | Host | Node logic against its specification. Migrated nodes bring their Autoware test suites with them; new nodes get tests written from the §6 tables | WP0 |
 | **T2 Node-in-the-loop** | Host build: FreeRTOS POSIX port, or nano-ros on POSIX | One node with scripted inputs and golden output traces; contract terms (rate, age, latency) checked by the contract tooling; feedback edges stubbed (§2.1) | WP2 |
 | **T3 Software-in-the-loop** | Autoware planning simulator as the HPC + island as a host build, Cyclone DDS | Behaviours end-to-end, with every edge closed. The setup already used for the evaluation island | WP3 |
-| **T4 Hardware-in-the-loop** | X-S32Z27X-DC + HPC PC + CAN FD vehicle simulator + sensor replay | Timing on the real target: target traces, the ≤ 70 ms reaction budget, partition isolation under overload, memory fit | WP1 |
+| **T4 Hardware-in-the-loop** | S32Z280-400EVB + HPC PC + CAN FD vehicle simulator + sensor replay | Timing on the real target: target traces, the ≤ 70 ms reaction budget, partition isolation under overload, memory fit | WP1 |
 | **T5 Vehicle** | NTU golf cart, closed course, ≤ 30 km/h, fair weather | The Least-Cost ODD as claimed | WP4 |
 
-The S32Z2 board is in the lab, so T4 is available from WP1 onward and no emulated target is needed
-on the critical path. One board is shared by every work package, so T2 and T3 on the host build carry
+T4 is available once the S32Z280-400EVB is in the lab and WP1's bring-up is done. Until then, WP0
+and the T1–T3 host work do not need the board, so the board does not block the critical path. One board is shared by every work package, so T2 and T3 on the host build carry
 the day-to-day regression load, and T4 runs on merge and for timing measurements.
 
 ### 4.2 Fault-injection matrix
@@ -423,3 +426,4 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 | Q7 | Sensor placement on the golf cart (open decision 21(c)), now including the 3D LiDAR's mounting and field of view | WP5 |
 | Q8 | Do the migrated `I*` nodes stay C++ ports? **Proposed: yes**; only the new `N*` nodes are Rust (see [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §6) | WP0 |
 | Q9 | The lab's 3D LiDAR: model, Ethernet interface and speed, point rate, field of view, minimum range, multi-echo, time sync. Sets `N13`'s budget and the S32Z2 Ethernet port it needs | WP5 |
+| Q10 | Ethernet on the S32Z280-400EVB: the board has two 1 Gbps ports, and the island needs three links (HPC, camera, LiDAR). The PHY types fitted (the camera needs 100BASE-T1) and whether the S32Z280's internal TSN switch reaches a third port through the S32X-MB extension board. Check against UG10272 | WP1 (HPC, camera), WP5 (LiDAR) |

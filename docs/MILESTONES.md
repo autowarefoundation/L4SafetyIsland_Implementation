@@ -27,7 +27,7 @@ The work packages are numbered in this order (PLAN §3.1).
 
 | Milestone | Phase(s) reached | Demo / exit | Work packages | HPC side | Issues |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| **M0** Foundations and phase 0 on the board | 0 (on target) | Phase 0 reproduced on the X-S32Z27X-DC; contracts and E2E threat table clean in CI | WP0, WP1 | — | #2 |
+| **M0** Foundations and phase 0 on the board | 0 (on target) | S32Z280-400EVB brought up; phase 0 reproduced on it; contracts and E2E threat table clean in CI | WP0, WP1 | — | #2 |
 | **M1** Safety floor — **D1** | 1 (autonomous fallback) | **D1**: HPC loss and island blindness on the bench, B4 inside 70 ms | WP2, WP3 | H1 H7 H2 H5 | #3 #4 #5 #6 #7 #8 #9 |
 | **M2** Obstacle-aware bounded stop | 3 (obstacle-aware MRM) + phase-2 fallback tier | In-lane bounded stop after HPC loss, shortened for obstacles; first T5 run on the golf cart | WP4, WP5 | — | #10 #12 #13 #14 |
 | **M3** Minimal pull-over island — **D3** | 4 (pull-over MRM) | **D3**: HPC lost and not returning; the golf cart pulls over to a nominated, then an island-detected refuge | WP6 | H8 | — |
@@ -75,9 +75,11 @@ issues are closed and its exit is shown.
 - **Scope.**
   - WP0: `autoware_safety_island_msgs`, `I4`, SI-E2E/A and /B configured on nano-ros E2E (Q1),
     per-node `*.contract.yaml`, test harness.
-  - WP1: partition map with synthetic loads, Cyclone DDS to the HPC, provisional intra-island
-    transport, tracing, HIL rig; `I9`–`I12` retargeted (#2).
-- **Gates.** Q8 (migrated `I*` nodes stay C++); Q3 provisional choice recorded.
+  - WP1: S32Z280-400EVB bring-up (retargeted from the X-S32Z27X-DC evaluation), partition map with
+    synthetic loads, Cyclone DDS to the HPC, provisional intra-island transport, tracing, HIL rig;
+    `I9`–`I12` retargeted (#2).
+- **Gates.** Q8 (migrated `I*` nodes stay C++); Q3 provisional choice recorded; the S32Z280-400EVB
+  delivered; Q10 (its Ethernet ports) answered for the HPC link and the camera.
 - **Exit.**
   - Contracts check clean in CI, and E2E passes the §8.4 threat table.
   - Trajectory following on the board against unmodified Autoware.
