@@ -1,0 +1,612 @@
+{
+ "labels": {
+  "island-node": {
+   "color": "5319e7",
+   "description": "New safety-island node (N*)"
+  },
+  "hpc-node": {
+   "color": "0052cc",
+   "description": "New HPC-side node on Autoware (H*)"
+  },
+  "demo": {
+   "color": "e99695",
+   "description": "Milestone demo (D1–D5)"
+  },
+  "work-item": {
+   "color": "bfd4f2",
+   "description": "Work-package task that is not a node"
+  },
+  "wp0": {
+   "color": "c2e0c6",
+   "description": "Work package 0: foundations"
+  },
+  "wp6": {
+   "color": "c2e0c6",
+   "description": "Work package 6: B3 pull over"
+  },
+  "wp7": {
+   "color": "c2e0c6",
+   "description": "Work package 7: guardian role and B1"
+  },
+  "wp8": {
+   "color": "c2e0c6",
+   "description": "Work package 8: B6 joystick and B5 tele-operation"
+  },
+  "wp9": {
+   "color": "c2e0c6",
+   "description": "Work package 9: B2 lane hold"
+  },
+  "wp10": {
+   "color": "c2e0c6",
+   "description": "Work package 10: audit and options"
+  },
+  "P3s": {
+   "color": "0e8a16",
+   "description": "Partition P3s: tele-operation streaming"
+  },
+  "P4": {
+   "color": "cccccc",
+   "description": "Partition P4: non-real-time"
+  },
+  "s32z2": {
+   "color": "bfdadc",
+   "description": "NXP S32Z2 / S32Z280-400EVB"
+  }
+ },
+ "issues": [
+  {
+   "key": "WP0-msgs",
+   "title": "WP0: message package autoware_safety_island_msgs",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp0",
+    "s32z2"
+   ],
+   "body": "**Work package** WP0 · **Milestone** M0\n\n### What\nEvery new type of §8.1–§8.2 and the internal island types, each with a fixed capacity (nano-ros sizes its pools from it).\n\n### Tasks\n- [ ] The 11 HPC-link types (WP0-WP3-SafetyFloor.md §1.1)\n- [ ] Internal types: `FaultEvent`, `FaultVerdict`, `IslandMode`, `SensorValidity`, recovery verdict\n- [ ] `I4` command-mode types\n\n### Exit\n- [ ] Message size bounds checked statically\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP0-e2e",
+   "title": "WP0: SI-E2E/A and /B as a nano-ros E2E configuration",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp0",
+    "s32z2"
+   ],
+   "body": "**Work package** WP0 · **Milestone** M0\n\n### What\nDecision Q1: nano-ros's built-in E2E covers both profiles, so this is configuration, not a library.\n\n### Tasks\n- [ ] Data ID per interface row of §8.1–§8.3\n- [ ] Profile A or B, counter width, CRC and length per row\n- [ ] §8.1 age limits\n\n### Exit\n- [ ] Every row of the §8.4 threat table is detected\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP0-contracts",
+   "title": "WP0: node contract files and the checker in CI",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp0",
+    "s32z2"
+   ],
+   "body": "**Work package** WP0 · **Milestone** M0\n\n### What\nOne `*.contract.yaml` per node from §8 and §9: rates, age limits, partitions, the hazard `hpc_loss` with FTTI 70 ms.\n\n### Tasks\n- [ ] Contracts for the WP2–WP3 nodes first\n- [ ] Checker in CI on every commit\n\n### Exit\n- [ ] The checker passes on the §9.2 budget: 30 + 20 + 20 ms\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP0-harness",
+   "title": "WP0: test harness, HPC stub and fault-code table",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp0",
+    "s32z2"
+   ],
+   "body": "**Work package** WP0 · **Milestone** M0\n\n### What\nThe tools every node issue's tests use.\n\n### Tasks\n- [ ] Host-build node runner, scripted publishers, trace recorder, golden-trace comparison\n- [ ] HPC stub publishing `H1`/`H2`/`H5`/`H7` traffic that can stop, freeze or corrupt it\n- [ ] `N8` fault-code table\n\n### Exit\n- [ ] A node issue can script all of its inputs\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP1-bringup",
+   "title": "WP1: bring up the S32Z280-400EVB",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp1",
+    "s32z2"
+   ],
+   "body": "**Work package** WP1 · **Milestone** M0\n\n### What\nRetarget the FreeRTOS + nano-ros setup evaluated on the X-S32Z27X-DC to the S32Z280-400EVB: same S32Z2 family, so a board step, not a platform port.\n\n### Tasks\n- [ ] Pin-out, clocks, boot from the on-board flash\n- [ ] Ethernet: HPC link and camera on the two on-board ports (Q10)\n- [ ] CAN FD to the golf cart\n- [ ] Order the board early (low stock)\n\n### Exit\n- [ ] FreeRTOS + nano-ros run on the board and talk to unmodified Autoware\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP1-partitions",
+   "title": "WP1: partition map, synthetic loads and the scheduling-matrix check",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp1",
+    "s32z2"
+   ],
+   "body": "**Work package** WP1 · **Milestone** M0\n\n### What\nThe six §9.1 partitions on the board, each with a synthetic load until its nodes arrive.\n\n### Tasks\n- [ ] Core and SRAM map in the platform file\n- [ ] Least-Cost branch profile\n- [ ] nano-ros scheduling-matrix check (§9.3 risk 3)\n\n### Exit\n- [ ] P3 overload and an `I10` overrun leave P0–P2 at their periods\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP1-transport",
+   "title": "WP1: HPC boundary (Cyclone DDS) and provisional intra-island transport",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp1",
+    "s32z2"
+   ],
+   "body": "**Work package** WP1 · **Milestone** M0\n\n### What\nCyclone DDS to the HPC, wire-compatible with unmodified Autoware; a provisional intra-island backend (open decision 7, Q3), recorded and flagged.\n\n### Tasks\n- [ ] Cyclone DDS over Ethernet to the HPC PC\n- [ ] Provisional intra-island transport in `system.toml`\n- [ ] Allocation baseline with `rmw-alloc-sites.py`\n\n### Exit\n- [ ] Autoware sees the island's topics; Q3 recorded\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "WP1-tracing-hil",
+   "title": "WP1: target tracing, HIL rig and host build",
+   "milestone": "M0",
+   "labels": [
+    "work-item",
+    "wp1",
+    "s32z2"
+   ],
+   "body": "**Work package** WP1 · **Milestone** M0\n\n### What\nThe instruments the 70 ms budget is measured with.\n\n### Tasks\n- [ ] Trace points at executor release, completion and CAN FD transmit\n- [ ] HIL rig: board + HPC PC with the planning simulator + CAN FD vehicle simulator\n- [ ] Host build from the same partition configuration\n\n### Exit\n- [ ] Tracing works end to end on the HIL rig\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n\n"
+  },
+  {
+   "key": "N12",
+   "title": "Island node N12 si_time_quality_monitor: time-base validity",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp2",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N12` · **Tier** T1 · **Partition** P1 · **Rate** 1 Hz · **Work package** WP2 · **Dependency level** L0\n\n### Package\n- `si_time_quality_monitor`\n\n### Role on the safety island\nWatches the gPTP time base. A lost or degraded time base invalidates every age check `N1` makes (§6.1 N12).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- gPTP sync state from the TSN switch (A2)\n\n### Outputs\n- time-base valid / invalid to `N1` (A3, 1 Hz)\n- `TIME_BASE_INVALID` to `N8`\n\n### Tasks\n- [ ] Offset and sync-loss detection with configurable bounds\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Valid on lock; invalid on offset beyond bound or sync lost\n- [ ] The transition is raised as `TIME_BASE_INVALID`\n\n### Depends on\n- The board's gPTP / TSN setup (WP1)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N1",
+   "title": "Island node N1 si_safety_gateway: E2E ingress and egress",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp2",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N1` · **Tier** T0 · **Partition** P0 · **Rate** per signal · **Work package** WP2 · **Dependency level** L1\n\n### Package\n- `si_safety_gateway`\n\n### Role on the safety island\nThe only door between the HPC and the island. Verifies every §8.1 signal (SI-E2E/A or /B, age limit) and publishes the §8.2 signals back. A thin adapter over nano-ros E2E (decision Q1).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- The §8.1 signals from `H1` (A1)\n- time-base validity from `N12` (A3)\n- §8.2 signals from `N3`, `N16`, `N17`, `N18`, `N19`, `N10` for egress\n\n### Outputs\n- Verified signals to their consumers (B1–B15)\n- egress of the §8.2 signals to `H1` (F7)\n- `E2E_VERIFY_FAIL` events to `N8` (B15)\n\n### Tasks\n- [ ] Per-row Data ID, profile and age limit from the WP0 E2E configuration\n- [ ] **Every verification failure becomes a `FaultEvent`, never a silent drop**\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Every §8.4 threat row per interface: corruption, repetition, reordering, loss, delay, masquerade, wrong interface, truncation\n- [ ] Age limit at the boundary (accept just under, reject just over)\n- [ ] `N12` invalid ⇒ age checks reported invalid, not passed\n\n### Depends on\n- WP0 message package and E2E configuration\n- `N12`\n- `H1` on the HPC (scripted until it exists)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N9",
+   "title": "Island node N9 si_actuator_supervisor: commanded vs achieved",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp2",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N9` · **Tier** T1 · **Partition** P1 · **Rate** 100 Hz · **Work package** WP2 · **Dependency level** L1\n\n### Package\n- `si_actuator_supervisor`\n\n### Role on the safety island\nChecks that the actuators do what the gate commands. Non-response during B4 is the one fault that takes a path outside the node graph (gate built-in stop + FSI line).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Achieved values from `I16` (F5)\n- commanded values from `I1` (F6, feedback edge; scripted)\n\n### Outputs\n- `ACTUATOR_NOT_TRACKING` and non-response events to `N8` (D22)\n\n### Tasks\n- [ ] Tolerance and response-time bounds per actuator\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Commanded vs achieved mismatch beyond tolerance\n- [ ] Response-time violation\n- [ ] Brake-pressure / EPS-availability loss\n- [ ] No false positive during normal tracking on recorded data\n\n### Depends on\n- `I16` (#3)\n- `I1` (#9) for the commanded values\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N2",
+   "title": "Island node N2 si_hpc_supervisor: HPC liveness and availability",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp2",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N2` · **Tier** T0 · **Partition** P0 · **Rate** 100 Hz · **Work package** WP2 · **Dependency level** L2\n\n### Package\n- `si_hpc_supervisor`\n\n### Role on the safety island\nDecides whether the HPC is alive and in time. Produces the island-local `OperationModeAvailability` that `I7` acts on. Compliance supervision (M4) and the recovery verdict (M6) are separate issues.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- `HpcHeartbeat`, `HpcCapability` and per-topic arrival times via `N1` (B7)\n- vehicle status (badge V)\n\n### Outputs\n- Island-local `OperationModeAvailability` to `I7` (D1, 100 Hz)\n- `HPC_LIVENESS_LOST`, `HPC_COMMAND_INVALID` to `N8` (D3)\n\n### Tasks\n- [ ] Heartbeat timeout, per-topic minimum rate, latency against the declared budget\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] **Three missed 100 Hz heartbeats detected in ≤ 30 ms**\n- [ ] Per-topic minimum rate and latency against budget\n- [ ] Availability published even with the HPC silent\n- [ ] No flapping on a single late heartbeat\n\n### Depends on\n- `N1`\n- `H7` heartbeat, `H2` capability (scripted until they exist)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N4",
+   "title": "Island node N4 si_vehicle_state_estimator: island ego state",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp2",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N4` · **Tier** T0 · **Partition** P0 · **Rate** 100 Hz · **Work package** WP2 · **Dependency level** L2\n\n### Package\n- `si_vehicle_state_estimator`\n\n### Role on the safety island\nThe island's own odometry, independent of the HPC. Every controller and sensing node consumes it (badge E). Acts as the odometry arbiter (decision Q6).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Wheel speed, steering, ESC yaw rate and acceleration (A4, via `I16`)\n- island IMU / GNSS\n- HPC reference odometry via `N1` (B9)\n\n### Outputs\n- Island `Odometry` + `AccelWithCovarianceStamped` (badge E)\n\n### Tasks\n- [ ] Dead reckoning on chassis signals; IMU fusion where fitted\n- [ ] Cross-check against the HPC estimate; island-only on divergence or loss\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Drift against a reference trajectory over the B4 stopping distance\n- [ ] IMU loss ⇒ chassis-only with wider covariance\n- [ ] HPC estimate diverging ⇒ switch, with an event to `N8`\n\n### Depends on\n- `I16` (#3)\n- `N1`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### Notes\n- Decision Q6: confirm `N4` as the odometry arbiter with the WG.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N17-reduced",
+   "title": "Island node N17 si_sensor_health, reduced: camera validity and blackout",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp3",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N17` · **Tier** T1s · **Partition** P2 · **Rate** 5–10 Hz · **Work package** WP3 · **Dependency level** L0\n\n### Package\n- `si_sensor_health` (reduced: camera validity and the blackout only)\n\n### Role on the safety island\nDeclares the sensing blackout that triggers B4. WP3 needs only this declaration; the full node is a separate issue in M2.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Camera stream: frame arrival, frame rate, a basic validity check (A10)\n\n### Outputs\n- `SensorValidity` (camera)\n- `SENSING_BLACKOUT` to `N8` (C20)\n- `IslandSensorHealth` (badge H)\n\n### Tasks\n- [ ] Debounce with a provisional value, flagged (open decision 15)\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Camera unplugged, frozen, black or saturated frames ⇒ blackout after the debounce\n- [ ] Blackout is not lifted by any lower-ranked sensor\n\n### Depends on\n- Camera ingest on the board (WP1)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### Notes\n- Decision Q5: `N17` or `N16` owns the blackout. Settle before WP3 exits.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N8",
+   "title": "Island node N8 si_fault_manager: all 11 source ports declared",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp3",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N8` · **Tier** T0 · **Partition** P0 · **Rate** 100 Hz · **Work package** WP3 · **Dependency level** L5\n\n### Package\n- `si_fault_manager`\n\n### Role on the safety island\nThe single fault verdict. A hub with 11 producers: built early with **every source port declared**; producers that do not exist yet are rows with no producer (plan §2.3).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Connected now: `N1`, `N2`, `N9`, `N17`, the FSI line (A12)\n- Declared, no producer yet: `I8`, `I19`, `I20`, `N5`, `N16`, `N21`/`N23`\n\n### Outputs\n- `FaultVerdict` to `N3` (D13) and `I2` (D14), 100 Hz\n- DTC store (badge R)\n\n### Tasks\n- [ ] Static fault tree and reaction table as data, not code\n- [ ] Blackout and the later in-lane-stop code kept distinct\n- [ ] A blackout record names the lower-ranked sensors still alive\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Every row of the reaction table\n- [ ] FSI line is highest priority (≤ 1 ms path)\n- [ ] An unconnected port never produces a verdict\n- [ ] DTCs persist\n\n### Depends on\n- WP0 fault-code table\n- `N1`, `N2`, `N9`, `N17`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "N3",
+   "title": "Island node N3 si_state_machine: all §6.1 states, B1–B3 guards stubbed",
+   "milestone": "M1",
+   "labels": [
+    "island-node",
+    "wp3",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N3` · **Tier** T0 · **Partition** P0 · **Rate** 100 Hz · **Work package** WP3 · **Dependency level** L6\n\n### Package\n- `si_state_machine`\n\n### Role on the safety island\nThe island safety state machine. All states exist from WP3; the B2, B3 and B1 guards are stubbed false until their milestones, so HPC loss goes to the bounded stop.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- `FaultVerdict` (D13)\n- `N16` snapshot (C16, stubbed: corridor invalid)\n- `N19` (C24, M4) and `N2` recovery (D2, M6) declared\n\n### Outputs\n- `IslandMode` to `I2` (D15)\n- MRM request to `I7` (D16)\n- `IslandState` (badge H)\n\n### Tasks\n- [ ] `BOOT → SELF_TEST → STANDBY → ADS_ACTIVE → {DEGRADED, LANE_KEEP_HOLD, MRM_PREPARE, MRM_EXECUTE, MRM_COMPLETE, EMERGENCY_STOP} → SAFE_STOP`\n- [ ] Guards for B1–B3 present, stubbed false\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Exhaustive transition table\n- [ ] **`EMERGENCY_STOP` reachable from every state, with no guard**; its only successor is `SAFE_STOP`\n- [ ] No edge back up from B4 even if the camera returns\n- [ ] Property tests over random fault sequences\n\n### Depends on\n- `N8`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n- [WP0–WP3 detail](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/WP0-WP3-SafetyFloor.md)\n"
+  },
+  {
+   "key": "H1",
+   "title": "HPC node H1 si_bridge_hpc",
+   "milestone": "M1",
+   "labels": [
+    "hpc-node",
+    "wp2",
+    "s32z2"
+   ],
+   "body": "**Node:** `H1` · **Runs on** the HPC (Autoware) · **Needed by** WP2\n\n### Package\n- `si_bridge_hpc`\n\n### Role\nThe only HPC writer to the island: E2E egress of the §8.1 signals, and ingress of the island's §8.2 signals. A thin adapter over the same nano-ros E2E profiles (decision Q1).\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- The §8.1 signals to `N1`, SI-E2E/A and /B (A1)\n\n### Tasks\n- [ ] Same Data IDs and profiles as WP0\n\n### Acceptance tests\n- [ ] Passes the §8.4 threat table against `N1`\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "H7",
+   "title": "HPC node H7 hpc_heartbeat",
+   "milestone": "M1",
+   "labels": [
+    "hpc-node",
+    "wp2",
+    "s32z2"
+   ],
+   "body": "**Node:** `H7` · **Runs on** the HPC (Autoware) · **Needed by** WP2\n\n### Package\n- `hpc_heartbeat`\n\n### Role\n100 Hz heartbeat that `N2` supervises.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- `HpcHeartbeat`, 100 Hz, 20 ms age\n\n### Tasks\n- [ ] Publish from the HPC's own scheduling path\n\n### Acceptance tests\n- [ ] Rate held under HPC load\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "H2",
+   "title": "HPC node H2 hpc_capability_reporter",
+   "milestone": "M1",
+   "labels": [
+    "hpc-node",
+    "wp2",
+    "s32z2"
+   ],
+   "body": "**Node:** `H2` · **Runs on** the HPC (Autoware) · **Needed by** WP2\n\n### Package\n- `hpc_capability_reporter`\n\n### Role\nThe HPC's fixed-size capability vector, including `remote_takeover_requested`.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- `HpcCapability`, 10 Hz\n\n### Tasks\n- [ ] Fixed capacity per WP0\n\n### Acceptance tests\n- [ ] Values match the HPC's real state\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "H5",
+   "title": "HPC node H5 hpc_trajectory_conditioner",
+   "milestone": "M1",
+   "labels": [
+    "hpc-node",
+    "wp2",
+    "s32z2"
+   ],
+   "body": "**Node:** `H5` · **Runs on** the HPC (Autoware) · **Needed by** WP2\n\n### Package\n- `hpc_trajectory_conditioner`\n\n### Role\nBounds Autoware's trajectory to 250 points for the island.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- Bounded `Trajectory` ≤ 250 points\n\n### Tasks\n- [ ] Resample without changing the path\n\n### Acceptance tests\n- [ ] Never exceeds 250 points; path error within bound\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "D1",
+   "title": "Demo D1: HPC loss and island blindness on the bench",
+   "milestone": "M1",
+   "labels": [
+    "demo",
+    "wp3",
+    "s32z2"
+   ],
+   "body": "**Demo** D1 · **Milestone** M1 · **Work package** WP3\n\n### Scenario\nThe HPC heartbeat is cut: the island takes authority and stops the vehicle model on a bounded ramp. Then the camera is unplugged: B4 emergency stop, hazard lamps at entry, auto-park at standstill.\n\n### Where\nS32Z280-400EVB HIL, planning simulator as the HPC (WP0-WP3-SafetyFloor.md §5)\n\n### Checks (record the measured value against each)\n- [ ] `HPC_LIVENESS_LOST` ≤ 30 ms\n- [ ] Fault-to-first-brake command ≤ 70 ms\n- [ ] Blackout while already stopping: B4 entered, no exit back up\n- [ ] Actuators not tracking during B4: gate built-in stop + FSI line\n- [ ] Corrupted HPC traffic: event count = injected count\n\n### Results\n_To be filled in when the demo is run: date, setup, measured values, traces._\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "N7-ramp",
+   "title": "Island node N7 si_mrm_planner: bounded MRM trajectory and ramp",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp4",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N7` · **Tier** T1 · **Partition** P1 · **Rate** 50 Hz · **Work package** WP4 · **Dependency level** L9\n\n### Package\n- `si_mrm_planner` (bounded trajectory and longitudinal ramp)\n\n### Role on the safety island\nGenerates the bounded MRM `Trajectory` (≤ 50 points) that `I13` tracks after HPC loss, with hard lateral-acceleration, steering-rate and jerk bounds. The pull-over path (M3) and `v_hold` (M6) are separate issues.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Last valid trajectory via `N1` (B5)\n- `N16` free space and nearest obstacle (C17)\n- activation from `N3` (D17)\n- ego state (badge E)\n\n### Outputs\n- Bounded MRM `Trajectory` to `I13` (E13)\n- hazard-lamp and gear sequencing to `I1` (E6)\n- standstill reached to `N3` (D17)\n\n### Tasks\n- [ ] Bounded in-lane deceleration ramp on the remembered trajectory\n- [ ] Hard bounds checked at generation time\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Never emits a profile outside its hard bounds\n- [ ] `I13` tracks the path within the corridor bound\n- [ ] The stop shortens for an in-path obstacle (with WP5)\n\n### Depends on\n- `N3`, `N16`, `N4`\n- `I13` (#10)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### Notes\n- Decision Q6: hazard-lamp owner (`N7` or `I7`) and MRM longitudinal owner (`N7` or `I11`); settle before WP4.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N14",
+   "title": "Island node N14 si_vision_guard: the mandatory camera",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp5",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N14` · **Tier** T1s · **Partition** P2 · **Rate** 15 Hz · **Work package** WP5 · **Dependency level** L0\n\n### Package\n- `si_vision_guard`\n\n### Role on the safety island\nThe one mandatory sensing node: lane lines, road edge and drivable lateral space from the forward camera. Its pixel stages run on the S32Z280's DSP or Neon (§9.5, about 0.3 Gop/s).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Ethernet camera, 640 × 400 mono, 15 Hz (A5)\n\n### Outputs\n- Lane boundaries and free-space edge to `N16` (C1) and `N5` (C11)\n- visibility evidence to `N19` (C12)\n\n### Tasks\n- [ ] Classical IPM, gradient, line fitting, column scan\n- [ ] Pixel stages on the DSP or Neon; line fitting on an R52 core\n- [ ] Settle open decision 8 (classical CV or certified smart camera) for the camera chosen (Q4)\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Recorded and synthetic sequences with ground-truth lanes: detection rate, lateral error, latency\n- [ ] Fits its P2 budget on the board\n\n### Depends on\n- Camera ingest on the board (WP1); Q10 Ethernet port\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N13",
+   "title": "Island node N13 si_scan_guard: 3D LiDAR, confirming only",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp5",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N13` · **Tier** T1s · **Partition** P2 · **Rate** 10–40 Hz · **Work package** WP5 · **Dependency level** L0\n\n### Package\n- `si_scan_guard` (3D LiDAR, plan §1.3)\n\n### Role on the safety island\nFree space and the physical edge from the lab's solid-state 3D LiDAR, in the design's rank-5 role: it may confirm or disqualify, never qualify a refuge or supply a corridor. `I19`'s AEB input on this branch.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- 3D LiDAR point stream (A8)\n\n### Outputs\n- Free-space distance ahead, nearest in-path return to `N16` (C3)\n- bounded `PointCloud2` to `I19` (C6) and `I20` (C7)\n- return range and intensity to `N19` (C12)\n\n### Tasks\n- [ ] Crop to the ego corridor and near field; ground segmentation; voxel downsample to a fixed-capacity `PointCloud2`\n- [ ] Kerb height and position\n- [ ] Answer Q9 (the LiDAR's data) before sizing\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] **Holds its output bound and its P2 period at the sensor's full point rate on the board**\n- [ ] Ground segmentation on slopes, ramps and kerbs\n- [ ] A low obstacle below a 2D scan plane is detected\n\n### Depends on\n- Q9, Q10 (a third Ethernet link)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N15",
+   "title": "Island node N15 si_proximity_guard: ultrasonic near field",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp5",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N15` · **Tier** T1s · **Partition** P2 · **Rate** 10–20 Hz · **Work package** WP5 · **Dependency level** L0\n\n### Package\n- `si_proximity_guard`\n\n### Role on the safety island\nNear-field clearance from the five ultrasonics: three across the front, two on the kerb side. The only island sensor that sees the last metre beside the vehicle.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Ultrasonic array (A9)\n\n### Outputs\n- Near-field clearance per sector to `N16` (C4)\n- returns as `PointCloud2` to `I20` (C8)\n\n### Tasks\n- [ ] Sector model for the five sensors\n- [ ] Q7: placement on the golf cart\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Replay with known obstacles per sector\n- [ ] A lost sensor is reported to `N17`\n\n### Depends on\n- Sensor placement (Q7)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N17-full",
+   "title": "Island node N17 si_sensor_health, full: every sensor",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp5",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N17` · **Tier** T1s · **Partition** P2 · **Rate** 5–10 Hz · **Work package** WP5 · **Dependency level** L0\n\n### Package\n- `si_sensor_health` (full)\n\n### Role on the safety island\nExtends the reduced `N17` (M1) to every island sensor: frame rate, blockage and degradation, with the cause passed to `N19`.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Raw streams of every exteroceptive sensor (A10)\n\n### Outputs\n- Per-source validity flags to `N16` (C5)\n- degradation cause to `N19` (C13)\n- sensor faults to `N8` (C20)\n- `IslandSensorHealth` (badge H)\n\n### Tasks\n- [ ] Per-sensor checks for LiDAR and ultrasonics\n- [ ] Keep the blackout rule: only the camera's loss declares it\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Each sensor unplugged, frozen or degraded is flagged\n- [ ] LiDAR lost ⇒ AEB disarmed and recorded; camera behaviours continue\n\n### Depends on\n- The reduced `N17` (M1)\n- `N13`, `N14`, `N15`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N16",
+   "title": "Island node N16 si_safety_world_model: conservative fusion",
+   "milestone": "M2",
+   "labels": [
+    "island-node",
+    "wp5",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N16` · **Tier** T1s · **Partition** P2 · **Rate** 20–50 Hz · **Work package** WP5 · **Dependency level** L1\n\n### Package\n- `si_safety_world_model`\n\n### Role on the safety island\nFuses the island's own sensing conservatively: any source may add a hazard, only the camera creates a corridor, lower ranks may only narrow. Reports **no valid source** explicitly.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- `N14` (C1), `N13` (C3), `N15` (C4), `N17` validity (C5)\n\n### Outputs\n- Snapshot to `N3` (C16), `N5` (C15), `N7` (C17), `N18` (C18), `N10` (C14)\n- no-valid-source to `N8` (C19)\n- `SafetyWorldState` (badge H)\n\n### Tasks\n- [ ] Camera-anchored corridor; rank rules as data\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Fusion rules: add-only hazards, camera-only corridor, lower ranks narrow only\n- [ ] **Blackout is distinguishable from an empty road**\n- [ ] All island sensors blind at once ⇒ B4, unchanged\n\n### Depends on\n- `N13`, `N14`, `N15`, `N17`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### Notes\n- Decision Q5: blackout owner (`N16` or `N17`).\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N18",
+   "title": "Island node N18 si_pull_over_manager: B3 pull over",
+   "milestone": "M3",
+   "labels": [
+    "island-node",
+    "wp6",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N18` · **Tier** T1 · **Partition** P1 · **Rate** 20 Hz · **Work package** WP6 · **Dependency level** L8\n\n### Package\n- `si_pull_over_manager`\n\n### Role on the safety island\nThe `OperateMrm` server in Autoware's existing `pull_over_manager` slot. Chooses go / no-go for a refuge, runs the abort ladder, and finds an **island-detected refuge** when the HPC offers none.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- `OperateMrm` from `I7` (D11)\n- nominated refuge from `H8` via `N1` (B11)\n- live free space from `N16` (C18)\n- ego state (badge E)\n\n### Outputs\n- `MrmBehaviorStatus` to `I7` (D11)\n- refuge target to `N7` (D10)\n- `pull_over_available` to `N3` (D9) and `N19` (C25)\n- `FallbackAvailability` (badge H)\n\n### Tasks\n- [ ] Refuge go / no-go and the abort ladder\n- [ ] Island-detected refuge from `N14`; the side ultrasonic pair and the LiDAR may disqualify it, never approve it\n- [ ] `N3`: take the B3 branch directly on confirmed HPC loss until M6 adds B2\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] The three search outcomes kept apart within `T_refuge`: found / positively none → in-lane stop / inconclusive → B4\n- [ ] Each abort-ladder rung removes a requirement and never adds one\n- [ ] Pull over to the instrumented (kerb) side only; long indicator dwell, low lateral rate\n\n### Depends on\n- `I7` (#6), `N7`, `N16`, `N14`\n- `H8` (scripted until it exists)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N7-pullover",
+   "title": "Island node N7 si_mrm_planner: pull-over lateral displacement path",
+   "milestone": "M3",
+   "labels": [
+    "island-node",
+    "wp6",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N7` · **Tier** T1 · **Partition** P1 · **Rate** 50 Hz · **Work package** WP6 · **Dependency level** L9\n\n### Package\n- `si_mrm_planner` (pull-over lateral path)\n\n### Role on the safety island\nExtends `N7` (M2) with the lateral displacement into the refuge `N18` selects, on the WP4 longitudinal ramp.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Refuge target from `N18` (D10)\n- free space from `N16` (C17)\n\n### Outputs\n- Bounded pull-over `Trajectory` to `I13` (E13)\n- indicator and hazard sequencing to `I1` (E6)\n\n### Tasks\n- [ ] Lateral path within the same hard bounds as the ramp\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Path stays inside its bounds and inside the refuge\n- [ ] Abort to the in-lane stop at every rung\n\n### Depends on\n- `N7` ramp (M2)\n- `N18`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "H8",
+   "title": "HPC node H8 hpc_refuge_publisher",
+   "milestone": "M3",
+   "labels": [
+    "hpc-node",
+    "wp6",
+    "s32z2"
+   ],
+   "body": "**Node:** `H8` · **Runs on** the HPC (Autoware) · **Needed by** WP6\n\n### Package\n- `hpc_refuge_publisher`\n\n### Role\nNominates a lawful refuge for `N18`.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- `PullOverRefuge`, 2 Hz, 2 s age\n\n### Tasks\n- [ ] From the map and route\n\n### Acceptance tests\n- [ ] Refuge lawful and reachable\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "D3",
+   "title": "Demo D3: the golf cart pulls over",
+   "milestone": "M3",
+   "labels": [
+    "demo",
+    "wp6",
+    "s32z2"
+   ],
+   "body": "**Demo** D3 · **Milestone** M3 · **Work package** WP6\n\n### Scenario\nHPC lost and does not return: the golf cart pulls over to a nominated refuge, and to an island-detected one when `H8` offers none.\n\n### Where\nNTU golf cart, closed course, ≤ 30 km/h\n\n### Checks (record the measured value against each)\n- [ ] Refuge found / positively none / inconclusive kept apart within `T_refuge`\n- [ ] Abort ladder exercised\n- [ ] Pull-over to the kerb side only\n\n### Results\n_To be filled in when the demo is run: date, setup, measured values, traces._\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "N5",
+   "title": "Island node N5 si_corridor_monitor: lateral containment",
+   "milestone": "M4",
+   "labels": [
+    "island-node",
+    "wp7",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N5` · **Tier** T1 · **Partition** P1 · **Rate** 50 Hz · **Work package** WP7 · **Dependency level** L3\n\n### Package\n- `si_corridor_monitor`\n\n### Role on the safety island\nPart of the guardian role: checks the HPC's trajectory against the corridor during nominal driving. The camera corridor (`N16`, `N14`) is required; `H3`'s map corridor refines it while fresh. Excluded from the minimal pull-over set (§9.4), so it comes after M3.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Camera lane boundaries (C11) and perceived corridor (C15)\n- map corridor from `H3` via `N1` (B10)\n- ego state (badge E)\n- containment suspension during B3 from `N3` (D7)\n\n### Outputs\n- Lateral-containment fault to `N8` (D6)\n- corridor source, validity, deviation to `N3` (D7)\n- the selected corridor to `N7` (D8)\n\n### Tasks\n- [ ] Corridor selection and staleness rules\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Flags a trajectory that leaves the corridor\n- [ ] Suspended during B3, as `N3` grants\n- [ ] Corridor lost ⇒ fault\n\n### Depends on\n- `N14`, `N16`, `N3`\n- `H3` (scripted until it exists)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N10",
+   "title": "Island node N10 si_envelope_monitor: safety envelope",
+   "milestone": "M4",
+   "labels": [
+    "island-node",
+    "wp7",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N10` · **Tier** T1 · **Partition** P1 · **Rate** 50 Hz · **Work package** WP7 · **Dependency level** L4\n\n### Package\n- `si_envelope_monitor`\n\n### Role on the safety island\nThe guardian's envelope: an RSS-style longitudinal limit from the island's own stopping distance and `N19`'s speed ceiling, applied at the gate and sent to the HPC.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Trajectory via `N1` (B4)\n- stopping-distance input from `N16` (C14)\n- `v_max` and ODD margin from `N19` (C23)\n- ego state (badge E)\n\n### Outputs\n- Envelope limits to `I1` (D5 / E5)\n- the constraint issued to `N2` (D4)\n- `SafetyEnvelopeCommand` to the HPC (badge H)\n\n### Tasks\n- [ ] Envelope law; `SafetyEnvelopeCommand` type from WP0\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Limits never exceed the island's own stopping capability\n- [ ] The HPC is constrained before it is overridden\n\n### Depends on\n- `N16`, `N19`\n- `H6` to deliver the envelope to the HPC\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N19",
+   "title": "Island node N19 si_odd_monitor: B1 ODD degradation",
+   "milestone": "M4",
+   "labels": [
+    "island-node",
+    "wp7",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N19` · **Tier** T1s · **Partition** P2 · **Rate** 2–5 Hz · **Work package** WP7 · **Dependency level** L3\n\n### Package\n- `si_odd_monitor`\n\n### Role on the safety island\nThe island's independent visibility and friction verdict, and the B1 exchange: demand an ODD switch, wait for the HPC's answer, verify it or escalate.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Visibility evidence from `N14` and `N13` (C12)\n- degradation cause from `N17` (C13)\n- `OddStatus` from `H4` via `N1` (B8)\n- `pull_over_available` from `N18` (C25)\n- vehicle CAN: wipers, temperature (A11)\n\n### Outputs\n- ODD verdict to `N3` (C24)\n- `v_max`, ODD margin to `N10` (C23)\n- `OddVerdict` with the switch demand (badge H)\n\n### Tasks\n- [ ] Camera contrast and **lidar-versus-camera** divergence; IMU friction; asymmetric hysteresis\n- [ ] `T_ack`, `T_odd` and the two-part acceptance test\n- [ ] `T_odd` successor for *HPC lost* is B3 until M6 adds B2\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Visibility loss detected\n- [ ] A fog domain declared by the HPC **fails verification** on this branch (§9.5)\n- [ ] `T_odd` expiry picks its successor (blackout → B4, otherwise → B3)\n\n### Depends on\n- `N13`, `N14`, `N17`, `N18`\n- `H4`, `H6` (scripted until they exist)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N2-compliance",
+   "title": "Island node N2: compliance supervision of the HPC",
+   "milestone": "M4",
+   "labels": [
+    "island-node",
+    "wp7",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Node:** `N2` · **Tier** T0 · **Partition** P0 · **Rate** 50 Hz · **Work package** WP7 · **Dependency level** L2\n\n### Package\n- `si_hpc_supervisor` (compliance supervision)\n\n### Role on the safety island\nExtends `N2` (M1): checks that the HPC obeys the constraint `N10` issued and the ODD switch `N19` demanded, and raises non-compliance.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- The constraint issued by `N10` (D4)\n- vehicle status (badge V)\n\n### Outputs\n- B1 non-compliance to `N8` (D3)\n\n### Tasks\n- [ ] Compliance rules per constraint type\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] A non-compliant HPC is detected within the declared window\n- [ ] No false positive while the HPC complies\n\n### Depends on\n- `N2` (M1)\n- `N10`, `N19`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "H6",
+   "title": "HPC node H6 hpc_island_state_client",
+   "milestone": "M4",
+   "labels": [
+    "hpc-node",
+    "wp7",
+    "s32z2"
+   ],
+   "body": "**Node:** `H6` · **Runs on** the HPC (Autoware) · **Needed by** WP7\n\n### Package\n- `hpc_island_state_client`\n\n### Role\nBrings the island's verdicts back into the AD API: island state, the ODD-switch demand and the safety envelope (edge F7).\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- Island state, `OddVerdict`, `SafetyEnvelopeCommand` into Autoware\n\n### Tasks\n- [ ] Map each §8.2 signal into the AD API\n\n### Acceptance tests\n- [ ] The HPC reacts to the ODD-switch demand and the envelope\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "H3",
+   "title": "HPC node H3 hpc_corridor_publisher",
+   "milestone": "M4",
+   "labels": [
+    "hpc-node",
+    "wp7",
+    "s32z2"
+   ],
+   "body": "**Node:** `H3` · **Runs on** the HPC (Autoware) · **Needed by** WP7\n\n### Package\n- `hpc_corridor_publisher`\n\n### Role\nMap corridor for `N5`, refining the camera corridor while fresh.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- `SafetyCorridor`, 10 Hz\n\n### Tasks\n- [ ] From the lanelet map along the route\n\n### Acceptance tests\n- [ ] Corridor consistent with the camera's on recorded drives\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "H4",
+   "title": "HPC node H4 hpc_odd_reporter",
+   "milestone": "M4",
+   "labels": [
+    "hpc-node",
+    "wp7",
+    "s32z2"
+   ],
+   "body": "**Node:** `H4` · **Runs on** the HPC (Autoware) · **Needed by** WP7\n\n### Package\n- `hpc_odd_reporter`\n\n### Role\nThe HPC's declared domain for the B1 exchange.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- `OddStatus` incl. `active_odd`, `odd_switch_state`, 10 Hz\n\n### Tasks\n- [ ] Answer the island's ODD-switch demand\n\n### Acceptance tests\n- [ ] Two-part acceptance test passes with `N19`\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "D4",
+   "title": "Demo D4: degraded visibility, ODD switch verified",
+   "milestone": "M4",
+   "labels": [
+    "demo",
+    "wp7",
+    "s32z2"
+   ],
+   "body": "**Demo** D4 · **Milestone** M4 · **Work package** WP7\n\n### Scenario\nCamera visibility degraded (fogged lens or occluder): the island demands an ODD switch, the HPC answers, the island verifies the answer or escalates.\n\n### Where\nSIL, then the golf cart\n\n### Checks (record the measured value against each)\n- [ ] Visibility loss detected\n- [ ] HPC-declared fog domain fails verification\n- [ ] `T_odd` expiry successor correct\n- [ ] HPC constrained before overridden\n\n### Results\n_To be filled in when the demo is run: date, setup, measured values, traces._\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "N23",
+   "title": "Island node N23 si_local_control: B6 wired joystick",
+   "milestone": "M5",
+   "labels": [
+    "island-node",
+    "wp8",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N23` · **Tier** T1 · **Partition** P1 · **Rate** 50 Hz · **Work package** WP8 · **Dependency level** L0\n\n### Package\n- `si_local_control`\n\n### Role on the safety island\nLets an operator beside the vehicle drive the stopped vehicle off the road at creep speed with a wired joystick. Local control outranks remote.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Wired joystick and enabling (dead-man) switch: ADC / GPIO\n\n### Outputs\n- Local command to `I1` (its reserved port)\n- faults to `N8`\n\n### Tasks\n- [ ] Dead-man, `v_local`, `T_local`\n- [ ] Local source outranks remote at `I1`\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Cable pulled or enabling switch released ⇒ immediate stop, `I6` then `I5`\n- [ ] B6 pre-empts B5\n- [ ] Speed never exceeds `v_local`\n\n### Depends on\n- `I1` (#9) reserved port\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N21",
+   "title": "Island node N21 si_rcc_link: B5 command and liveness (stub)",
+   "milestone": "M5",
+   "labels": [
+    "island-node",
+    "wp8",
+    "P1",
+    "s32z2"
+   ],
+   "body": "**Node:** `N21` · **Tier** T1/T3 · **Partition** P1/P4 · **Rate** — · **Work package** WP8 · **Dependency level** L3\n\n### Package\n- `si_rcc_link` (stub: RCC communication deferred in V1.0)\n\n### Role on the safety island\nThe remote-control-centre link for B5. V1.0 defers the RCC communication design (§8.6), so this issue builds the interface and a stub against a test RCC.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- Remote command and liveness from a test RCC\n\n### Outputs\n- Remote command to `I1` (reserved port E2)\n- link faults to `N8`\n- status uplink (P4)\n\n### Tasks\n- [ ] Define the remote-command interface row (plan §2.4) with the WG\n- [ ] Stub against a test RCC\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Link loss ⇒ in-lane stop, or B4 without the camera\n- [ ] Replayed or corrupted command rejected\n\n### Depends on\n- `I1` (#9)\n- The remote-command interface row\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N22",
+   "title": "Island node N22 si_teleop_streamer: forward the camera's stream (stub)",
+   "milestone": "M5",
+   "labels": [
+    "island-node",
+    "wp8",
+    "P3s",
+    "s32z2"
+   ],
+   "body": "**Node:** `N22` · **Tier** T3 · **Partition** P3s · **Rate** stream · **Work package** WP8 · **Dependency level** L3\n\n### Package\n- `si_teleop_streamer` (stub)\n\n### Role on the safety island\nForwards the camera's own encoded video stream for B5. The Least-Cost camera encodes; the island only forwards.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- The camera's encoded stream\n\n### Outputs\n- Video to the test RCC\n\n### Tasks\n- [ ] Forwarding within the stream's bit-rate bound\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Video freeze detected\n- [ ] P3s overload never affects P0–P2\n\n### Depends on\n- Camera ingest (WP1)\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "D5",
+   "title": "Demo D5: joystick drives the stopped cart off the road",
+   "milestone": "M5",
+   "labels": [
+    "demo",
+    "wp8",
+    "s32z2"
+   ],
+   "body": "**Demo** D5 · **Milestone** M5 · **Work package** WP8\n\n### Scenario\nOperator drives the stopped vehicle off the road with the wired joystick at creep speed (B6).\n\n### Where\nNTU golf cart\n\n### Checks (record the measured value against each)\n- [ ] Every row of the §6.6 failure table\n- [ ] Speed never above `v_local`\n\n### Results\n_To be filled in when the demo is run: date, setup, measured values, traces._\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "WP9-B2",
+   "milestone": "M6",
+   "title": "B2 lane hold after HPC loss: N3 LANE_KEEP_HOLD, N7 v_hold, N2 recovery verdict",
+   "labels": [
+    "island-node",
+    "wp9",
+    "P0",
+    "s32z2"
+   ],
+   "body": "**Behaviour:** B2 · **Work package** WP9 · **Nodes** `N3`, `N7`, `N2`, `N19` (all built earlier)\n\n### What this adds\nB2, postponed to last among the behaviours. It sits on top of `N5` (M4) and the B3 / B4 paths (M1, M3).\n\n### Tasks\n- [ ] `N3`: `LANE_KEEP_HOLD` with `T_hold` (8–15 s), the latched ODD class and the fork to B3 / B4, replacing the direct HPC-loss → B3 branch\n- [ ] `N7`: `v_hold` ramp, running minimum of five bounds, monotone non-increasing, on `N5`'s corridor\n- [ ] `N2`: recovery verdict `HPC_RECOVERY_CONFIRMED` and hand-back (D2)\n- [ ] `N19`: `T_odd` successor for *HPC lost* becomes B2\n\n### Acceptance tests\n- [ ] Descent to `v_odd` = 30 km/h inside the hold window (50 → 30 km/h in 2.8 s at 2 m/s²)\n- [ ] Hand-back only after the full confirmation window\n- [ ] `T_hold` expiry forks to B3 with camera, B4 without\n- [ ] Corridor lost ⇒ B4\n- [ ] D3 and D4 re-run through the B2 branch\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "D2",
+   "title": "Demo D2: the island holds the lane, the HPC returns",
+   "milestone": "M6",
+   "labels": [
+    "demo",
+    "wp9",
+    "s32z2"
+   ],
+   "body": "**Demo** D2 · **Milestone** M6 · **Work package** WP9\n\n### Scenario\nHPC fails on a city road; the island holds the lane; the HPC comes back.\n\n### Where\nSIL, then the golf cart at ≤ 30 km/h\n\n### Checks (record the measured value against each)\n- [ ] Descent to 30 km/h inside the hold window\n- [ ] Hand-back only after the confirmation window\n- [ ] `T_hold` expiry forks to B3 / B4\n\n### Results\n_To be filled in when the demo is run: date, setup, measured values, traces._\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  },
+  {
+   "key": "N11",
+   "title": "Island node N11 si_event_recorder: audit",
+   "milestone": "M7",
+   "labels": [
+    "island-node",
+    "wp10",
+    "P4",
+    "s32z2"
+   ],
+   "body": "**Node:** `N11` · **Tier** T3 · **Partition** P4 · **Rate** 1–10 Hz · **Work package** WP10 · **Dependency level** L7\n\n### Package\n- `si_event_recorder`\n\n### Role on the safety island\nGraded-reaction step 4: preserves safety-relevant data before and after every event, and exports DTCs. Not needed for a bench demo; **required before any pilot** (§9.4).\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- DTCs from `N8`, state transitions from `N3`, ODD disagreement from `N19` (badge R)\n\n### Outputs\n- DTC export over UDS (ISO 14229) and to the HPC log store (F8)\n\n### Tasks\n- [ ] Pre / post-event ring buffer in flash, not SRAM\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Every event of the fault-injection matrix is recorded with its window\n- [ ] Recorder overload never affects P0–P3\n\n### Depends on\n- `N3`, `N8`, `N19`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "N20",
+   "title": "Island node N20 si_object_digest (optional): conservative HPC object term",
+   "milestone": "M7",
+   "labels": [
+    "island-node",
+    "wp10",
+    "P2",
+    "s32z2"
+   ],
+   "body": "**Node:** `N20` · **Tier** T1s · **Partition** P2 · **Rate** 10 Hz · **Work package** WP10 · **Dependency level** —\n\n### Package\n- `si_object_digest` (optional, §3.5)\n\n### Role on the safety island\nOptional enrichment: a bounded digest of the HPC's object list that may only add caution. It never removes a hazard and never validates a corridor.\n\n### Status\nNew node. Language: `no_std` Rust on nano-ros (decision Q2). Target: FreeRTOS + nano-ros on the S32Z280-400EVB.\n\n### Inputs\n- `PredictedObjects` via `N1` (B12)\n- ego distance travelled (badge E)\n\n### Outputs\n- Conservative object term to `N16` (C26)\n- self-consistency veto to `N10` (C27)\n\n### Tasks\n- [ ] Carry-over bounds in time and distance\n- [ ] Contract file (`*.contract.yaml`) with rates, age limits and partition\n\n### Acceptance tests\n- [ ] Conservative only\n- [ ] Goes invalid past its carry-over bounds\n\n### Depends on\n- `N1`, `N16`, `N10`\n\nInputs from nodes that are not built yet are scripted with the test harness (plan §2.1), so this issue does not wait for them.\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n"
+  },
+  {
+   "key": "H9",
+   "title": "HPC node H9 hpc_shadow_control_monitor",
+   "milestone": "M7",
+   "labels": [
+    "hpc-node",
+    "wp10",
+    "s32z2"
+   ],
+   "body": "**Node:** `H9` · **Runs on** the HPC (Autoware) · **Needed by** optional\n\n### Package\n- `hpc_shadow_control_monitor`\n\n### Role\nOptional: field monitoring of the island's shadow control.\n\n### Status\nNew node on the Autoware side (design §7). The island scripts this input until the node exists.\n\n### Publishes\n- Monitoring data\n\n### Tasks\n- [ ] Scope with the WG\n\n### Acceptance tests\n- [ ] No effect on the island\n\n### References\n- Design V1.0: [design document](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md)\n- Edge IDs (A–F) and badges: [message-flow catalogue](https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign/blob/v1.0/docs/messageflow/L4SafetyIsland-MessageFlow.md)\n- [Plan for S32Z2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/PLAN-S32Z2.md) · [Milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/docs/MILESTONES.md)\n\n"
+  }
+ ]
+}

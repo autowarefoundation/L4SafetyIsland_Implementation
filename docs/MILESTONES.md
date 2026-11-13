@@ -25,7 +25,7 @@ The order is:
 
 The work packages are numbered in this order (PLAN §3.1).
 
-| Milestone | Phase(s) reached | Demo / exit | Work packages | HPC side | Issues |
+| Milestone | Phase(s) reached | Demo / exit | Work packages | HPC side | Imported-node issues (others: §4) |
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | **M0** Foundations and phase 0 on the board | 0 (on target) | S32Z280-400EVB brought up; phase 0 reproduced on it; contracts and E2E threat table clean in CI | WP0, WP1 | — | #2 |
 | **M1** Safety floor — **D1** | 1 (autonomous fallback) | **D1**: HPC loss and island blindness on the bench, B4 inside 70 ms | WP2, WP3 | H1 H7 H2 H5 | #3 #4 #5 #6 #7 #8 #9 |
@@ -162,12 +162,24 @@ issues are closed and its exit is shown.
 - **Scope.** WP10: `N11` event recorder, `N20` object digest (optional).
 - **Exit.** Graded-reaction step 4 (audit) met. **Required before any pilot** (§9.4).
 
-## 4. Issues still to be opened
+## 4. The issues behind each milestone
 
-So far only the imported-node issues exist. Before a milestone starts:
+Every milestone has its issues. The imported Autoware nodes are #2–#14 (the table in §1 lists them).
+The rest are defined in [`issues.json`](../.github/milestones/issues.json), and the Sync milestones
+workflow opens them with their labels and milestone:
 
-- open one issue per new island node (`N*`) and per HPC node (`H*`) in its scope, and attach it to
-  the milestone;
-- open one issue per demo (D1–D5), holding the scenario table and the measured results.
+| Milestone | Issues from `issues.json` |
+| :-- | :-- |
+| M0 | WP0: message package, E2E configuration, contracts and checker, test harness · WP1: board bring-up, partition map, HPC boundary and transport, tracing and HIL rig. Also #1 (tracking) and #15 (WG discussion) |
+| M1 | `N12 N1 N9 N2 N4`, reduced `N17`, `N8 N3`; HPC `H1 H7 H2 H5`; demo D1 |
+| M2 | `N7` bounded ramp, `N14 N13 N15`, full `N17`, `N16` |
+| M3 | `N18`, `N7` pull-over path; HPC `H8`; demo D3 |
+| M4 | `N5 N10 N19`, `N2` compliance supervision; HPC `H6 H3 H4`; demo D4 |
+| M5 | `N23`, `N21` and `N22` as stubs; demo D5 |
+| M6 | B2 lane hold (`N3`, `N7` `v_hold`, `N2` recovery verdict); demo D2 |
+| M7 | `N11`, `N20` (optional); HPC `H9` (optional) |
 
-Issue #11 (`I8`) moves from label `wp4` to `wp7`; the create script does that.
+A node built in two stages has one issue per stage, so each issue closes inside one milestone:
+`N17` (M1, M2), `N7` (M2, M3, M6) and `N2` (M1, M4, M6). Each issue carries a hidden key, so a
+second run never opens it twice. Edits made on GitHub are kept; only the milestone is kept in step
+with the file.
