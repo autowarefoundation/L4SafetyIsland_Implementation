@@ -35,7 +35,7 @@ The counts in brackets are (completed / open) issues, recounted by the
 | Milestones M0–M7 (phase + demo; see [MILESTONES.md](docs/MILESTONES.md)) | [milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/milestones) |
 | **All open issues** | [open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen) (0 / 15) |
 | Open imported-node issues | [open `imported-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aimported-node) (0 / 14) |
-| Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 1) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 2) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 5) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 2) |
+| Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 1) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 2) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 5) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 2) · [WP7](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp7) |
 | Open issues in the safety core (partition P0) | [open `P0`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3AP0) (0 / 7) |
 | Completed | [closed issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aclosed) (0 / 15) |
 <!-- progress-counts:end -->
@@ -55,11 +55,11 @@ open or closed, and its task checklist shows how far it has got.
 | `I3` | command_mode_switcher | WP3 | P0 | [#7](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/7) |
 | `I6` | mrm_emergency_stop_operator | WP3 | P0 | [#8](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/8) |
 | `I1` | control_command_gate | WP3 | P0 | [#9](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/9) |
-| `I8` | control_validator | WP4 | P1 | [#11](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/11) |
 | `I14` | shift_decider *(optional)* | WP4 | P3 | [#12](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/12) |
 | `I13` | pure_pursuit | WP4 | P1 | [#10](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/10) |
 | `I19` | autonomous_emergency_braking | WP5 | P2 | [#13](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/13) |
 | `I20` | collision_detector | WP5 | P2 | [#14](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/14) |
+| `I8` | control_validator | WP7 | P1 | [#11](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/11) |
 
 New island nodes (`N*`) and HPC-side nodes (`H*`) do not have issues yet.
 
@@ -78,6 +78,6 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 | :-- | :-- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
-| [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; minimal pull-over island first |
+| [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; pull-over island first, then guardian and ODD degradation; lane hold last |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
 | [slides/L4SafetyIsland-ImplementationPlan.pdf](slides/L4SafetyIsland-ImplementationPlan.pdf) | Slide deck presenting the plan: phases, work packages, partitions, issues; every slide links back to these documents ([source](slides/L4SafetyIsland-ImplementationPlan.tex)) |

@@ -183,7 +183,7 @@ WP3 needs only the blackout declaration. The full node comes in WP5.
 | | |
 | :-- | :-- |
 | In | `HpcHeartbeat`, `HpcCapability` and per-topic arrival times via `N1` (B7); vehicle status (badge V) |
-| Out | Island-local `OperationModeAvailability` to `I7` (D1, 100 Hz); `HPC_LIVENESS_LOST`, `HPC_COMMAND_INVALID` to `N8` (D3). The recovery verdict (D2) comes in WP6 |
+| Out | Island-local `OperationModeAvailability` to `I7` (D1, 100 Hz); `HPC_LIVENESS_LOST`, `HPC_COMMAND_INVALID` to `N8` (D3). Compliance supervision comes in WP7, the recovery verdict (D2) in WP9 |
 | Tests | **Three missed 100 Hz heartbeats detected in ≤ 30 ms**; per-topic minimum rate; latency against budget; availability published even with the HPC silent; no flapping on a single late heartbeat |
 
 ### `N4` si_vehicle_state_estimator · Rust · P0 · L2
@@ -215,7 +215,7 @@ and every fault above reaches a stub `N8` as a `FaultEvent`.
 
 | | |
 | :-- | :-- |
-| In | `FaultVerdict` (D13); `N2` (D2, recovery, WP6); `N16` snapshot (C16, stubbed: corridor invalid); `N19` (C24, WP8) |
+| In | `FaultVerdict` (D13); `N2` (D2, recovery, WP9); `N16` snapshot (C16, stubbed: corridor invalid); `N19` (C24, WP7) |
 | Out | `IslandMode` to `I2` (D15), MRM request to `I7` (D16), `IslandState` (badge H) |
 | Build | All states of §6.1: `BOOT → SELF_TEST → STANDBY → ADS_ACTIVE → {DEGRADED, LANE_KEEP_HOLD, MRM_PREPARE, MRM_EXECUTE, MRM_COMPLETE, EMERGENCY_STOP} → SAFE_STOP`. Guards for B2, B3 and B1 are present but **stubbed false** in WP3, so HPC loss goes straight to the bounded stop |
 | Tests | Exhaustive transition table; **`EMERGENCY_STOP` reachable from every state, with no guard**; its only successor is `SAFE_STOP`; no edge back up from B4 even if the camera returns; one-way transitions cannot be reversed; property tests over random fault sequences |
@@ -224,7 +224,7 @@ and every fault above reaches a stub `N8` as a `FaultEvent`.
 
 | | |
 | :-- | :-- |
-| In | `IslandMode` (D15), `FaultVerdict` (D14), `I8` reject (D19, WP4) |
+| In | `IslandMode` (D15), `FaultVerdict` (D14), `I8` reject (D19, WP7) |
 | Out | Decided command mode to `I3` (D20) |
 | Tests | Every row of the static decision table; the rank order of §10.4 holds; no plugin loading at runtime |
 

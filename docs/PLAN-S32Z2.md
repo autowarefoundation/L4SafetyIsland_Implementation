@@ -40,7 +40,7 @@ behaviours) are those of the design. Section references (§) point into the desi
 | I5 | `stop_mode_operator` | T0 | P0 | port; already ported in the evaluation island | WP2 |
 | I6 | `mrm_emergency_stop_operator` | T0 | P0 | port; already ported in the evaluation island | WP3 |
 | I7 | `mrm_handler` | T0 | P0 | port; already ported. Availability re-sourced from `N2`; timeout re-parameterised (500 ms breaks the 70 ms budget) | WP3 |
-| I8 | `control_validator` | T1 | P1 | port | WP4 |
+| I8 | `control_validator` | T1 | P1 | port | WP7 |
 | I9–I12 | `trajectory_follower_node`, MPC lateral, PID longitudinal, follower base | T2 | P3 | **already ported (phase 0)**; retarget to S32Z2; OSQP iteration cap + time budget on I10 | WP1 |
 | I13 | `pure_pursuit` | T1 | P1 | port | WP4 |
 | I14 | `shift_decider` | T2 | P3 | port (optional: `I5` auto-park covers gear P) | WP4 |
@@ -54,14 +54,14 @@ behaviours) are those of the design. Section references (§) point into the desi
 | # | Node | Tier | Partition | Work package |
 | :-- | :-- | :-- | :-- | :-- |
 | N1 | `si_safety_gateway`: E2E ingress / egress | T0 | P0 | WP2 |
-| N2 | `si_hpc_supervisor`: liveness, `OperationModeAvailability`, recovery verdict | T0 | P0 | WP2 (+ recovery verdict in WP6) |
+| N2 | `si_hpc_supervisor`: liveness, `OperationModeAvailability`, recovery verdict | T0 | P0 | WP2 (+ compliance supervision in WP7, recovery verdict in WP9) |
 | N3 | `si_state_machine` | T0 | P0 | WP3 (states grow WP6–WP9) |
 | N4 | `si_vehicle_state_estimator` | T0 | P0 | WP2 |
-| N5 | `si_corridor_monitor` | T1 | P1 | WP6 |
-| N7 | `si_mrm_planner` (also called `si_mrm_profile`) | T1 | P1 | WP4 (ramp) → WP6 (`v_hold`) → WP7 (pull-over path) |
+| N5 | `si_corridor_monitor` | T1 | P1 | WP7 |
+| N7 | `si_mrm_planner` (also called `si_mrm_profile`) | T1 | P1 | WP4 (ramp) → WP6 (pull-over path) → WP9 (`v_hold`) |
 | N8 | `si_fault_manager` | T0 | P0 | WP3 (sources added in every later WP) |
 | N9 | `si_actuator_supervisor` | T1 | P1 | WP2 |
-| N10 | `si_envelope_monitor` | T1 | P1 | WP8 |
+| N10 | `si_envelope_monitor` | T1 | P1 | WP7 |
 | N11 | `si_event_recorder` | T3 | P4 | WP10 |
 | N12 | `si_time_quality_monitor` | T1 | P1 | WP2 |
 | N13 | `si_scan_guard`: 3D LiDAR (design: 2D lidar; §1.3) | T1s | P2 | WP5 |
@@ -69,12 +69,12 @@ behaviours) are those of the design. Section references (§) point into the desi
 | N15 | `si_proximity_guard`: ultrasonic | T1s | P2 | WP5 |
 | N16 | `si_safety_world_model` | T1s | P2 | WP5 |
 | N17 | `si_sensor_health`: declares the blackout | T1s | P2 | WP3 (camera validity only) → WP5 (full) |
-| N18 | `si_pull_over_manager` | T1 | P1 | WP7 |
-| N19 | `si_odd_monitor` | T1s | P2 | WP8 |
+| N18 | `si_pull_over_manager` | T1 | P1 | WP6 |
+| N19 | `si_odd_monitor` | T1s | P2 | WP7 |
 | N20 | `si_object_digest` *(optional, §3.5)* | T1s | P2 | WP10 |
-| N21 | `si_rcc_link` *(RCC comms deferred in V1.0)* | T1/T3 | P1/P4 | WP9 (interface + stub) |
-| N22 | `si_teleop_streamer`: forwards the camera's own stream | T3 | P3s | WP9 (stub) |
-| N23 | `si_local_control`: wired joystick | T1 | P1 | WP9 |
+| N21 | `si_rcc_link` *(RCC comms deferred in V1.0)* | T1/T3 | P1/P4 | WP8 (interface + stub) |
+| N22 | `si_teleop_streamer`: forwards the camera's own stream | T3 | P3s | WP8 (stub) |
+| N23 | `si_local_control`: wired joystick | T1 | P1 | WP8 |
 
 **HPC-side nodes (§7)** are built on the Autoware side in parallel. They are dependencies of the
 island WPs, listed in §3.3.
@@ -189,9 +189,11 @@ flowchart LR
    capability *above* a floor that already works.
 4. **Sensing is a parallel track.** `N13`–`N17` and `N16` sit at L0–L1 with no dependency on P0, as
    §12 of the design notes. WP5 runs alongside WP2–WP4 and joins at `N8`, `N3`, `N5` and `N7`.
-5. **Behaviours are built in dependency order, not number order.** B2 needs `N5`, which needs the
-   camera corridor (`N14`, `N16`). B3 needs `N18` and the B2 machinery in `N7`. B1 needs `N19`,
-   which needs the sensing chain. So the order is **B4 → B2 → B3 → B1**, then B6 and B5.
+5. **Behaviours are built in dependency order, not number order.** B3 needs `N18` and `N7`'s bounded
+   path, but not `N5` (§9.4: pull-over deliberately leaves the lane), so it follows the sensing chain
+   directly; with B4 it forms the design's minimal pull-over island. B1 needs `N19`, which needs the
+   sensing chain, and is built with the guardian role (`I8`, `N5`, `N10`). B2 needs `N5`'s corridor
+   and the B3 / B4 fork, so it comes last. The order is **B4 → B3 → B1 (+ guardian) → B6/B5 → B2**.
 
 ### 2.4 Design gaps that block a work package
 
@@ -200,7 +202,7 @@ ends. Each must be settled before the WP that implements it. This plan does not 
 
 | Gap | Blocks | Proposed handling |
 | :-- | :-- | :-- |
-| Remote / external command has no §8.1 interface row | WP3 (`I1` port), WP9 | Reserve the `I1` port in WP3; define the row before WP9 |
+| Remote / external command has no §8.1 interface row | WP3 (`I1` port), WP8 | Reserve the `I1` port in WP3; define the row before WP8 |
 | `N17` and `N16` both declare the sensing blackout | WP3, WP5 | Ask the WG for one owner (and the open-decision-15 debounce) before WP3 exits |
 | `N7` and `I7` both command the hazard lamps | WP3, WP4 | One owner, decided before WP4 |
 | No node named as the odometry arbiter (HPC vs `N4`) | WP2 | Implement in `N4`, as the companion draws it; confirm with the WG |
@@ -217,9 +219,9 @@ Tests are summarised here and detailed in §4.
 ### 3.1 Sequence and tracks
 
 ```
-Track A — authority and control   WP0 ─ WP1 ─ WP2 ─ WP3 ─ WP4 ─┬─ WP6 (B2) ─ WP7 (B3) ─ WP8 (B1) ─ WP9 (B6/B5) ─ WP10
+Track A — authority and control   WP0 ─ WP1 ─ WP2 ─ WP3 ─ WP4 ─┬─ WP6 (B3) ─ WP7 (B1 + guardian) ─ WP8 (B6/B5) ─ WP9 (B2) ─ WP10
 Track B — island sensing                 └──────── WP5 ─────────┘
-Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ────────── H3 ────────── H8 ────────── H4
+Track C — HPC side (Autoware)      H1 H7 H2 H5 ─────────── H8 ──────── H4 H6 H3
 ```
 
 ### 3.2 The work packages
@@ -269,9 +271,9 @@ bring-up step. WP1 only puts the island's own structure on it. Detailed in
 
 | | |
 | :-- | :-- |
-| Builds | `N7` MRM planner (bounded `Trajectory` ≤ 50 points; lateral-acceleration, steering-rate and jerk bounds); `I13` pure pursuit; `I11`/`I9` as the MRM longitudinal law (§9.4 recommendation); `I8` control validator (reject ⇒ switch to fallback tier); `I14` (optional) |
+| Builds | `N7` MRM planner (bounded `Trajectory` ≤ 50 points; lateral-acceleration, steering-rate and jerk bounds); `I13` pure pursuit; `I11`/`I9` as the MRM longitudinal law (§9.4 recommendation); `I14` (optional). `I8` moves to WP7 with the rest of the guardian role (§9.4 excludes it from the minimal set) |
 | Depends on | WP3 (`N3` activation, `I1` port); WP1 (`I9`–`I12`) |
-| Tests | `I13` tracks `N7`'s path within the corridor bound; the two-tier switch happens within one cycle when `I10` overruns or `I8` rejects; `N7` never emits a profile outside its hard bounds; P3 is shed before P2 under overload |
+| Tests | `I13` tracks `N7`'s path within the corridor bound; the two-tier switch happens within one cycle when `I10` overruns (the `I8`-reject trigger is added in WP7); `N7` never emits a profile outside its hard bounds; P3 is shed before P2 under overload; first T5 runs on the golf cart |
 | Exit | **In-lane bounded stop** on a remembered trajectory after HPC loss |
 
 #### WP5: Island sensing chain (design phase 3; parallel with WP2–WP4)
@@ -283,41 +285,41 @@ bring-up step. WP1 only puts the island's own structure on it. Detailed in
 | Tests | Recorded and synthetic camera sequences with ground-truth lanes (detection rate, lateral error, latency; ≈ 0.3 Gop/s fits the budget); 3D LiDAR and ultrasonic replay; **`N13` holds its output bound and its P2 period at the sensor's full point rate on the board**; ground segmentation on slopes, ramps and kerbs; a low obstacle (below a 2D scan plane) is detected; fusion rules: any source can add a hazard, only the camera can create a corridor, lower ranks may only narrow; **blackout is distinguishable from an empty road**; AEB raises an ERROR for an in-path target at 30 km/h with the 13 m stopping distance of §9.5 |
 | Exit | Obstacle-aware stop: the island stops for what it sees (WP4's stop now shortens for obstacles) |
 
-#### WP6: B2, lane hold after HPC loss
+#### WP6: B3, pull over (design phase 4)
 
 | | |
 | :-- | :-- |
-| Builds | `N5` corridor monitor (camera required once the island drives; `H3` refines while fresh); `N3` `LANE_KEEP_HOLD` with `T_hold`, the latched ODD class and the fork to B3 / B4; `N7` `v_hold` ramp (running minimum of five bounds, monotone non-increasing); `N2` recovery verdict and hand-back |
-| Depends on | WP4, WP5. HPC side: **H3** (corridor), **H6** (island state client) |
-| Tests | Descent to `v_odd` = 30 km/h inside the hold window (50→30 km/h in 2.8 s at 2 m/s²); hand-back only after the full confirmation window; `T_hold` expiry forks to B3 with camera, B4 without; corridor lost ⇒ B4 |
-| Demo **D2** | **HPC fails on a city road, the island holds the lane, the HPC comes back.** Run as software-in-the-loop, then on the golf cart at ≤ 30 km/h on a closed course |
-
-#### WP7: B3, pull over
-
-| | |
-| :-- | :-- |
-| Builds | `N18` pull-over manager (`OperateMrm` server in the existing `pull_over_manager` slot; refuge go / no-go; the abort ladder; the **island-detected refuge** from `N14`, with the side ultrasonic pair able to disqualify it and the 3D LiDAR confirming the edge and measuring kerb height, which may disqualify the refuge but never approve it); `N7` lateral displacement path; `I7` selects the pull-over MRM |
-| Depends on | WP6. HPC side: **H8** (refuge publisher) |
+| Builds | `N18` pull-over manager (`OperateMrm` server in the existing `pull_over_manager` slot; refuge go / no-go; the abort ladder; the **island-detected refuge** from `N14`, with the side ultrasonic pair able to disqualify it and the 3D LiDAR confirming the edge and measuring kerb height, which may disqualify the refuge but never approve it); `N7` lateral displacement path on the WP4 longitudinal ramp; `I7` selects the pull-over MRM; `N3`: on confirmed HPC loss the B3 branch is taken directly, because the `LANE_KEEP_HOLD` guard stays false until WP9 (a staging of the design's behaviour, not a change to it) |
+| Depends on | WP4, WP5. HPC side: **H8** (refuge publisher). `N5` is not needed: §9.4 excludes it, since pull-over deliberately leaves the lane |
 | Tests | The three search outcomes are kept apart (*found* / *positively none* → in-lane stop / *inconclusive* → B4) within `T_refuge`; each abort-ladder rung removes a requirement and never adds one; pull-over to the instrumented (kerb) side only; long indicator dwell and low lateral rate in place of rear-corner radar |
 | Demo **D3** | **HPC lost and does not return: the golf cart pulls over** to a nominated refuge, and to an island-detected one when `H8` offers none |
 
-#### WP8: B1, ODD degradation, and the guardian role
+#### WP7: B1, ODD degradation, and the guardian role (design phases 2 and 5)
 
 | | |
 | :-- | :-- |
-| Builds | `N19` ODD monitor (camera contrast + **lidar-versus-camera** divergence; IMU friction; asymmetric hysteresis; the ODD-switch demand, `T_ack`, `T_odd` and the two-part acceptance test); `N10` envelope monitor and `SafetyEnvelopeCommand`; `N2` compliance supervision |
-| Depends on | WP5, WP6. HPC side: **H4** (ODD reporter, declared domain) |
-| Tests | Visibility loss is detected, and a fog domain declared by the HPC **fails verification** on this branch, as §9.5 requires; `T_odd` expiry picks its successor in the §3.2 order (blackout → B4, HPC lost → B2, otherwise → B3); the HPC is constrained before it is overridden |
+| Builds | **Guardian role:** `I8` control validator (reject ⇒ switch to the fallback tier); `N5` corridor monitor (camera-anchored corridor from `N16`, refined by `H3` while fresh; lateral containment check of the HPC's trajectory during nominal driving); `N10` envelope monitor and `SafetyEnvelopeCommand`; `N2` compliance supervision. **B1:** `N19` ODD monitor (camera contrast + **lidar-versus-camera** divergence; IMU friction; asymmetric hysteresis; the ODD-switch demand, `T_ack`, `T_odd` and the two-part acceptance test) |
+| Depends on | WP4, WP5, WP6. HPC side: **H4** (ODD reporter, declared domain), **H6** (island state client: carries the ODD-switch demand and the envelope to the HPC, edge F7), **H3** (map corridor for `N5`) |
+| Tests | `I8` reject switches to the fallback tier within one cycle; `N5` flags a trajectory that leaves the corridor; visibility loss is detected, and a fog domain declared by the HPC **fails verification** on this branch, as §9.5 requires; `T_odd` expiry picks its successor in the §3.2 order (blackout → B4, otherwise → B3; **HPC lost → B3 until WP9 adds B2**); the HPC is constrained before it is overridden |
 | Demo **D4** | Camera visibility degraded (fogged lens or occluder): the island demands an ODD switch, the HPC answers, and the island verifies the answer or escalates |
 
-#### WP9: B6 joystick and B5 tele-operation
+#### WP8: B6 joystick and B5 tele-operation
 
 | | |
 | :-- | :-- |
 | Builds | `N23` local control (wired joystick, dead-man, `v_local`, `T_local`; local source outranks remote); B5 path: `N21` command-and-liveness interface, `N22` forwarding the camera's own encoded stream, both **as stubs against a test RCC**, because V1.0 defers the RCC communication design (§8.6) |
-| Depends on | WP3 (`I1` ports). The remote-command interface row (§2.4) must be defined |
+| Depends on | WP3 (`I1` ports); can start any time after WP3. The remote-command interface row (§2.4) must be defined |
 | Tests | Every row of the §6.6 failure table: cable pulled, enabling switch released, link loss, video freeze, replayed or corrupted command, B6 pre-empting B5, camera lost during B5 ⇒ B4 |
 | Demo **D5** | Operator drives the stopped vehicle off the road with the joystick at creep speed (B6) |
+
+#### WP9: B2, lane hold after HPC loss
+
+| | |
+| :-- | :-- |
+| Builds | `N3` `LANE_KEEP_HOLD` with `T_hold`, the latched ODD class and the fork to B3 / B4 (replacing WP6's direct HPC-loss → B3 branch); `N7` `v_hold` ramp (running minimum of five bounds, monotone non-increasing) on `N5`'s corridor (built in WP7); `N2` recovery verdict and hand-back; `N19`'s `T_odd` successor for HPC lost becomes B2 |
+| Depends on | WP6, WP7. HPC side: no new node (`H3`, `H6` already in WP7) |
+| Tests | Descent to `v_odd` = 30 km/h inside the hold window (50→30 km/h in 2.8 s at 2 m/s²); hand-back only after the full confirmation window; `T_hold` expiry forks to B3 with camera, B4 without; corridor lost ⇒ B4; D3 and D4 re-run through the new B2 branch |
+| Demo **D2** | **HPC fails on a city road, the island holds the lane, the HPC comes back.** Run as software-in-the-loop, then on the golf cart at ≤ 30 km/h on a closed course |
 
 #### WP10: Audit and options
 
@@ -335,19 +337,20 @@ bring-up step. WP1 only puts the island's own structure on it. Detailed in
 | H7 `hpc_heartbeat` | WP2 | 100 Hz heartbeat, 20 ms age |
 | H2 `hpc_capability_reporter` | WP2 | Fixed-size capability vector |
 | H5 `hpc_trajectory_conditioner` | WP2 | 250-point bounded trajectory |
-| H6 `hpc_island_state_client` | WP6 | Island verdict back into the AD API |
-| H3 `hpc_corridor_publisher` | WP6 | Map corridor for `N5` |
-| H8 `hpc_refuge_publisher` | WP7 | Lawful refuge for `N18` |
-| H4 `hpc_odd_reporter` | WP8 | Declared domain for the B1 exchange |
+| H8 `hpc_refuge_publisher` | WP6 | Lawful refuge for `N18` |
+| H6 `hpc_island_state_client` | WP7 | Island verdict, ODD-switch demand and envelope back into the AD API |
+| H3 `hpc_corridor_publisher` | WP7 | Map corridor for `N5` |
+| H4 `hpc_odd_reporter` | WP7 | Declared domain for the B1 exchange |
 | H9 `hpc_shadow_control_monitor` | optional | Field monitoring only |
 
 ### 3.4 Minimal pull-over island
 
 §9.4 and §12 recommend the shortest path to a demonstrable L4 fallback: phases 1, 3 and 4 reduced
 to their mandatory nodes, deferring the guardian role. On S32Z2 that is **WP2 + WP3 + WP4 (`N7`,
-`I13`, `I9`/`I11`/`I12`) + WP5 + WP7 (`N18`)**, which delivers D1 and D3. It is 21 mandatory nodes
-with `N13` in place of `N6`, plus the 3 recommended. WP6's B2 hold and WP8's guardian role
-(`I8`, `N10`) can follow.
+`I13`, `I9`/`I11`/`I12`) + WP5 + WP6 (`N18`)**, which delivers D1 and D3. It is 21 mandatory nodes
+with `N13` in place of `N6`, plus the 3 recommended. The plan builds it first. The guardian role and
+B1 (WP7) come next, then B6 / B5 (WP8); lane hold (WP9) is built last, on top of the corridor
+monitor that WP7 already provides.
 
 ---
 
@@ -361,7 +364,7 @@ with `N13` in place of `N6`, plus the 3 recommended. WP6's B2 hold and WP8's gua
 | **T2 Node-in-the-loop** | Host build: FreeRTOS POSIX port, or nano-ros on POSIX | One node with scripted inputs and golden output traces; contract terms (rate, age, latency) checked by the contract tooling; feedback edges stubbed (§2.1) | WP2 |
 | **T3 Software-in-the-loop** | Autoware planning simulator as the HPC + island as a host build, Cyclone DDS | Behaviours end-to-end, with every edge closed. The setup already used for the evaluation island | WP3 |
 | **T4 Hardware-in-the-loop** | X-S32Z27X-DC + HPC PC + CAN FD vehicle simulator + sensor replay | Timing on the real target: target traces, the ≤ 70 ms reaction budget, partition isolation under overload, memory fit | WP1 |
-| **T5 Vehicle** | NTU golf cart, closed course, ≤ 30 km/h, fair weather | The Least-Cost ODD as claimed | WP6 |
+| **T5 Vehicle** | NTU golf cart, closed course, ≤ 30 km/h, fair weather | The Least-Cost ODD as claimed | WP4 |
 
 The S32Z2 board is in the lab, so T4 is available from WP1 onward and no emulated target is needed
 on the critical path. One board is shared by every work package, so T2 and T3 on the host build carry
@@ -373,7 +376,7 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 
 | Fault | Injected at | Expected response | Verified in |
 | :-- | :-- | :-- | :-- |
-| HPC hang (heartbeat stops) | HPC process suspended | `N2` detects ≤ 30 ms; authority to the island; B2 (or bounded stop before WP6) | WP3, WP6 |
+| HPC hang (heartbeat stops) | HPC process suspended | `N2` detects ≤ 30 ms; authority to the island; bounded stop (WP4), pull-over (WP6), B2 (WP9) | WP3, WP6, WP9 |
 | HPC link flood | Traffic generator on TSN | Rate limits hold; P0 unaffected | WP2 |
 | Stale trajectory | Delay injector | `N1` age reject → last valid trajectory → `N7` profile | WP2, WP4 |
 | E2E corruption, replay, masquerade | Frame mutator | Safety event to `N8`; never a silent drop | WP0, WP2 |
@@ -381,13 +384,13 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 | Camera lost | Unplug / blank frames | `N17` blackout → B4 from **any** state | WP3, WP5 |
 | All island sensors blind at once | Every sensor stream cut | B4, unchanged; the nine-node path consumes no exteroceptive topic | WP5 |
 | Lidar lost | Unplug | AEB disarmed and recorded; camera behaviours continue | WP5 |
-| Ultrasonic lost | Unplug | No tight-to-kerb end; stop within the shoulder | WP7 |
+| Ultrasonic lost | Unplug | No tight-to-kerb end; stop within the shoulder | WP6 |
 | FSI `SOC_ERROR` | GPIO driven | Highest-priority fault, ≤ 1 ms detection | WP3 |
-| Power loss of the HPC | Supply cut | As HPC hang | WP6 |
+| Power loss of the HPC | Supply cut | As HPC hang | WP6, WP9 |
 | Overload of the island | CPU hog in P3 / P3s | P3 shed first; P0–P2 keep their periods | WP4 |
-| Visibility loss | Fogged lens / occluder | `N19` demand; fog domain fails verification | WP8 |
-| Joystick cable pulled, enabling switch released | Hardware | Immediate stop, `I6` then `I5` | WP9 |
-| RCC link loss mid-B5 | Test RCC | In-lane stop, or B4 without the camera | WP9 |
+| Visibility loss | Fogged lens / occluder | `N19` demand; fog domain fails verification | WP7 |
+| Joystick cable pulled, enabling switch released | Hardware | Immediate stop, `I6` then `I5` | WP8 |
+| RCC link loss mid-B5 | Test RCC | In-lane stop, or B4 without the camera | WP8 |
 
 ### 4.3 Evidence carried forward to the safety case
 

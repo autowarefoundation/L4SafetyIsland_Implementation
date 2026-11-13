@@ -44,6 +44,8 @@
       \gh{\repo}{L4SafetyIsland\_Implementation} \\
     Implementation plan, S32Z2 & Nodes, dependency order, work packages, tests, demos, decisions &
       \gh{\docs/PLAN-S32Z2.md}{docs/PLAN-S32Z2.md} \\
+    Milestones & M0--M7: phase reached and demo shown, in build order &
+      \gh{\docs/MILESTONES.md}{docs/MILESTONES.md} \\
     WP0--WP3 node by node & Messages, WP1 partition map, the safety-floor nodes, demo D1 &
       \gh{\docs/WP0-WP3-SafetyFloor.md}{docs/WP0-WP3-SafetyFloor.md} \\
     Architecture & One code base for S32Z2 and R-Car X5H &
@@ -124,13 +126,13 @@
     \rowcolor{siT0bg}
     \textbf{1} & P0 & \texttt{I1}--\texttt{I3}, \texttt{I5}--\texttt{I7}, \texttt{I16}, \texttt{N1}--\texttt{N4}, \texttt{N8} & \textbf{Autonomous fallback}: authority transfer on HPC loss; blind but bounded MRM & WP2, WP3 \\
     \rowcolor{siT1bg}
-    \textbf{2} & P1 & \texttt{I8}, \texttt{I13}, \texttt{N5}, \texttt{N7}, \texttt{N9}, \texttt{N10}, \texttt{N12} & \textbf{Guardian role}: command validation, safety envelope, veto, two-tier control & WP4, WP6, WP8 (\texttt{N9}, \texttt{N12} in WP2) \\
+    \textbf{2} & P1 & \texttt{I8}, \texttt{I13}, \texttt{N5}, \texttt{N7}, \texttt{N9}, \texttt{N10}, \texttt{N12} & \textbf{Guardian role}: command validation, safety envelope, veto, two-tier control & WP4, WP7 (\texttt{N9}, \texttt{N12} in WP2) \\
     \rowcolor{siT1sbg}
     \textbf{3} & P2 & \texttt{I19}, \texttt{I20}, \texttt{N13}--\texttt{N17} (no \texttt{N6}) & \textbf{Obstacle-aware MRM}: the island stops for what it can see & WP5 \\
-    \textbf{4} & P1 & \texttt{N18} + \texttt{H8} & \textbf{Pull-over MRM}: the island moves the vehicle out of the running lane & WP7 \\
-    \textbf{5} & P2 & \texttt{N19} & \textbf{ODD degradation}: independent visibility and friction verdict & WP8 \\
+    \textbf{4} & P1 & \texttt{N18} + \texttt{H8} & \textbf{Pull-over MRM}: the island moves the vehicle out of the running lane & WP6 \\
+    \textbf{5} & P2 & \texttt{N19} & \textbf{ODD degradation}: independent visibility and friction verdict & WP7 \\
     \midrule
-    \multicolumn{2}{@{}l}{\textit{added by V1.0}} & B2 hold (\texttt{N5}, \texttt{v\_hold}) \;\textbullet\; B6 / B5 (\texttt{N21}--\texttt{N23}) \;\textbullet\; audit (\texttt{N11}, \texttt{N20}) & Lane hold after HPC loss; joystick and tele-operation; event recording & WP6, WP9, WP10 \\
+    \multicolumn{2}{@{}l}{\textit{added by V1.0}} & B2 hold (\texttt{N5}, \texttt{v\_hold}) \;\textbullet\; B6 / B5 (\texttt{N21}--\texttt{N23}) \;\textbullet\; audit (\texttt{N11}, \texttt{N20}) & Lane hold after HPC loss; joystick and tele-operation; event recording & WP9, WP8, WP10 \\
     \bottomrule
   \end{tabularx}
 
@@ -154,7 +156,7 @@
           and measured before anything above them (WP2--WP3).
         \item \textbf{Sensing in parallel.} \texttt{N13}--\texttt{N17} have no dependency on P0 (WP5).
         \item \textbf{Behaviours in dependency order}, not number order:
-          \textbf{B4 \arrow{} B2 \arrow{} B3 \arrow{} B1}, then B6 and B5.
+          \textbf{B4 \arrow{} B3 \arrow{} B1} (with the guardian) \arrow{} B6/B5 \arrow{} B2. B3 needs no \texttt{N5} (§9.4); B2 needs it.
       \end{enumerate}
     \end{col}
     \begin{col}{0.46}
@@ -206,11 +208,11 @@
       \draw[-latex,mist] (\a) -- (\b);
     \draw[-latex,mist] (WP1.south) |- (WP5.west);
     \draw[-latex,mist] (WP5.east) -| (WP6.south);
-    \foreach \x/\t in {2.5/{H1 H7 H2 H5},5.2/H6\;H3,6.2/H8,7.2/H4}
+    \foreach \x/\t in {2.5/{H1 H7 H2 H5},5.2/H8,6.4/{H4 H6 H3}}
       \node[wp=siHPC,minimum width=9.4mm] at (\x,-2.6) {\t};
     % behaviour labels
-    \foreach \x/\t in {3/{B4 \textbullet\ D1},5.2/{B2 \textbullet\ D2},6.2/{B3 \textbullet\ D3},
-                       7.2/{B1 \textbullet\ D4},8.2/{B6/B5 \textbullet\ D5}}
+    \foreach \x/\t in {3/{B4 \textbullet\ D1},5.2/{B3 \textbullet\ D3},6.2/{B1 \textbullet\ D4},
+                       7.2/{B6/B5 \textbullet\ D5},8.2/{B2 \textbullet\ D2}}
       \node[font=\tiny,text=mist] at (\x,0.6) {\t};
   \end{tikzpicture}
 
@@ -218,9 +220,9 @@
   \small
   \begin{itemize}
     \item The HPC-side nodes are \textbf{dependencies} of the island WPs: \texttt{H1 H7 H2 H5} before WP2,
-      \texttt{H6 H3} before WP6, \texttt{H8} before WP7, \texttt{H4} before WP8.
-    \item \textbf{Minimal pull-over island} (design §9.4): WP2 + WP3 + WP4 + WP5 + WP7 deliver D1 and D3;
-      the B2 hold (WP6) and the guardian role (WP8) can follow.
+      \texttt{H8} before WP6, \texttt{H4 H6 H3} before WP7.
+    \item \textbf{Minimal pull-over island} (design §9.4): WP2 + WP3 + WP4 + WP5 + WP6 deliver D1 and D3;
+      the guardian role and B1 (WP7) follow, then B6/B5 (WP8); the B2 lane hold (WP9) comes last.
   \end{itemize}
 
   \source{\gh{\docs/PLAN-S32Z2.md\#31-sequence-and-tracks}{PLAN-S32Z2.md §3.1, §3.3, §3.4}}
@@ -240,19 +242,54 @@
     \rowcolor{siT0bg}
     WP3 & Safety floor and B4 & \texttt{N8 N3 I2 I3 I7 I6 I1}, reduced \texttt{N17} & \textbf{D1}: HPC loss and blindness on the bench, $\leq$\,70\,ms \\
     \rowcolor{siT1bg}
-    WP4 & Fallback control tier & \texttt{N7} ramp, \texttt{I13}, \texttt{I11} as MRM law, \texttt{I8}, (\texttt{I14}) & In-lane bounded stop after HPC loss \\
+    WP4 & Fallback control tier & \texttt{N7} ramp, \texttt{I13}, \texttt{I11} as MRM law, (\texttt{I14}) & In-lane bounded stop after HPC loss \\
     \rowcolor{siT1sbg}
     WP5 & Island sensing & \texttt{N14 N13 N15 N17 N16 I19 I20} & Obstacle-aware stop \\
-    WP6 & B2 lane hold & \texttt{N5}, \texttt{LANE\_KEEP\_HOLD}, \texttt{v\_hold}, recovery verdict & \textbf{D2}: HPC fails, island holds the lane, HPC returns \\
-    WP7 & B3 pull over & \texttt{N18}, island-detected refuge, lateral path & \textbf{D3}: the golf cart pulls over \\
-    WP8 & B1 and guardian & \texttt{N19 N10}, compliance supervision in \texttt{N2} & \textbf{D4}: degraded visibility \arrow{} ODD switch \\
-    WP9 & B6 and B5 & \texttt{N23} wired joystick; \texttt{N21 N22} as stubs (RCC deferred in V1.0) & \textbf{D5}: joystick drives the cart off the road \\
+    WP6 & B3 pull over & \texttt{N18}, island-detected refuge, lateral path; HPC loss \arrow{} B3 directly & \textbf{D3}: the golf cart pulls over \\
+    WP7 & Guardian and B1 & \texttt{I8 N5 N10 N19}, compliance supervision in \texttt{N2} & \textbf{D4}: degraded visibility \arrow{} ODD switch \\
+    WP8 & B6 and B5 & \texttt{N23} wired joystick; \texttt{N21 N22} as stubs (RCC deferred in V1.0) & \textbf{D5}: joystick drives the cart off the road \\
+    WP9 & B2 lane hold & \texttt{LANE\_KEEP\_HOLD}, \texttt{T\_hold} fork, \texttt{v\_hold}, recovery verdict & \textbf{D2}: HPC fails, island holds the lane, HPC returns \\
     \rowcolor{siT3bg}
     WP10 & Audit and options & \texttt{N11} event recorder, \texttt{N20} (optional) & Required before any pilot \\
     \bottomrule
   \end{tabularx}
 
   \source{\gh{\docs/PLAN-S32Z2.md\#32-the-work-packages}{PLAN-S32Z2.md §3.2}}
+\end{frame}
+
+\begin{frame}{Milestones: a phase reached, and its demo shown}
+  \framesubtitle{Pull-over island first, then the guardian and ODD degradation; lane hold last}
+
+  \scriptsize
+  \begin{tabularx}{\textwidth}{@{}l X l X l@{}}
+    \toprule
+    \thd{Milestone} & \thd{Capability (phase)} & \thd{WPs} & \thd{Demo / exit} & \thd{Issues} \\
+    \midrule
+    M0 & Foundations; phase 0 on the board & WP0, WP1 & Phase 0 reproduced; contracts clean in CI & \#2 \\
+    \rowcolor{siT0bg}
+    M1 & Safety floor (1) & WP2, WP3 & \textbf{D1}: B4 on the bench, $\leq$\,70\,ms & \#3--\#9 \\
+    \rowcolor{siT1sbg}
+    M2 & Obstacle-aware bounded stop (3 + fallback tier) & WP4, WP5 & In-lane stop, shortened for obstacles & \#10 \#12--\#14 \\
+    M3 & Minimal pull-over island (4) & WP6 & \textbf{D3}: the golf cart pulls over & --- \\
+    \rowcolor{siT1bg}
+    M4 & Guardian role and ODD degradation (2, 5) & WP7 & \textbf{D4}: fogged lens \arrow{} ODD switch verified & \#11 \\
+    M5 & Local control (B6; B5 stubs) & WP8 & \textbf{D5}: joystick drives the cart off the road & --- \\
+    M6 & Lane hold after HPC loss (B2) & WP9 & \textbf{D2}: island holds the lane, HPC returns & --- \\
+    \rowcolor{siT3bg}
+    M7 & Pilot readiness (audit) & WP10 & Event recorder; required before any pilot & --- \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2mm}
+  \small
+  \begin{itemize}
+    \item Until WP9, HPC loss forks straight to B3, and \texttt{N19}'s \texttt{T\_odd} successor for
+      HPC lost is B3: a staging of the design, not a change. WP9 restores B2 and re-runs D3 and D4.
+    \item No due dates yet; they are set once WP0 has a measured pace.
+  \end{itemize}
+
+  \source{\gh{\docs/MILESTONES.md}{MILESTONES.md}
+    \;\textbullet\; \gh{\repo/milestones}{GitHub milestones}}
 \end{frame}
 
 \begin{frame}{WP0--WP3: the safety floor, node by node}
@@ -311,7 +348,7 @@
         T2 Node-in-the-loop & Host build; golden traces; contract terms & WP2 \\
         T3 SIL & Planning simulator as the HPC + host island & WP3 \\
         T4 HIL & X-S32Z27X-DC + HPC PC + CAN FD simulator & WP1 \\
-        T5 Vehicle & Golf cart, closed course, $\leq$\,30\,km/h & WP6 \\
+        T5 Vehicle & Golf cart, closed course, $\leq$\,30\,km/h & WP4 \\
         \bottomrule
       \end{tabularx}
       \vspace{1mm}
@@ -327,10 +364,10 @@
         \midrule
         \rowcolor{siT0bg}
         D1 & WP3 & HPC loss, then camera unplugged: B4 on the bench (HIL) \\
-        D2 & WP6 & HPC fails on a city road; island holds the lane; HPC returns \\
-        D3 & WP7 & HPC does not return: the golf cart pulls over \\
-        D4 & WP8 & Fogged lens: ODD-switch demand, answer verified \\
-        D5 & WP9 & Joystick drives the stopped cart off the road \\
+        D3 & WP6 & HPC does not return: the golf cart pulls over \\
+        D4 & WP7 & Fogged lens: ODD-switch demand, answer verified \\
+        D5 & WP8 & Joystick drives the stopped cart off the road \\
+        D2 & WP9 & HPC fails on a city road; island holds the lane; HPC returns \\
         \bottomrule
       \end{tabularx}
     \end{col}
@@ -435,7 +472,7 @@
         \rowcolor{siT1bg}
         \issue{10} & \texttt{I13} & pure\_pursuit & WP4 & P1 \\
         \rowcolor{siT1bg}
-        \issue{11} & \texttt{I8} & control\_validator & WP4 & P1 \\
+        \issue{11} & \texttt{I8} & control\_validator & WP7 & P1 \\
         \rowcolor{siT2bg}
         \issue{12} & \texttt{I14} & shift\_decider (optional) & WP4 & P3 \\
         \rowcolor{siT1sbg}
@@ -451,8 +488,8 @@
   \normalsize
   \eyebrow{Open issues by work package}\quad
   {\small \wplabel{wp1}{WP1} (1) \;\textbullet\; \wplabel{wp2}{WP2} (2) \;\textbullet\;
-   \wplabel{wp3}{WP3} (5) \;\textbullet\; \wplabel{wp4}{WP4} (3) \;\textbullet\;
-   \wplabel{wp5}{WP5} (2) \;\textbullet\; \wplabel{P0}{all P0} (7)}
+   \wplabel{wp3}{WP3} (5) \;\textbullet\; \wplabel{wp4}{WP4} (2) \;\textbullet\;
+   \wplabel{wp5}{WP5} (2) \;\textbullet\; \wplabel{wp7}{WP7} (1) \;\textbullet\; \wplabel{P0}{all P0} (7)}
 
   \takeaway{14 issues, all open as of 2026-11-13. The README's progress counts are kept current by
     a GitHub workflow; the linked lists always show the live state.}
@@ -469,8 +506,8 @@
         \item WP3: \texttt{N3 N8}, reduced \texttt{N17}
         \item WP4: \texttt{N7}
         \item WP5: \texttt{N13 N14 N15 N16 N17}
-        \item WP6: \texttt{N5} \quad WP7: \texttt{N18} \quad WP8: \texttt{N10 N19}
-        \item WP9: \texttt{N21 N22 N23} \quad WP10: \texttt{N11} (\texttt{N20})
+        \item WP6: \texttt{N18} \quad WP7: \texttt{N5 N10 N19}
+        \item WP8: \texttt{N21 N22 N23} \quad WP10: \texttt{N11} (\texttt{N20})
       \end{itemize}
       \eyebrow{Work-package-level items}
       \begin{itemize}\small
@@ -482,8 +519,8 @@
       \eyebrow{HPC-side nodes (\texttt{H*}), built on Autoware}
       \begin{itemize}\small
         \item Before WP2: \nhpc{H1} E2E egress \nhpc{H7} heartbeat \nhpc{H2} capability \nhpc{H5} trajectory conditioner
-        \item Before WP6: \nhpc{H6} island state client \nhpc{H3} corridor
-        \item Before WP7: \nhpc{H8} refuge \quad Before WP8: \nhpc{H4} ODD reporter
+        \item Before WP6: \nhpc{H8} refuge
+        \item Before WP7: \nhpc{H4} ODD reporter \nhpc{H6} island state client \nhpc{H3} corridor
       \end{itemize}
       \callout[deep]{\small Proposal: open the \texttt{N*} issues for WP0--WP3 next, with the same
         template as \#2--\#14 (inputs, outputs, tests, labels \texttt{wpN} and \texttt{P0}--\texttt{P4}).}
