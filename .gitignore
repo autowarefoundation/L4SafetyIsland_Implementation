@@ -19,3 +19,6 @@ log/
 .DS_Store
 .vscode/
 .idea/
+*.nav
+*.snm
+*.vrb

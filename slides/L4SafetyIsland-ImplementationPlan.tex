@@ -1,0 +1,521 @@
+% =====================================================================
+%  L4 Safety Island --- Implementation and Demo Plan (S32Z2)
+%  Presentation of docs/PLAN-S32Z2.md and docs/WP0-WP3-SafetyFloor.md
+%
+%  Build:  make        (or: latexmk -pdf L4SafetyIsland-ImplementationPlan.tex)
+%
+%  The plan documents in ../docs/ are the source of truth; this deck
+%  presents them and links back to them on GitHub.
+% =====================================================================
+\documentclass{ntuslides}          % 16:9, 9pt, coloured table rows
+
+\title{L4 Safety Island for Autoware --- Implementation and Demo Plan}
+\subtitle{NXP S32Z2, Least-Cost branch \;\textbullet\; phases, work packages, partitions and issues}
+\speaker{Prof.\ Chi-Sheng (Daniel) Shih}
+\institute{National Taiwan University}
+\event{Reference Design WG}
+\date{Design Release V1.0 (20261023) \;\textbullet\; plan of 2026-11-13}
+
+% ------------------------------------------------------------- links
+\newcommand{\repo}{https://github.com/autowarefoundation/L4SafetyIsland_Implementation}
+\newcommand{\docs}{\repo/blob/main/docs}
+\newcommand{\design}{https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign}
+% \gh{url}{text}: a visible link
+\newcommand{\gh}[2]{\href{#1}{\color{deep}\underline{#2}}}
+% \issue{n}: link to issue #n
+\newcommand{\issue}[1]{\href{\repo/issues/#1}{\color{deep}\underline{\##1}}}
+% \wplabel{wpN}: open issues of one work package
+\newcommand{\wplabel}[2]{\href{\repo/issues?q=is\%3Aissue+is\%3Aopen+label\%3A#1}{\color{deep}\underline{#2}}}
+
+\begin{document}
+
+\titleframe
+
+% ===================================================================
+\begin{frame}{Where everything is}
+  \framesubtitle{Every slide in this deck points back to one of these}
+
+  \footnotesize
+  \begin{tabularx}{\textwidth}{@{}l X l@{}}
+    \toprule
+    \thd{Document} & \thd{What it holds} & \thd{Link} \\
+    \midrule
+    Implementation repository & Plans, issues, progress counts &
+      \gh{\repo}{L4SafetyIsland\_Implementation} \\
+    Implementation plan, S32Z2 & Nodes, dependency order, work packages, tests, demos, decisions &
+      \gh{\docs/PLAN-S32Z2.md}{docs/PLAN-S32Z2.md} \\
+    WP0--WP3 node by node & Messages, WP1 partition map, the safety-floor nodes, demo D1 &
+      \gh{\docs/WP0-WP3-SafetyFloor.md}{docs/WP0-WP3-SafetyFloor.md} \\
+    Architecture & One code base for S32Z2 and R-Car X5H &
+      \gh{\docs/ARCHITECTURE.md}{docs/ARCHITECTURE.md} \\
+    Issues & Tracking issue: pickup order, open decisions; all issues by WP and partition &
+      \issue{1} \;\textbullet\; \gh{\repo/issues}{all issues} \\
+    \midrule
+    Design, Release V1.0 & The design this plan implements (version 20261023) &
+      \gh{\design/releases/tag/v1.0}{release v1.0} \\
+    Design document & On GitHub; the §-references in this deck point here &
+      \gh{\design/blob/v1.0/docs/L4SafetyIsland_SoftwareDesign_GitHub.md}{design document} \\
+    \bottomrule
+  \end{tabularx}
+
+  \takeaway{The plan documents are the source of truth. This deck summarises them; where they
+    differ, the documents win.}
+\end{frame}
+
+% ===================================================================
+\begin{frame}{What is being built}
+  \framesubtitle{The Least-Cost branch of design D10 / §9.5, on the board in the lab}
+  \footnotesize
+
+  \begin{cols}
+    \begin{col}{0.52}
+      \eyebrow{The S32Z2 island}\\[1mm]
+      \begin{tabularx}{\linewidth}{@{}l X@{}}
+        \toprule
+        Board & X-S32Z27X-DC, \textbf{FreeRTOS + nano-ros} (already evaluated) \\
+        Processor & 8 $\times$ Cortex-R52 (lockstep / split), DSP, 19\,MB SRAM \\
+        Camera (rank 1) & 1 mono, 100BASE-T1 --- \textbf{mandatory} \\
+        Radar (rank 2) & none \arrow{} \texttt{N6} not built \\
+        Ultrasonic (rank 3) & 5 \\
+        IMU / GNSS (rank 4) & 1 \\
+        Lidar (rank 5) & solid-state \textbf{3D LiDAR} in place of the 2D lidar; confirming only \\
+        Island ODD & city road, \textasciitilde30\,km/h, fair weather \\
+        Vehicle & NTU golf cart \\
+        \bottomrule
+      \end{tabularx}
+    \end{col}
+    \begin{col}{0.44}
+      \eyebrow{Node count on this platform}\\[1mm]
+      \begin{tabularx}{\linewidth}{@{}X r@{}}
+        \toprule
+        Migrated Autoware nodes (\texttt{I*}) & \num{17} \\
+        \quad \texttt{I15} not needed on the golf cart & \\
+        New island nodes (\texttt{N*}) & \num{21} \\
+        \quad \texttt{N6} absent, \texttt{N20} optional & \\
+        New HPC nodes (\texttt{H*}), on Autoware & \num{8} + 1 optional \\
+        \bottomrule
+      \end{tabularx}
+
+      \vspace{3mm}
+      \eyebrow{Code}\\[1mm]
+      {New \texttt{N*} nodes in \texttt{no\_std} Rust (Q2); migrated \texttt{I*} nodes stay
+       C++ ports (Q8, proposed). One code base with the R-Car X5H, $\geq$\,85\,\% shared.}
+    \end{col}
+  \end{cols}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#1-what-is-being-built}{PLAN-S32Z2.md §1}
+    \;\textbullet\; \gh{\docs/ARCHITECTURE.md}{ARCHITECTURE.md}}
+\end{frame}
+
+% ===================================================================
+\setsectionframing{A phase is a capability the island reaches. A work package is the unit of
+  work that gets it there.}
+\section{Phases}
+
+\begin{frame}{The phases, defined}
+  \framesubtitle{Design §12: each phase adds a set of nodes and reaches one capability}
+
+  \scriptsize
+  \begin{tabularx}{\textwidth}{@{}l l X X l@{}}
+    \toprule
+    \thd{Phase} & \thd{Partition} & \thd{Adds} & \thd{Capability reached} & \thd{Work packages} \\
+    \midrule
+    \textbf{0} --- done & P3 & \texttt{I9}--\texttt{I12} & Trajectory following on the island, closed loop against unmodified Autoware & WP1 (onto the board) \\
+    \rowcolor{siT0bg}
+    \textbf{1} & P0 & \texttt{I1}--\texttt{I3}, \texttt{I5}--\texttt{I7}, \texttt{I16}, \texttt{N1}--\texttt{N4}, \texttt{N8} & \textbf{Autonomous fallback}: authority transfer on HPC loss; blind but bounded MRM & WP2, WP3 \\
+    \rowcolor{siT1bg}
+    \textbf{2} & P1 & \texttt{I8}, \texttt{I13}, \texttt{N5}, \texttt{N7}, \texttt{N9}, \texttt{N10}, \texttt{N12} & \textbf{Guardian role}: command validation, safety envelope, veto, two-tier control & WP4, WP6, WP8 (\texttt{N9}, \texttt{N12} in WP2) \\
+    \rowcolor{siT1sbg}
+    \textbf{3} & P2 & \texttt{I19}, \texttt{I20}, \texttt{N13}--\texttt{N17} (no \texttt{N6}) & \textbf{Obstacle-aware MRM}: the island stops for what it can see & WP5 \\
+    \textbf{4} & P1 & \texttt{N18} + \texttt{H8} & \textbf{Pull-over MRM}: the island moves the vehicle out of the running lane & WP7 \\
+    \textbf{5} & P2 & \texttt{N19} & \textbf{ODD degradation}: independent visibility and friction verdict & WP8 \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{added by V1.0}} & B2 hold (\texttt{N5}, \texttt{v\_hold}) \;\textbullet\; B6 / B5 (\texttt{N21}--\texttt{N23}) \;\textbullet\; audit (\texttt{N11}, \texttt{N20}) & Lane hold after HPC loss; joystick and tele-operation; event recording & WP6, WP9, WP10 \\
+    \bottomrule
+  \end{tabularx}
+
+  \takeaway{Phases 1 and 2 are the critical path. The design's shortest credible path to an L4
+    fallback is phases 1, 3 and 4 reduced to their mandatory nodes: a pull-over island in 21 nodes.}
+\end{frame}
+
+\begin{frame}{How the order was derived}
+  \framesubtitle{From the edge catalogue of the message-flow diagram, restricted to this platform}
+
+  \begin{cols}
+    \begin{col}{0.50}
+      \eyebrow{Five rules}
+      \begin{enumerate}\small
+        \item \textbf{Messages first.} Every edge is a typed topic, so
+          \texttt{autoware\_safety\_island\_msgs} and the E2E profiles come before any node (WP0).
+        \item \textbf{Hubs interface-first.} \texttt{I1} has 12 command sources and \texttt{N8} 11
+          fault sources; both are built early with every port declared.
+        \item \textbf{The B4 floor first.} Nine nodes ---
+          \texttt{N4 N3 N8 N17 I7 I6 I1 I16 I5} --- read no exteroceptive topic; they are built
+          and measured before anything above them (WP2--WP3).
+        \item \textbf{Sensing in parallel.} \texttt{N13}--\texttt{N17} have no dependency on P0 (WP5).
+        \item \textbf{Behaviours in dependency order}, not number order:
+          \textbf{B4 \arrow{} B2 \arrow{} B3 \arrow{} B1}, then B6 and B5.
+      \end{enumerate}
+    \end{col}
+    \begin{col}{0.46}
+      \eyebrow{Dependency levels (forward edges only)}\\[1mm]
+      \scriptsize
+      \begin{tabularx}{\linewidth}{@{}l X@{}}
+        \toprule
+        L0 & \texttt{I16 N12 N13 N14 N15 N17 N23} \\
+        L1 & \texttt{I5 N1 N9 N16} \\
+        L2 & \texttt{N2 N4} \\
+        L3 & \texttt{I9}(--\texttt{I12}) \texttt{I19 I20 N5 N19 N21 N22} \\
+        L4 & \texttt{I8 I14 N10} \\
+        L5 & \texttt{N8} \quad (11 fault producers) \\
+        L6 & \texttt{N3} \\
+        L7 & \texttt{I2 I7 N11} \\
+        L8 & \texttt{I3 I6 N18} \\
+        L9 & \texttt{N7} \\
+        L10 & \texttt{I13} \\
+        L11 & \texttt{I1} \quad (12 command sources) \\
+        \bottomrule
+      \end{tabularx}
+    \end{col}
+  \end{cols}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#2-dependencies-among-the-nodes}{PLAN-S32Z2.md §2}}
+\end{frame}
+
+% ===================================================================
+\setsectionframing{Eleven work packages on three tracks. Every one ends in a test, a demo or
+  both.}
+\section{Work packages}
+
+\begin{frame}[fragile]{Sequence and tracks}
+  \framesubtitle{Authority and control on the critical path; sensing and the HPC side in parallel}
+
+  \vspace{2mm}
+  \hspace*{14mm}\begin{tikzpicture}[x=10.6mm,y=9mm,
+      wp/.style={draw=#1,fill=#1!8,rounded corners=1pt,minimum height=6.2mm,
+                 minimum width=9.4mm,font=\scriptsize\bfseries,text=#1},
+      lane/.style={font=\scriptsize\bfseries,text=mist,anchor=east}]
+    \node[lane] at (-0.6,0) {A\enspace control};
+    \node[lane] at (-0.6,-1.3) {B\enspace sensing};
+    \node[lane] at (-0.6,-2.6) {C\enspace HPC side};
+    \foreach \x/\n/\c in {0/WP0/ink,1/WP1/siT2,2/WP2/siT0,3/WP3/siT0,4/WP4/siT1,
+                          5.2/WP6/deep,6.2/WP7/deep,7.2/WP8/deep,8.2/WP9/deep,9.2/WP10/siT3}
+      \node[wp=\c] (\n) at (\x,0) {\n};
+    \node[wp=siT1s,minimum width=30mm] (WP5) at (3,-1.3) {WP5};
+    \foreach \a/\b in {WP0/WP1,WP1/WP2,WP2/WP3,WP3/WP4,WP4/WP6,WP6/WP7,WP7/WP8,WP8/WP9,WP9/WP10}
+      \draw[-latex,mist] (\a) -- (\b);
+    \draw[-latex,mist] (WP1.south) |- (WP5.west);
+    \draw[-latex,mist] (WP5.east) -| (WP6.south);
+    \foreach \x/\t in {2.5/{H1 H7 H2 H5},5.2/H6\;H3,6.2/H8,7.2/H4}
+      \node[wp=siHPC,minimum width=9.4mm] at (\x,-2.6) {\t};
+    % behaviour labels
+    \foreach \x/\t in {3/{B4 \textbullet\ D1},5.2/{B2 \textbullet\ D2},6.2/{B3 \textbullet\ D3},
+                       7.2/{B1 \textbullet\ D4},8.2/{B6/B5 \textbullet\ D5}}
+      \node[font=\tiny,text=mist] at (\x,0.6) {\t};
+  \end{tikzpicture}
+
+  \vspace{4mm}
+  \small
+  \begin{itemize}
+    \item The HPC-side nodes are \textbf{dependencies} of the island WPs: \texttt{H1 H7 H2 H5} before WP2,
+      \texttt{H6 H3} before WP6, \texttt{H8} before WP7, \texttt{H4} before WP8.
+    \item \textbf{Minimal pull-over island} (design §9.4): WP2 + WP3 + WP4 + WP5 + WP7 deliver D1 and D3;
+      the B2 hold (WP6) and the guardian role (WP8) can follow.
+  \end{itemize}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#31-sequence-and-tracks}{PLAN-S32Z2.md §3.1, §3.3, §3.4}}
+\end{frame}
+
+\begin{frame}{The work packages at a glance}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{@{}l L{27mm} X L{38mm}@{}}
+    \toprule
+    \thd{WP} & \thd{Name} & \thd{Builds} & \thd{Exit / demo} \\
+    \midrule
+    WP0 & Foundations & Messages with fixed capacity; SI-E2E/A and /B as nano-ros E2E configuration; contract files; test harness & Contracts clean in CI; E2E passes the §8.4 threat table \\
+    \rowcolor{siT2bg}
+    WP1 & Phase 0 on the board & Partition map (synthetic load where no node yet); Cyclone DDS to the HPC; tracing; HIL rig; \texttt{I9}--\texttt{I12} retargeted & Phase 0 reproduced on the board \\
+    \rowcolor{siT0bg}
+    WP2 & Base layer L0--L2 & \texttt{I16 N12 N1 N4 N2 N9 I5} & HPC liveness and ego state seen; faults reach \texttt{N8} \\
+    \rowcolor{siT0bg}
+    WP3 & Safety floor and B4 & \texttt{N8 N3 I2 I3 I7 I6 I1}, reduced \texttt{N17} & \textbf{D1}: HPC loss and blindness on the bench, $\leq$\,70\,ms \\
+    \rowcolor{siT1bg}
+    WP4 & Fallback control tier & \texttt{N7} ramp, \texttt{I13}, \texttt{I11} as MRM law, \texttt{I8}, (\texttt{I14}) & In-lane bounded stop after HPC loss \\
+    \rowcolor{siT1sbg}
+    WP5 & Island sensing & \texttt{N14 N13 N15 N17 N16 I19 I20} & Obstacle-aware stop \\
+    WP6 & B2 lane hold & \texttt{N5}, \texttt{LANE\_KEEP\_HOLD}, \texttt{v\_hold}, recovery verdict & \textbf{D2}: HPC fails, island holds the lane, HPC returns \\
+    WP7 & B3 pull over & \texttt{N18}, island-detected refuge, lateral path & \textbf{D3}: the golf cart pulls over \\
+    WP8 & B1 and guardian & \texttt{N19 N10}, compliance supervision in \texttt{N2} & \textbf{D4}: degraded visibility \arrow{} ODD switch \\
+    WP9 & B6 and B5 & \texttt{N23} wired joystick; \texttt{N21 N22} as stubs (RCC deferred in V1.0) & \textbf{D5}: joystick drives the cart off the road \\
+    \rowcolor{siT3bg}
+    WP10 & Audit and options & \texttt{N11} event recorder, \texttt{N20} (optional) & Required before any pilot \\
+    \bottomrule
+  \end{tabularx}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#32-the-work-packages}{PLAN-S32Z2.md §3.2}}
+\end{frame}
+
+\begin{frame}{WP0--WP3: the safety floor, node by node}
+  \framesubtitle{Detailed in WP0-WP3-SafetyFloor.md}
+
+  \begin{cols}
+    \begin{col}{0.48}
+      \eyebrow{WP0 --- foundations}
+      \begin{itemize}\footnotesize
+        \item 11 new message types, fixed capacity; internal types \texttt{FaultEvent}, \texttt{FaultVerdict}, \texttt{IslandMode}
+        \item E2E: one Data ID per interface; profile A or B; §8.1 age limits
+        \item Contracts: 70\,ms = 30 detect + 20 decide + 20 command
+      \end{itemize}
+      \eyebrow{WP1 --- phase 0 on the board}
+      \begin{itemize}\footnotesize
+        \item Six partitions at their §9.1 periods; synthetic load until nodes arrive
+        \item Scheduling-matrix check; provisional intra-island transport (Q3)
+        \item Tracing, HIL rig, host build from the same configuration
+        \item \texttt{I9}--\texttt{I12} read Autoware directly until \texttt{N1}/\texttt{N4} exist
+      \end{itemize}
+    \end{col}
+    \begin{col}{0.48}
+      \eyebrow{WP2 --- base layer}
+      \begin{itemize}\footnotesize
+        \item \texttt{N1}: every E2E failure is a fault event, never a silent drop
+        \item \texttt{N2}: three missed heartbeats detected in $\leq$\,30\,ms
+        \item \texttt{N4}: island odometry, the odometry arbiter (Q6)
+      \end{itemize}
+      \eyebrow{WP3 --- authority core and B4}
+      \begin{itemize}\footnotesize
+        \item \texttt{N8} and \texttt{I1} with \textbf{all} ports declared
+        \item \texttt{N3}: \texttt{EMERGENCY\_STOP} reachable from every state, no guard
+        \item \texttt{I7}: availability from \texttt{N2}; 500\,ms timeout re-parameterised
+        \item \texttt{I7}\,$\leftrightarrow$\,\texttt{I6} \texttt{OperateMrm} --- phase-1 exit criterion
+      \end{itemize}
+    \end{col}
+  \end{cols}
+
+  \takeaway{Exit of WP3: the nine-node B4 path works on the board, reads no exteroceptive topic,
+    and is measured inside the 70\,ms budget.}
+
+  \source{\gh{\docs/WP0-WP3-SafetyFloor.md}{WP0-WP3-SafetyFloor.md}
+    \;\textbullet\; \gh{\docs/WP0-WP3-SafetyFloor.md\#2-wp1-phase-0-on-the-x-s32z27x-dc}{§2 WP1}}
+\end{frame}
+
+\begin{frame}{Testing and demos}
+  \begin{cols}
+    \begin{col}{0.50}
+      \eyebrow{Test levels}\\[1mm]
+      \scriptsize
+      \begin{tabularx}{\linewidth}{@{}l X l@{}}
+        \toprule
+        \thd{Level} & \thd{Where and what} & \thd{From} \\
+        \midrule
+        T1 Unit & Host; node logic; Autoware's own suites for \texttt{I*} & WP0 \\
+        T2 Node-in-the-loop & Host build; golden traces; contract terms & WP2 \\
+        T3 SIL & Planning simulator as the HPC + host island & WP3 \\
+        T4 HIL & X-S32Z27X-DC + HPC PC + CAN FD simulator & WP1 \\
+        T5 Vehicle & Golf cart, closed course, $\leq$\,30\,km/h & WP6 \\
+        \bottomrule
+      \end{tabularx}
+      \vspace{1mm}
+
+      {\scriptsize One board for all WPs: T2/T3 carry daily regression, T4 runs on merge and for timing.}
+    \end{col}
+    \begin{col}{0.46}
+      \eyebrow{Demos}\\[1mm]
+      \scriptsize
+      \begin{tabularx}{\linewidth}{@{}l l X@{}}
+        \toprule
+        \thd{Demo} & \thd{WP} & \thd{Scenario} \\
+        \midrule
+        \rowcolor{siT0bg}
+        D1 & WP3 & HPC loss, then camera unplugged: B4 on the bench (HIL) \\
+        D2 & WP6 & HPC fails on a city road; island holds the lane; HPC returns \\
+        D3 & WP7 & HPC does not return: the golf cart pulls over \\
+        D4 & WP8 & Fogged lens: ODD-switch demand, answer verified \\
+        D5 & WP9 & Joystick drives the stopped cart off the road \\
+        \bottomrule
+      \end{tabularx}
+    \end{col}
+  \end{cols}
+
+  \takeaway{15 injected faults --- HPC hang, link flood, stale trajectory, E2E corruption, actuator
+    non-response, every sensor lost --- each with an expected response and the WP that verifies it.}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#4-testing}{PLAN-S32Z2.md §4}}
+\end{frame}
+
+% ===================================================================
+\setsectionframing{Five executors with fixed priority bands. Under overload the island sheds the
+  MPC, never the sensing.}
+\section{Partitions}
+
+\begin{frame}{Execution partitions on the S32Z2}
+  \framesubtitle{Design §9.1, with this platform's node set and core placement}
+
+  \scriptsize
+  \begin{tabularx}{\textwidth}{@{}l l X l l L{30mm}@{}}
+    \toprule
+    \thd{Partition} & \thd{Tier} & \thd{Nodes} & \thd{Period} & \thd{Band} & \thd{S32Z2 placement} \\
+    \midrule
+    \rowcolor{siT0bg}
+    \textbf{P0} safety core & \nzero{T0} & \texttt{I1 I2 I3 I5 I6 I7 I16 N1 N2 N3 N4 N8} & 10\,ms & 1 & R52 lockstep \\
+    \rowcolor{siT1bg}
+    \textbf{P1} supervision + fallback & \none{T1} & \texttt{I8 I13 N5 N7 N9 N10 N12 N18}, \texttt{N21} command path, \texttt{N23} & 20\,ms & 2 & R52 lockstep \\
+    \rowcolor{siT1sbg}
+    \textbf{P2} safety sensing & \nsen{T1s} & \texttt{I19 I20 N13 N14 N15 N16 N17 N19} (\texttt{N20}) & 20--50\,ms & 3 & own core; \texttt{N14} pixel stages on DSP / Neon \\
+    \rowcolor{siT2bg}
+    \textbf{P3} nominal control & \ntwo{T2} & \texttt{I9} (hosting \texttt{I10 I11 I12}), \texttt{I14} & 20--30\,ms & 4 & R52 split \\
+    \textbf{P3s} tele-op streaming & \nthree{T3} & \texttt{N22} & 33--100\,ms & 4b & R52 split; idle outside B5 \\
+    \rowcolor{siT3bg}
+    \textbf{P4} non-real-time & \nthree{T3} & \texttt{N11}, telemetry, \texttt{N21} status uplink & 100--1000\,ms & 5 & R52 split \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{2mm}
+  \begin{cols}
+    \begin{col}{0.48}
+      \eyebrow{Rules the partitions encode}
+      \begin{itemize}\scriptsize
+        \item \textbf{P0 must complete without P2 or P3}; it reads P2 only through an age-checked snapshot
+        \item The QM nominal controller (P3) sits \textbf{below} ASIL-B sensing (P2): overload sheds the MPC, and \texttt{I13} in P1 takes over within one cycle
+        \item P4 is shed before anything else
+      \end{itemize}
+    \end{col}
+    \begin{col}{0.48}
+      \eyebrow{How the plan checks them}
+      \begin{itemize}\scriptsize
+        \item WP1: synthetic P0--P2 loads keep their periods under a P3 hog, an MPC overrun and an HPC link flood
+        \item WP3 / WP4: repeated with the real nodes
+        \item Open: intra-island transport for P0 (Q3, design open decision 7)
+      \end{itemize}
+    \end{col}
+  \end{cols}
+
+  \source{\gh{\docs/WP0-WP3-SafetyFloor.md\#21-partition-and-core-map}{WP0-WP3-SafetyFloor.md §2.1}
+    \;\textbullet\; \gh{\docs/ARCHITECTURE.md\#4-where-each-node-runs}{ARCHITECTURE.md §4}}
+\end{frame}
+
+% ===================================================================
+\setsectionframing{One issue per imported Autoware node. The new island and HPC nodes are next.}
+\section{Issues}
+
+\begin{frame}{Issues: the imported Autoware nodes}
+  \framesubtitle{In dependency order; tracking issue \#1 holds the pickup order and open decisions}
+
+  \scriptsize
+  \begin{cols}
+    \begin{col}{0.49}
+      \begin{tabularx}{\linewidth}{@{}l l X l l@{}}
+        \toprule
+        \thd{Issue} & \thd{Node} & \thd{Package} & \thd{WP} & \thd{Part.} \\
+        \midrule
+        \issue{1} & --- & \textbf{Tracking}: import the \texttt{I*} nodes & --- & --- \\
+        \rowcolor{siT2bg}
+        \issue{2} & \texttt{I9}--\texttt{I12} & trajectory follower (MPC + PID) & WP1 & P3 \\
+        \rowcolor{siT0bg}
+        \issue{3} & \texttt{I16} & vehicle interface (golf cart, CAN FD) & WP2 & P0 \\
+        \rowcolor{siT0bg}
+        \issue{4} & \texttt{I5} & stop\_mode\_operator & WP2 & P0 \\
+        \rowcolor{siT0bg}
+        \issue{5} & \texttt{I2}+\texttt{I4} & command\_mode\_decider + types & WP3 & P0 \\
+        \rowcolor{siT0bg}
+        \issue{6} & \texttt{I7} & mrm\_handler & WP3 & P0 \\
+        \rowcolor{siT0bg}
+        \issue{7} & \texttt{I3} & command\_mode\_switcher & WP3 & P0 \\
+        \bottomrule
+      \end{tabularx}
+    \end{col}
+    \begin{col}{0.49}
+      \begin{tabularx}{\linewidth}{@{}l l X l l@{}}
+        \toprule
+        \thd{Issue} & \thd{Node} & \thd{Package} & \thd{WP} & \thd{Part.} \\
+        \midrule
+        \rowcolor{siT0bg}
+        \issue{8} & \texttt{I6} & mrm\_emergency\_stop\_operator & WP3 & P0 \\
+        \rowcolor{siT0bg}
+        \issue{9} & \texttt{I1} & control\_command\_gate & WP3 & P0 \\
+        \rowcolor{siT1bg}
+        \issue{10} & \texttt{I13} & pure\_pursuit & WP4 & P1 \\
+        \rowcolor{siT1bg}
+        \issue{11} & \texttt{I8} & control\_validator & WP4 & P1 \\
+        \rowcolor{siT2bg}
+        \issue{12} & \texttt{I14} & shift\_decider (optional) & WP4 & P3 \\
+        \rowcolor{siT1sbg}
+        \issue{13} & \texttt{I19} & autonomous\_emergency\_braking & WP5 & P2 \\
+        \rowcolor{siT1sbg}
+        \issue{14} & \texttt{I20} & collision\_detector & WP5 & P2 \\
+        \bottomrule
+      \end{tabularx}
+    \end{col}
+  \end{cols}
+
+  \vspace{2mm}
+  \normalsize
+  \eyebrow{Open issues by work package}\quad
+  {\small \wplabel{wp1}{WP1} (1) \;\textbullet\; \wplabel{wp2}{WP2} (2) \;\textbullet\;
+   \wplabel{wp3}{WP3} (5) \;\textbullet\; \wplabel{wp4}{WP4} (3) \;\textbullet\;
+   \wplabel{wp5}{WP5} (2) \;\textbullet\; \wplabel{P0}{all P0} (7)}
+
+  \takeaway{14 issues, all open as of 2026-11-13. The README's progress counts are kept current by
+    a GitHub workflow; the linked lists always show the live state.}
+
+  \source{\gh{\repo\#progress}{README: Progress}}
+\end{frame}
+
+\begin{frame}{What has no issue yet}
+  \begin{cols}
+    \begin{col}{0.48}
+      \eyebrow{New island nodes (\texttt{N*}) --- 21 on this platform}
+      \begin{itemize}\small
+        \item WP2: \texttt{N1 N2 N4 N9 N12}
+        \item WP3: \texttt{N3 N8}, reduced \texttt{N17}
+        \item WP4: \texttt{N7}
+        \item WP5: \texttt{N13 N14 N15 N16 N17}
+        \item WP6: \texttt{N5} \quad WP7: \texttt{N18} \quad WP8: \texttt{N10 N19}
+        \item WP9: \texttt{N21 N22 N23} \quad WP10: \texttt{N11} (\texttt{N20})
+      \end{itemize}
+      \eyebrow{Work-package-level items}
+      \begin{itemize}\small
+        \item WP0: message package, E2E configuration, contracts, harness
+        \item WP1: partition map, tracing, HIL rig
+      \end{itemize}
+    \end{col}
+    \begin{col}{0.48}
+      \eyebrow{HPC-side nodes (\texttt{H*}), built on Autoware}
+      \begin{itemize}\small
+        \item Before WP2: \nhpc{H1} E2E egress \nhpc{H7} heartbeat \nhpc{H2} capability \nhpc{H5} trajectory conditioner
+        \item Before WP6: \nhpc{H6} island state client \nhpc{H3} corridor
+        \item Before WP7: \nhpc{H8} refuge \quad Before WP8: \nhpc{H4} ODD reporter
+      \end{itemize}
+      \callout[deep]{\small Proposal: open the \texttt{N*} issues for WP0--WP3 next, with the same
+        template as \#2--\#14 (inputs, outputs, tests, labels \texttt{wpN} and \texttt{P0}--\texttt{P4}).}
+    \end{col}
+  \end{cols}
+\end{frame}
+
+% ===================================================================
+\begin{frame}{Open decisions}
+  \framesubtitle{Each is needed by a named work package}
+
+  \small
+  \begin{tabularx}{\textwidth}{@{}l X l@{}}
+    \toprule
+    \thd{\#} & \thd{Question} & \thd{Needed by} \\
+    \midrule
+    \textit{Q1} & \textit{Taken:} nano-ros built-in E2E satisfies SI-E2E/A and /B & --- \\
+    \textit{Q2} & \textit{Taken:} Rust on the safety island for the new nodes & --- \\
+    Q3 & Intra-island transport for P0 (open decision 7): provisional in WP1, final before WP3 timing & WP1, WP3 \\
+    Q4 & Camera: classical CV or certified smart camera (open decision 8) & WP5 \\
+    Q5 & Blackout owner (\texttt{N17} or \texttt{N16}) and debounce (open decision 15) & WP3 \\
+    Q6 & Hazard-lamp owner, MRM longitudinal owner, odometry arbiter & WP2--WP4 \\
+    Q7 & Sensor placement on the golf cart, including the 3D LiDAR (open decision 21(c)) & WP5 \\
+    Q8 & Migrated \texttt{I*} nodes stay C++ ports (proposed: yes) & WP0 \\
+    Q9 & The lab 3D LiDAR: model, interface, point rate, field of view, time sync & WP5 \\
+    \bottomrule
+  \end{tabularx}
+
+  \takeaway{Q8 and Q3 block the first two work packages; Q5 blocks the exit of WP3. Those three are
+    the decisions to take first.}
+
+  \source{\gh{\docs/PLAN-S32Z2.md\#5-decisions}{PLAN-S32Z2.md §5}}
+\end{frame}
+
+\end{document}
