@@ -4,11 +4,11 @@
 | :-- | :-- |
 | Parent plan | [PLAN-S32Z2.md](PLAN-S32Z2.md), work packages WP0–WP3 |
 | Design baseline | Release V1.0 (version 20261023) |
-| Goal | The nine-node B4 path plus the authority core, running on the X-S32Z27X-DC, demonstrated as demo D1 |
+| Goal | The board structure and phase 0 (WP1), then the nine-node B4 path plus the authority core, running on the X-S32Z27X-DC, demonstrated as demo D1 |
 | Edge IDs | `A*`–`F*` are rows of the edge catalogue in `messageflow/L4SafetyIsland-MessageFlow.md` §3 |
 
 **Language.** New nodes (`N*`) are `no_std` Rust on nano-ros (decision Q2). Migrated nodes (`I*`)
-are **proposed to stay C++ ports** of the Autoware packages (decision Q8, §5): the design's reuse
+are **proposed to stay C++ ports** of the Autoware packages (decision Q8, §6): the design's reuse
 argument rests on running Autoware's own code, and `I5`–`I7` are already ported near verbatim in the
 evaluation island. Each node below is built in this order, which is the dependency order of the
 parent plan's §2.2.
@@ -51,12 +51,79 @@ Autoware types reused unchanged: `Trajectory` (≤ 250 points), `Odometry`, `Acc
 | :-- | :-- |
 | E2E configuration | nano-ros built-in E2E (decision Q1): a Data ID per interface row of §8.1–§8.3, profile A or B per row, and the age limits above |
 | Contracts | One `*.contract.yaml` per WP2–WP3 node: endpoints, rates, age limits, partition (P0/P1), and the hazard `hpc_loss` with FTTI 70 ms. The checker must pass on the §9.2 budget: detection 30 ms + decision 20 ms + command 20 ms |
-| Test harness | Host-build node runner, scripted publishers for every input in §2 below, trace recorder, golden-trace comparison; an HPC stub that publishes H1/H2/H5/H7 traffic and can stop, freeze or corrupt it |
+| Test harness | Host-build node runner, scripted publishers for every input in §3 below, trace recorder, golden-trace comparison; an HPC stub that publishes H1/H2/H5/H7 traffic and can stop, freeze or corrupt it |
 | Fault-code table | The `N8` codes used in WP3: `HPC_LIVENESS_LOST`, `HPC_COMMAND_INVALID`, `E2E_VERIFY_FAIL`, `TIME_BASE_INVALID`, `ACTUATOR_NOT_TRACKING`, `SENSING_BLACKOUT` (kept distinct from the later in-lane-stop code), `FSI_SOC_ERROR` |
 
 ---
 
-## 2. WP2: the base layer (levels L0–L2)
+## 2. WP1: phase 0 on the X-S32Z27X-DC
+
+FreeRTOS + nano-ros already run on this board (earlier evaluation), so WP1 has **no bring-up or
+driver step**. It puts the island's own structure on the board: the partitions every later node is
+placed into, the HPC boundary, and the measurement setup the 70 ms budget is checked with. Then it
+moves the phase-0 controller onto that structure. WP1 writes **no new node**: `I9`–`I12` are the only
+nodes it runs, and they are already ported.
+
+### 2.1 Partition and core map
+
+The executors of design §9.1, created now and left empty until their nodes arrive. A partition with
+no node yet runs a **synthetic load** (a periodic task with the partition's period and a sized busy
+loop), so isolation is measured before the safety nodes exist (§2.3).
+
+| Partition | Nodes, eventually | Period | Band | S32Z2 placement | Runs after WP1 |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| **P0** safety core | `I1 I2 I3 I5 I6 I7 I16 N1 N2 N3 N4 N8` | 10 ms | 1 | R52 lockstep | synthetic load |
+| **P1** supervision + fallback | `I8 I13 N5 N7 N9 N10 N12 N18`, `N21` command path, `N23` | 20 ms | 2 | R52 lockstep | synthetic load |
+| **P2** safety sensing | `I19 I20 N13–N17 N19` (`N20`) | 20–50 ms | 3 | own core; `N14`'s pixel stages on DSP or Neon | synthetic load |
+| **P3** nominal control | `I9` (hosting `I10 I11 I12`), `I14` | 20–30 ms | 4 | R52 split | **`I9`–`I12`** |
+| **P3s** tele-op streaming | `N22` | 33–100 ms | 4b | R52 split | — |
+| **P4** non-real-time | `N11`, telemetry, `N21` status | 100–1000 ms | 5 | R52 split | — |
+
+The exact core numbers and the SRAM region per partition are written into the platform file.
+That includes a reservation for `N13`'s 3D LiDAR frame buffer (plan §1.3), to be sized when Q9 is
+answered.
+
+### 2.2 Deliverables
+
+| Deliverable | Content |
+| :-- | :-- |
+| Platform configuration | `platforms/s32z2` + `config/` (ARCHITECTURE.md §3): the executors above, their periods, priority bands, core assignment and memory regions, as nano-ros `system.toml` and launch files |
+| Branch profile | Least-Cost on S32Z2: `N6` absent, `N13` present (3D LiDAR). Later WPs instantiate their nodes from this profile, not from code switches |
+| Scheduling-matrix check | Design §9.3 risk 3: the P0/P1/P2 bands checked against the nano-ros scheduling wiring matrix for FreeRTOS on Cortex-R52, **before** any timing figure is claimed |
+| HPC boundary | Cyclone DDS over Ethernet to the HPC PC, wire-compatible with unmodified Autoware |
+| Intra-island transport | Open decision 7 (plan Q3). WP1 picks a **provisional** backend, recorded and flagged, so WP2 can start. It is a `system.toml` choice, so revisiting it later touches no node source |
+| Allocation baseline | `rmw-alloc-sites.py` run on the board build: the first entry of the T0 allocation-site report (plan §4.3) |
+| Target tracing | Trace points at executor release and completion and at CAN FD transmit. This is the instrument WP3 uses to measure detection 30 ms + decision 20 ms + command 20 ms |
+| HIL rig (T4) | X-S32Z27X-DC + HPC PC running the Autoware planning simulator + CAN FD vehicle simulator; the one rig every later T4 test uses |
+| Host build (T2/T3) | `platforms/host` built from the **same** partition configuration (FreeRTOS POSIX port or nano-ros on POSIX), so the WP0 harness and the software-in-the-loop runs match the board |
+
+### `I9`–`I12` trajectory_follower_node (hosting `mpc_lateral_controller`, `pid_longitudinal_controller`, `trajectory_follower_base`) · C++ (already ported, phase 0) · P3 · L3
+
+| | |
+| :-- | :-- |
+| In | **WP1, phase-0 wiring:** `Trajectory` and `OperationModeState` straight from the HPC over Cyclone DDS; odometry and vehicle status from the planning simulator. **From WP2:** the trajectory and mode via `N1` (B1, B2), ego state from `N4` (badge E), the steering report from `I16` (badge V) |
+| Out | `Control` (E1). In WP1 it returns to Autoware on the HPC; from WP3 it feeds `I1`'s nominal port |
+| Build | Retarget the evaluation-island port into P3 on the board; **OSQP iteration cap and a time budget on `I10`**, so an MPC overrun is bounded; `KEEP_LAST` depth 1 on every input and the 250-point trajectory bound (design §9.3) |
+| Tests | Closed loop against the planning simulator, with tracking error comparable to the evaluation island; `I10`'s worst case stays inside the P3 period over recorded hard trajectories with the cap active; interoperation with unmodified Autoware; no allocation after init outside the reported sites |
+
+### 2.3 Partition isolation before any safety node exists
+
+| Inject | Expected | Measured |
+| :-- | :-- | :-- |
+| CPU hog in P3 | Synthetic P0, P1 and P2 tasks keep their periods | Release jitter and deadline misses per partition |
+| `I10` overrun (OSQP cap disabled on purpose) | Same; P3 alone misses | As above |
+| HPC link flood on the Cyclone DDS port | P3 input queues stay at depth 1; P0–P2 synthetic periods intact | As above |
+
+The same tests are repeated with the real nodes in WP3 (P0) and WP4 (P3 shed before P2).
+
+**WP1 exit.** **Phase 0 reproduced on the board**: `I9`–`I12` follow Autoware's trajectory in closed
+loop against the planning simulator. In addition, all six partitions run at their §9.1 periods,
+P3 overload leaves P0–P2 untouched, tracing works end to end on the HIL rig, and the provisional
+intra-island transport is recorded.
+
+---
+
+## 3. WP2: the base layer (levels L0–L2)
 
 ### `I16` vehicle interface (golf cart) · C++ port pattern, new per vehicle · P0 · L0
 
@@ -133,7 +200,7 @@ and every fault above reaches a stub `N8` as a `FaultEvent`.
 
 ---
 
-## 3. WP3: the authority core and B4 (levels L5–L11)
+## 4. WP3: the authority core and B4 (levels L5–L11)
 
 ### `N8` si_fault_manager · Rust · P0 · L5
 
@@ -198,7 +265,7 @@ and every fault above reaches a stub `N8` as a `FaultEvent`.
 
 ---
 
-## 4. WP3 integration and demo D1
+## 5. WP3 integration and demo D1
 
 **Integration order.** Close the feedback edges one at a time, each with a T3 (software-in-the-loop) run before
 the next: `I1 → I16` (the vehicle loop), then the `I6 → I7` status reply, then the whole B4 path on
@@ -217,7 +284,7 @@ consumes no exteroceptive topic, and is measured inside the 70 ms budget.
 
 ---
 
-## 5. Decision added by this breakdown
+## 6. Decision added by this breakdown
 
 | # | Decision | Status |
 | :-- | :-- | :-- |

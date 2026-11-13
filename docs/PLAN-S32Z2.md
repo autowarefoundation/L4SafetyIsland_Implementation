@@ -236,14 +236,15 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 #### WP1: Phase 0 on the X-S32Z27X-DC
 
 FreeRTOS + nano-ros already run on this board (earlier evaluation), so there is no platform
-bring-up step. WP1 only puts the island's own structure on it.
+bring-up step. WP1 only puts the island's own structure on it. Detailed in
+[WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §2.
 
 | | |
 | :-- | :-- |
-| Builds | Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with `N14`'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores); nano-ros with Cyclone DDS on the HPC boundary; **`I9`–`I12` retargeted from the evaluation island to the board** |
+| Builds | Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with `N14`'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores), with a synthetic load in every partition that has no node yet; the Least-Cost branch profile; nano-ros with Cyclone DDS on the HPC boundary and a provisional intra-island transport (Q3); target tracing; the HIL rig and the host build from the same configuration; **`I9`–`I12` retargeted from the evaluation island to the board** |
 | Depends on | WP0; the evaluated FreeRTOS + nano-ros setup on the X-S32Z27X-DC |
-| Tests | `I9`–`I12` closed loop against the Autoware planning simulator; OSQP iteration cap holds `I10` inside its budget; P3 overload does not disturb P0 |
-| Exit | **Phase 0 reproduced on the board**: trajectory following on the island against unmodified Autoware |
+| Tests | `I9`–`I12` closed loop against the Autoware planning simulator; OSQP iteration cap holds `I10` inside its budget; the P0/P1/P2 bands pass the nano-ros scheduling-matrix check (§9.3 risk 3); P3 overload and an `I10` overrun leave the **synthetic** P0–P2 loads at their periods (repeated with the real nodes in WP3 and WP4) |
+| Exit | **Phase 0 reproduced on the board**: trajectory following on the island against unmodified Autoware; all partitions run at their §9.1 periods; tracing works end to end on the HIL rig |
 
 #### WP2: Base layer, L0–L2 (the inputs of the safety core)
 
@@ -412,10 +413,10 @@ Taken from the design's Part 4 list (§12) and the §6.6 failure table, restrict
 
 | # | Question | Needed by |
 | :-- | :-- | :-- |
-| Q3 | Intra-island transport for P0 (open decision 7) | WP1 |
+| Q3 | Intra-island transport for P0 (open decision 7). WP1 records a provisional choice; final before WP3 timing is measured | WP1 (provisional), WP3 |
 | Q4 | Camera: classical CV or certified smart camera (open decision 8) | WP5 |
 | Q5 | Blackout owner and debounce (§2.4 above; open decision 15) | WP3 |
 | Q6 | The remaining §2.4 gaps: hazard-lamp owner, MRM longitudinal owner, odometry arbiter | WP2–WP4 |
 | Q7 | Sensor placement on the golf cart (open decision 21(c)), now including the 3D LiDAR's mounting and field of view | WP5 |
-| Q8 | Do the migrated `I*` nodes stay C++ ports? **Proposed: yes**; only the new `N*` nodes are Rust (see [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §5) | WP0 |
+| Q8 | Do the migrated `I*` nodes stay C++ ports? **Proposed: yes**; only the new `N*` nodes are Rust (see [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) §6) | WP0 |
 | Q9 | The lab's 3D LiDAR: model, Ethernet interface and speed, point rate, field of view, minimum range, multi-echo, time sync. Sets `N13`'s budget and the S32Z2 Ethernet port it needs | WP5 |

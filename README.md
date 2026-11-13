@@ -76,5 +76,5 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 | Document | Content |
 | :-- | :-- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
-| [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, inputs/outputs, build tasks, tests, demo D1 |
+| [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |

@@ -616,12 +616,12 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 </tbody>
 </table>
 <h4 id="wp1-phase-0-on-the-x-s32z27x-dc">WP1: Phase 0 on the X-S32Z27X-DC</h4>
-<p>FreeRTOS + nano-ros already run on this board (earlier evaluation), so there is no platform bring-up step. WP1 only puts the island's own structure on it.</p>
+<p>FreeRTOS + nano-ros already run on this board (earlier evaluation), so there is no platform bring-up step. WP1 only puts the island's own structure on it. Detailed in <a href="WP0-WP3-SafetyFloor.md">WP0-WP3-SafetyFloor.md</a> §2.</p>
 <table>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Builds</td>
-<td style="text-align: left;">Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with <code>N14</code>'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores); nano-ros with Cyclone DDS on the HPC boundary; <strong><code>I9</code>–<code>I12</code> retargeted from the evaluation island to the board</strong></td>
+<td style="text-align: left;">Core and partition map for the island (P0/P1 on lockstep cores, P2 on its own core with <code>N14</code>'s pixel stages on the DSP or Neon, P3/P3s/P4 on split cores), with a synthetic load in every partition that has no node yet; the Least-Cost branch profile; nano-ros with Cyclone DDS on the HPC boundary and a provisional intra-island transport (Q3); target tracing; the HIL rig and the host build from the same configuration; <strong><code>I9</code>–<code>I12</code> retargeted from the evaluation island to the board</strong></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Depends on</td>
@@ -629,11 +629,11 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Tests</td>
-<td style="text-align: left;"><code>I9</code>–<code>I12</code> closed loop against the Autoware planning simulator; OSQP iteration cap holds <code>I10</code> inside its budget; P3 overload does not disturb P0</td>
+<td style="text-align: left;"><code>I9</code>–<code>I12</code> closed loop against the Autoware planning simulator; OSQP iteration cap holds <code>I10</code> inside its budget; the P0/P1/P2 bands pass the nano-ros scheduling-matrix check (§9.3 risk 3); P3 overload and an <code>I10</code> overrun leave the <strong>synthetic</strong> P0–P2 loads at their periods (repeated with the real nodes in WP3 and WP4)</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Exit</td>
-<td style="text-align: left;"><strong>Phase 0 reproduced on the board</strong>: trajectory following on the island against unmodified Autoware</td>
+<td style="text-align: left;"><strong>Phase 0 reproduced on the board</strong>: trajectory following on the island against unmodified Autoware; all partitions run at their §9.1 periods; tracing works end to end on the HIL rig</td>
 </tr>
 </tbody>
 </table>
@@ -1079,8 +1079,8 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Q3</td>
-<td style="text-align: left;">Intra-island transport for P0 (open decision 7)</td>
-<td style="text-align: left;">WP1</td>
+<td style="text-align: left;">Intra-island transport for P0 (open decision 7). WP1 records a provisional choice; final before WP3 timing is measured</td>
+<td style="text-align: left;">WP1 (provisional), WP3</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Q4</td>
@@ -1104,7 +1104,7 @@ Track C — HPC side (Autoware)      H1 H7 H2 H5 ──── H6 ─────
 </tr>
 <tr class="even">
 <td style="text-align: left;">Q8</td>
-<td style="text-align: left;">Do the migrated <code>I*</code> nodes stay C++ ports? <strong>Proposed: yes</strong>; only the new <code>N*</code> nodes are Rust (see <a href="WP0-WP3-SafetyFloor.md">WP0-WP3-SafetyFloor.md</a> §5)</td>
+<td style="text-align: left;">Do the migrated <code>I*</code> nodes stay C++ ports? <strong>Proposed: yes</strong>; only the new <code>N*</code> nodes are Rust (see <a href="WP0-WP3-SafetyFloor.md">WP0-WP3-SafetyFloor.md</a> §6)</td>
 <td style="text-align: left;">WP0</td>
 </tr>
 <tr class="odd">
