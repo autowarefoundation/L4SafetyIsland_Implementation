@@ -466,6 +466,8 @@
 \setlength{\tabcolsep}{4pt}
 
 % ---- generic identity chip -------------------------------------------
+% \NoCaseChange is in the LaTeX kernel from 2022-06; older TeX Live (e.g. 2021) needs this fallback.
+\providecommand{\NoCaseChange}[1]{#1}
 \newcommand{\chip}[2]{\NoCaseChange{%
   \tikz[baseline=(X.base)]{%
     \node[inner xsep=2.4pt,inner ysep=1.2pt,rounded corners=1pt,
