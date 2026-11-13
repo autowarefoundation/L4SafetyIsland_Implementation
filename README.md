@@ -72,6 +72,17 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 | Least-Cost | NXP S32Z2: S32Z280 on the S32Z280-400EVB, FreeRTOS + nano-ros ([platform choice](docs/PLATFORM-CHOICE.md)) |
 | Maximum-Safety | Renesas R-Car X5H |
 
+## Automation
+
+GitHub Actions keep the repository's GitHub side in step with the files. Nothing needs to run on a
+local machine beyond `git push`.
+
+| Workflow | Runs | Does |
+| :-- | :-- | :-- |
+| [Update progress counts](.github/workflows/update-progress.yml) | On issue changes, daily | Recounts the Progress section above |
+| [Sync milestones](.github/workflows/sync-milestones.yml) | On a push that changes `.github/milestones/` | Applies [`milestones.json`](.github/milestones/milestones.json): milestones, issue assignment, label moves |
+| [Edit issues](.github/workflows/edit-issues.yml) | By hand, from the Actions tab | Replaces a phrase in issue titles and bodies; dry run by default |
+
 ## Planning documents
 
 | Document | Content |

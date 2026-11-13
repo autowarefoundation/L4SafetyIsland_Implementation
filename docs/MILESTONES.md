@@ -5,7 +5,7 @@
 | Design baseline | *L4 Safety Island for Autoware — Software Design*, **Release V1.0** (version 20261023) |
 | Plan | [PLAN-S32Z2.md](PLAN-S32Z2.md) (work packages, tests, demos), [WP0-WP3-SafetyFloor.md](WP0-WP3-SafetyFloor.md) |
 | Status | Proposed. Milestones have **no due dates yet**; dates are set once WP0 has a measured pace |
-| On GitHub | Created by [`.github/milestones/create_milestones.py`](../.github/milestones/create_milestones.py) from [`milestones.json`](../.github/milestones/milestones.json) |
+| On GitHub | Kept in [`milestones.json`](../.github/milestones/milestones.json). The [Sync milestones](../.github/workflows/sync-milestones.yml) workflow applies it on every push to `main` that changes it, through [`create_milestones.py`](../.github/milestones/create_milestones.py). Edit the JSON and push; there is nothing to run by hand |
 
 ## 1. How the milestones are cut
 

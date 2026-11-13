@@ -1,0 +1,53 @@
+name: Edit issues
+
+# Replace a phrase in the titles and bodies of every issue, for example after a
+# platform change. Run it from the Actions tab: Run workflow, fill in the
+# phrases, and leave "dry run" ticked first to check the changes in the log.
+
+on:
+  workflow_dispatch:
+    inputs:
+      old:
+        description: "Phrase to replace"
+        required: true
+        type: string
+      new:
+        description: "Replacement"
+        required: true
+        type: string
+      keep:
+        description: "Leave lines containing this phrase unchanged (optional)"
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: "Only show what would change"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: edit-issues
+  cancel-in-progress: false
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Replace in issue titles and bodies
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OLD: ${{ inputs.old }}
+          NEW: ${{ inputs.new }}
+          KEEP: ${{ inputs.keep }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=("$OLD" "$NEW")
+          if [ -n "$KEEP" ]; then args+=(--keep "$KEEP"); fi
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          python3 -B .github/scripts/replace_in_issues.py "${args[@]}"

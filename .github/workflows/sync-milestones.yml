@@ -1,0 +1,43 @@
+name: Sync milestones
+
+# Apply .github/milestones/milestones.json to GitHub: create or rename the
+# milestones, refresh their descriptions, attach the listed issues and apply
+# the label moves. Runs whenever milestones.json or its script changes on main,
+# and on demand (with an optional dry run).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/milestones/**
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only show what would change"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write   # milestones, issue milestones and labels
+
+concurrency:
+  group: sync-milestones
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply milestones.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python3 -B .github/milestones/create_milestones.py --dry-run
+          else
+            python3 -B .github/milestones/create_milestones.py
+          fi
