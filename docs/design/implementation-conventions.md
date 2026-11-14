@@ -158,8 +158,11 @@ are the starting point for #18.
   on a self-hosted `l4si-integration` runner, manual and nightly (and in the
   merge queue once enabled), and is skipped where no such runner is
   registered.
-- The ruleset lets GitHub Actions bypass it, so the progress workflow can keep
-  committing the README counts to `main`.
+- The progress workflow commits the README counts straight to `main` with
+  the workflow token. The ruleset blocks that push, and GitHub does not accept
+  GitHub Actions as a bypass actor (tested on the fork). The workflow needs a
+  token that is on the bypass list, or must open a pull request instead
+  (open question C7).
 
 Applying the ruleset needs an administrator; see
 [ci/repository-setup.md](../ci/repository-setup.md).

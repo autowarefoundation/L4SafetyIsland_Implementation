@@ -14,7 +14,7 @@ default branch:
 | Merge queue           | rebase, all-green grouping, up to 5 entries built and merged together, 5 min wait to fill a group, 60 min check timeout |
 | Required status check | `gate` from GitHub Actions                                                                                              |
 | History               | linear; no force push; no deletion                                                                                      |
-| Bypass                | GitHub Actions only, so the progress workflow can commit the README counts to `main`                                    |
+| Bypass                | none; see the progress workflow below                                                                                   |
 
 Apply it with the GitHub CLI:
 
@@ -35,10 +35,18 @@ Or in the web interface: **Settings > Rules > Rulesets > New ruleset > Import
 a ruleset**, choose `main.json`, check the rules listed above, and save with
 enforcement **Active**.
 
-If GitHub refuses GitHub Actions as a bypass actor, delete `bypass_actors`
-from the file before applying it, and change the progress workflow to push its
-README commit through a pull request or a GitHub App token that is on the
-bypass list. Without either, the ruleset blocks its push.
+**The progress workflow.** `update-progress.yml` pushes its README commit to
+`main` with the workflow token, which the ruleset blocks. GitHub does not
+accept GitHub Actions as a bypass actor ("Actor GitHub Actions integration
+must be part of the ruleset source or owner organization"). Before applying
+the ruleset, either:
+
+- create a GitHub App with contents write access, install it on the
+  repository, add it to the ruleset's `bypass_actors`
+  (`{"actor_id": <app id>, "actor_type": "Integration", "bypass_mode": "always"}`)
+  and let the workflow push with a token from
+  `actions/create-github-app-token`, as Autoware's own workflows do; or
+- change the workflow to open a pull request with the new counts.
 
 ## 2. Allow the merge queue's prerequisites
 
