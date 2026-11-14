@@ -1,0 +1,27 @@
+# Autoware's pre-commit check (.pre-commit-config.yaml). Autoware runs it
+# through pre-commit.ci on public repositories and pushes fixes back; here it
+# is a check of the merge gate and pushes nothing.
+
+name: pre-commit
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install the pinned Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --config .pre-commit-config.yaml --all-files --show-diff-on-failure

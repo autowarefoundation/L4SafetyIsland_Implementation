@@ -1,0 +1,123 @@
+# Build and test the workspace: the Rust crates on the host and for the
+# Cortex-R52 target, and the nano-ros images of the bringup.
+
+name: build-and-test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install the pinned Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
+
+      - name: Run clippy (host)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Run clippy (Cortex-R52, no_std)
+        run: >-
+          cargo clippy --workspace --exclude si-platform-host --locked
+          --target armv8r-none-eabihf -- -D warnings
+
+      - name: Run tests
+        run: cargo test --workspace --locked
+
+      - name: Build documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --locked
+
+  cargo-deny:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check bans licenses sources
+
+  nros-images:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    container: ros:humble-ros-base-jammy
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: host
+            board: linux
+          - image: host_maximum_safety
+            board: linux
+          - image: s32z2
+            board: s32z270-freertos
+    env:
+      NROS_HOME: /github/home/.nros
+    steps:
+      - name: Install host packages
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends \
+            git curl ca-certificates build-essential cmake pkg-config \
+            python3 python3-dev zstd python3-catkin-pkg python3-empy python3-lark python3-yaml >/dev/null
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read the nano-ros pin
+        id: pin
+        run: echo "version=$(sed -n 's/^version = "\(.*\)"/\1/p' nros-toolchain.toml)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the nano-ros SDK store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NROS_HOME }}
+          key: nros-${{ steps.pin.outputs.version }}-${{ matrix.board }}
+
+      - name: Install nano-ros ${{ steps.pin.outputs.version }}
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/NEWSLabNTU/nano-ros/main/scripts/install.sh \
+            | sh -s -- --version "$VERSION"
+          echo "$NROS_HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Install the Rust toolchain
+        run: |
+          curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Provision ${{ matrix.board }}
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          nros setup ${{ matrix.board }}
+
+      - name: Build image ${{ matrix.image }}
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          nros build ${{ matrix.image }}

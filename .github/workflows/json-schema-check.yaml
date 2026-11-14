@@ -1,0 +1,21 @@
+# Validates every package's config/*.param.yaml against its
+# schema/*.schema.json (Autoware's parameter convention).
+
+name: json-schema-check
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  json-schema-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run json-schema-check
+        uses: autowarefoundation/autoware-github-actions/json-schema-check@v1

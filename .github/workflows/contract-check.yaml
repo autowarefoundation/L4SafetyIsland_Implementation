@@ -1,0 +1,46 @@
+# Check the node contracts (rates, budgets, FTTIs, monitors) with play_launch
+# against the message packages, built as a ROS 2 overlay.
+
+name: contract-check
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-check:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    container: ros:humble-ros-base-jammy
+    env:
+      PLAY_LAUNCH_VERSION: 0.34.0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install play_launch
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends python3-pip python3-colcon-common-extensions >/dev/null
+          pip3 install --no-cache-dir "play_launch==${PLAY_LAUNCH_VERSION}"
+
+      - name: Build the message packages
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          colcon build --base-paths src --packages-select autoware_safety_island_msgs \
+            --build-base build/colcon --install-base build/install
+
+      - name: Check the contracts
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          source build/install/setup.bash
+          scripts/check_contracts.sh
+
+      - name: Check the deployment parameter files against the node schemas
+        run: |
+          pip3 install --no-cache-dir check-jsonschema
+          python3 -B scripts/check_param_overrides.py
