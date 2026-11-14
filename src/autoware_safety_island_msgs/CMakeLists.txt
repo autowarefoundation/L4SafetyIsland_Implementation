@@ -8,10 +8,30 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  # Design section 8.1, HPC -> island
+  # Design V1.0 section 8.1, HPC -> island
   msg/HpcHeartbeat.msg
+  msg/HpcCapability.msg
+  msg/ActiveOdd.msg
+  msg/OddStatus.msg
+  msg/SafetyCorridor.msg
+  msg/PullOverRefuge.msg
+  # Design V1.0 section 8.2, island -> HPC
+  msg/IslandState.msg
+  msg/SafetyWorldState.msg
+  msg/SensorHealth.msg
+  msg/IslandSensorHealth.msg
+  msg/OddVerdict.msg
+  msg/FallbackAvailability.msg
+  msg/SafetyEnvelopeCommand.msg
+  # Island-internal (WP0-WP3-SafetyFloor.md section 1.1)
+  msg/FaultEvent.msg
+  msg/FaultVerdict.msg
+  msg/IslandMode.msg
+  msg/SensorValidity.msg
+  msg/RecoveryVerdict.msg
   DEPENDENCIES
     builtin_interfaces
+    geometry_msgs
 )
 
 ament_auto_package()

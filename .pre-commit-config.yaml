@@ -106,6 +106,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: check-msg-bounds
+        name: check message bounds
+        description: Refuse unbounded string and sequence fields in message packages.
+        entry: python3 -B scripts/check_msg_bounds.py
+        language: system
+        files: ^src/.*/(msg|srv)/.*\.(msg|srv)$
       - id: cargo-fmt
         name: cargo fmt
         description: Format the Rust workspace and the Rust node packages with rustfmt.
