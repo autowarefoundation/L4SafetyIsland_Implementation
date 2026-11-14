@@ -1,0 +1,15 @@
+[package]
+name = "si-nodes"
+description = "Node logic of the safety island as pure step functions."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+si-hal = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,8 @@
+# Same channel as the pinned nano-ros release (nros-toolchain.toml), so the
+# island crates and the nano-ros sources they link build with one compiler.
+# Bump both in the same pull request.
+[toolchain]
+channel = "1.99.0"
+components = ["rustfmt", "clippy"]
+# Cortex-R52 (S32Z2 RTU and R-Car X5H safety cluster), hard-float.
+targets = ["armv8r-none-eabihf"]

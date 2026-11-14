@@ -1,0 +1,46 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/si-core",
+    "crates/si-hal",
+    "crates/si-nodes",
+    "crates/si-sensors",
+    "platforms/host",
+    "platforms/s32z2",
+]
+# nano-ros packages (src/, config/) are cargo roots of their own, built by
+# `nros build` through the generated image entry under build/.
+exclude = ["build", "config", "src"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+repository = "https://github.com/autowarefoundation/L4SafetyIsland_Implementation"
+publish = false
+
+[workspace.dependencies]
+si-core = { path = "crates/si-core" }
+si-hal = { path = "crates/si-hal" }
+si-nodes = { path = "crates/si-nodes" }
+si-sensors = { path = "crates/si-sensors" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+alloc_instead_of_core = "warn"
+std_instead_of_core = "warn"
+std_instead_of_alloc = "warn"
+
+[profile.release]
+panic = "abort"
+lto = true
+codegen-units = 1
+
+[profile.dev]
+panic = "abort"

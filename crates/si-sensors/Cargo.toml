@@ -1,0 +1,15 @@
+[package]
+name = "si-sensors"
+description = "Sensor decoding for the safety island: radar, lidar, ultrasonic, IMU, camera."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+si-hal = { workspace = true }
+
+[lints]
+workspace = true
