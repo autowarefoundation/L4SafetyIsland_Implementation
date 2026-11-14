@@ -1,0 +1,10 @@
+{
+  "ignorePaths": [
+    "**/Cargo.lock",
+    "*.html",
+    "design/**",
+    "slides/**"
+  ],
+  "ignoreRegExpList": [],
+  "words": []
+}
