@@ -1,0 +1,15 @@
+# cspell:ignore rosbag
+# l4si: the L4 Safety Island integration project (scenario-world-bridge).
+# One Autoware ego on CARLA's Town01. ci/scripts/ copies this directory to a work
+# directory per run; swb.lock pins the map dataset (commit it after `assets fetch`).
+simulator: carla
+assets:
+  - dataset: carla-town-autoware-maps
+    take: [Town01]
+pilots:
+  ego: { kind: autoware, vehicle: tesla_model3 }
+# The runs record the ego's key topics (a small rosbag); a passed run keeps its logs
+# only, a failed or broken one keeps everything for the artifact upload.
+logging:
+  capture: full
+  keep: { passed: standard, failed: full, error: full }

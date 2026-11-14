@@ -1,0 +1,88 @@
+# cspell:ignore carlasim healthcheck jitconfig nosound
+# The integration host: CARLA (long-lived, GPU) + the runner (one job per container).
+#
+#   docker compose -f ci/runner/compose.yaml up -d carla        CARLA only
+#   ci/runner/register.sh loop                                  the runner, forever
+#   docker compose -f ci/runner/compose.yaml run --rm local     one run, no GitHub
+#
+# Nothing here is privileged: the containers share a private bridge network (DDS stays
+# on each container's own loopback, swb's profile), CARLA gets the GPU through the
+# NVIDIA container runtime's device request, and the stack containers may raise thread
+# priorities (SYS_NICE) and nothing else.
+name: l4si-integration
+
+x-stack: &stack
+  networks: [l4si]
+  depends_on: [carla]
+  shm_size: 2gb
+  cap_add: [SYS_NICE]
+  environment:
+    CARLA_HOST: carla
+    CARLA_PORT: "2000"
+  volumes:
+    # The map datasets (read-only once fetched) survive between jobs.
+    - l4si-cache:/var/lib/l4si/cache
+
+services:
+  carla:
+    image: carlasim/carla:${CARLA_VERSION:-0.9.16}
+    command: >-
+      bash CarlaUE4.sh -RenderOffScreen -nosound -carla-rpc-port=2000
+      -quality-level=Epic
+    networks: [l4si]
+    restart: unless-stopped
+    shm_size: 2gb
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${L4SI_CARLA_GPU:-all}
+      NVIDIA_DRIVER_CAPABILITIES: all
+      VK_ICD_FILENAMES: /usr/share/vulkan/icd.d/nvidia_icd.json
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: [CMD, bash, -c, exec 3<>/dev/tcp/127.0.0.1/2000]
+      interval: 15s
+      timeout: 5s
+      start_period: 180s
+      retries: 20
+
+  # The GitHub Actions runner. Started by `register.sh loop` with a fresh JIT config per
+  # job; `restart: no` so a finished (ephemeral) runner is never re-run in place.
+  runner:
+    <<: *stack
+    image: ${L4SI_RUNNER_IMAGE:-l4si-ci-runner:dev}
+    restart: "no"
+    profiles: [runner]
+    environment:
+      CARLA_HOST: carla
+      CARLA_PORT: "2000"
+      ACTIONS_RUNNER_JITCONFIG: ${ACTIONS_RUNNER_JITCONFIG:-}
+
+  # One integration run on a workstation: the same scripts, this checkout mounted.
+  #   L4SI_SUITE=suites/smoke.yaml docker compose -f ci/runner/compose.yaml run --rm local
+  local:
+    <<: *stack
+    image: ${L4SI_STACK_IMAGE:-l4si-ci-stack:dev}
+    profiles: [local]
+    working_dir: /work
+    environment:
+      CARLA_HOST: carla
+      CARLA_PORT: "2000"
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      L4SI_WORK: /work/build/integration
+      L4SI_WITH_ISLAND: ${L4SI_WITH_ISLAND:-0}
+    volumes:
+      - ../..:/work
+      - l4si-cache:/var/lib/l4si/cache
+    command: [bash, /work/ci/scripts/integration.sh]
+
+networks:
+  l4si: {}
+
+volumes:
+  l4si-cache: {}
