@@ -2,7 +2,7 @@
 
 |                 |                                                                                                                                                                                                                              |
 | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status          | **Proposal** for review by the plan owner; the scaffold pull request implements it                                                                                                                                           |
+| Status          | **Decided**: the implementation team owns the layout and keeps the plan's names and structure where nano-ros allows; the scaffold pull request implements it                                                                 |
 | Design baseline | Release V1.0 (version 20261023), pinned as the submodule [`design/RFC_L4_SafetyIslandDesign`](../../design/RFC_L4_SafetyIslandDesign) at tag `v1.0`                                                                          |
 | Inputs          | [ARCHITECTURE.md](../ARCHITECTURE.md), [PLAN-S32Z2.md](../PLAN-S32Z2.md), [WP0-WP3-SafetyFloor.md](../WP0-WP3-SafetyFloor.md), [MILESTONES.md](../MILESTONES.md), the Autoware contribution guidelines, nano-ros 0.6.0-nros8 |
 
@@ -184,7 +184,6 @@ Applying the ruleset needs an administrator; see
 
 | #   | Question                                                                                                                                                                       | For                   |
 | :-- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------- |
-| C1  | Accept the layout of section 3 (in particular `si-msgs` -> IDL package, `si-runtime` -> node packages + bringup, `config/` -> bringup)?                                        | Plan owner            |
 | C2  | Repository license: no `LICENSE` file yet; the scaffold declares Apache-2.0, as Autoware does                                                                                  | Plan owner            |
 | C3  | The HPC boundary is Cyclone DDS (WP1); the scaffold image uses zenoh, the nano-ros default. Switch when #22 decides                                                            | WP1                   |
 | C4  | ROS 2 edition for codegen and the HPC: Humble (scaffold) or Jazzy                                                                                                              | WG                    |
