@@ -8,9 +8,9 @@ members = [
     "platforms/host",
     "platforms/s32z2",
 ]
-# nano-ros packages (src/, config/) are cargo roots of their own, built by
+# nano-ros packages (src/) are cargo roots of their own, built by
 # `nros build` through the generated image entry under build/.
-exclude = ["build", "config", "src"]
+exclude = ["build", "src"]
 
 [workspace.package]
 version = "0.1.0"

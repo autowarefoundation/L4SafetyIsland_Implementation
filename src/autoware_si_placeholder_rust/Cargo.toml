@@ -1,0 +1,24 @@
+[package]
+name = "autoware_si_placeholder_rust"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+description = "Placeholder of a new island node (N*) in Rust."
+
+# A nano-ros node package: a library; the image entry `nros build` generates
+# owns the executor. `nros build` writes the message crate rows below from
+# package.xml.
+[lib]
+path = "src/lib.rs"
+
+[package.metadata.nros.node]
+class = "autoware_si_placeholder_rust::Placeholder"
+name = "si_placeholder_rust"
+
+[dependencies]
+nros = { version = "*", default-features = false, features = ["alloc", "rmw-cffi", "macros"] }
+nros-log = { version = "*", default-features = false }
+si-hal = { path = "../../crates/si-hal" }
+si-nodes = { path = "../../crates/si-nodes" }
+autoware_safety_island_msgs = { path = "../../generated/autoware_safety_island_msgs", default-features = false }  # nros-managed
