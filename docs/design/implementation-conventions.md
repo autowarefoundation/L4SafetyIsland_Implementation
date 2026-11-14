@@ -74,18 +74,18 @@ finds packages only one level below `src/`. Proposed layout:
 
 ```text
 .
-├── crates/                         shared no_std Rust libraries, no ROS, no middleware
-│   ├── si-core/  si-hal/  si-nodes/  si-sensors/
-├── platforms/                      per-platform Rust crates implementing si-hal
-│   ├── host/  s32z2/               (x5h/ when its work starts)
-├── src/                            ROS 2 / nano-ros packages, one package.xml each
-│   ├── autoware_safety_island_msgs/     IDL: the source of every message type
-│   ├── autoware_si_<node>/              a new N* node (Rust): binds si-nodes logic to endpoints
-│   ├── autoware_<ported_package>/       a ported I* node (C++), Autoware's package name
-│   └── autoware_safety_island_bringup/  deployments: system.toml, launch, contract, params
-├── design/RFC_L4_SafetyIslandDesign/    the design baseline (submodule, tag v1.0)
-├── ci/                             self-hosted integration lane (runner, suite)
-└── docs/
+|-- crates/                         shared no_std Rust libraries, no ROS, no middleware
+|   |-- si-core/  si-hal/  si-nodes/  si-sensors/
+|-- platforms/                      per-platform Rust crates implementing si-hal
+|   |-- host/  s32z2/               (x5h/ when its work starts)
+|-- src/                            ROS 2 / nano-ros packages, one package.xml each
+|   |-- autoware_safety_island_msgs/     IDL: the source of every message type
+|   |-- autoware_si_<node>/              a new N* node (Rust): binds si-nodes logic to endpoints
+|   |-- autoware_<ported_package>/       a ported I* node (C++), Autoware's package name
+|   `-- autoware_safety_island_bringup/  deployments: system.toml, launch, contract, params
+|-- design/RFC_L4_SafetyIslandDesign/    the design baseline (submodule, tag v1.0)
+|-- ci/                             self-hosted integration lane (runner, suite)
+`-- docs/
 ```
 
 How the plan's layers map:
