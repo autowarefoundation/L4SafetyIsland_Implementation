@@ -14,8 +14,9 @@ CONTRIBUTING.md wins and this file is out of date.
   `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`,
   the Cortex-R52 clippy line of [docs/testing.md](docs/testing.md),
   `pre-commit run --all-files`, and `nros build --all` when `src/` changed.
-- Sign off every commit with the human operator's identity (`git commit -s`)
-  only when the operator has told you to. Never sign off as yourself.
+- Do not sign off commits; the human author signs off. Never sign off as
+  yourself, and add no `Co-authored-by` or session trailer for an AI tool.
+  Disclose AI use in the pull request's "AI usage" section.
 - Pull request titles: Conventional Commits, lower-case description. Fill in
   the template, including "AI usage" with a verification statement.
 - Keep pull requests small; open only what the operator can shepherd. Do not

@@ -41,7 +41,9 @@ passes:
 
 - **Sign off every commit** (Developer Certificate of Origin):
   `git commit -s`. The sign-off certifies that you may submit the change under
-  the repository's license.
+  the repository's license. The human author signs off; a tool never does.
+- **No AI trailers.** Commits carry no `Co-authored-by` or session trailer
+  for an AI tool; disclose AI use in the pull request instead (below).
 - **Pull request titles** use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
   `type(scope): description`, the description in lower case. Types: `feat`,
   `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
