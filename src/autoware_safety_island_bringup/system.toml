@@ -40,23 +40,13 @@ args = { branch = "least_cost" }
 board = "linux"
 args = { branch = "maximum_safety" }
 
-# Host, FreeRTOS POSIX port (the kernel the board runs, as a Linux process):
-# not declared yet. nano-ros 0.6.0-nros8 fails a CMake-driven (C++ or mixed)
-# image on board freertos-posix with "FREERTOS_PORT not set"; add this row
-# back once a nano-ros release fixes it:
-#
-# [image.host_freertos]
-# board = "freertos-posix"
-# args = { branch = "least_cost" }
+# Host, FreeRTOS POSIX port: the kernel the board runs, as a Linux process.
+[image.host_freertos]
+board = "freertos-posix"
+args = { branch = "least_cost" }
 
 # NXP S32Z2 (Cortex-R52, FreeRTOS). Builds without the board; the NXP
 # GIC port, NETC driver and RTD configuration are WP1 inputs.
 [image.s32z2]
 board = "s32z270-freertos"
 args = { branch = "least_cost" }
-
-# The Rust placeholder reads period_ms with ctx.param(), which the census of
-# nano-ros 0.6.0-nros8 does not count as a declaration, and the value does not
-# reach the node yet. Drop this waiver when a release closes that gap.
-[census.waive."si_placeholder_rust:param:period_ms"]
-reason = "read through ctx.param(), which the 0.6.0-nros8 census does not see"

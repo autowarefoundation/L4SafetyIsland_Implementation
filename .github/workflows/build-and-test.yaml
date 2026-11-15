@@ -72,6 +72,8 @@ jobs:
             board: linux
           - image: host_maximum_safety
             board: linux
+          - image: host_freertos
+            board: freertos-posix
           - image: s32z2
             board: s32z270-freertos
     env:
