@@ -25,7 +25,7 @@ Follow the [ROS 2 Humble installation](https://docs.ros.org/en/humble/Installati
 (`ros-humble-ros-base` is enough), then:
 
 ```bash
-sudo apt-get install -y python3-colcon-common-extensions zstd \
+sudo apt-get install -y python3-colcon-common-extensions ninja-build zstd \
   python3-catkin-pkg python3-empy python3-lark python3-yaml
 ```
 
@@ -86,7 +86,7 @@ The C++ placeholder prints the heartbeats the Rust placeholder publishes.
 ## 6. Check the contracts
 
 ```bash
-pip install play_launch==0.34.0
+pip install play_launch==0.35.0
 source /opt/ros/humble/setup.bash
 colcon build --base-paths src --packages-select autoware_safety_island_msgs \
   --build-base build/colcon --install-base build/install

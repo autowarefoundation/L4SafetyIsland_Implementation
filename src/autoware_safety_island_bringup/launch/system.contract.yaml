@@ -11,7 +11,7 @@ nodes:
       period_ms: { type: integer }
     paths:
       on_tick:
-        trigger: { timer: { rate_hz: 10 } }
+        trigger: { timer: { rate: 10Hz } }
         output: [heartbeat]
     pub:
       heartbeat:
