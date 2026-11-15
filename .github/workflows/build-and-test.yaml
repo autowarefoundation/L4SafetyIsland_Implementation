@@ -133,3 +133,22 @@ jobs:
         run: |
           source /opt/ros/humble/setup.bash
           nros build ${{ matrix.image }}
+
+      # Run a host image for a few seconds: the C++ placeholder must receive
+      # the Rust placeholder's heartbeat, and the Rust node must run at the
+      # period its branch's parameter file sets.
+      - name: Run image ${{ matrix.image }}
+        if: matrix.board == 'linux'
+        shell: bash
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: |
+          source /opt/ros/humble/setup.bash
+          timeout 15 nros run "autoware_safety_island_bringup:$IMAGE" > run.log 2>&1 || true
+          cat run.log
+          branch=$(sed -n "/^\[image\.$IMAGE\]/,/^\[/s/^args = { branch = \"\(.*\)\" }/\1/p" \
+            src/autoware_safety_island_bringup/system.toml)
+          period=$(sed -n 's/^ *period_ms: *//p' \
+            "src/autoware_safety_island_bringup/config/$branch/si_placeholder_rust.param.yaml")
+          grep -q "si_placeholder_cpp: heartbeat" run.log
+          grep -q "Publishing every $period ms" run.log
