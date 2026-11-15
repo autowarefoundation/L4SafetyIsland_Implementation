@@ -116,7 +116,17 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/humble/setup.bash
+          nros setup linux
           nros setup ${{ matrix.board }}
+
+      # A cross image is checked against a census of the code: the native
+      # image built from the same launch file, run in census mode.
+      - name: Take the census for ${{ matrix.image }}
+        if: matrix.board != 'linux'
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          nros configure --census autoware_safety_island_bringup:${{ matrix.image }}
 
       - name: Build image ${{ matrix.image }}
         shell: bash
