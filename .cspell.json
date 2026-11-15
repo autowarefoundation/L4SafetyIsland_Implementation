@@ -25,6 +25,7 @@
     "rclrs",
     "Renesas",
     "rustdoc",
-    "RUSTDOCFLAGS"
+    "RUSTDOCFLAGS",
+    "xrce"
   ]
 }

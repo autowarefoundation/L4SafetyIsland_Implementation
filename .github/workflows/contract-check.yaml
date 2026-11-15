@@ -5,6 +5,11 @@ name: contract-check
 
 on:
   workflow_call:
+    inputs:
+      ros-edition:
+        description: ROS 2 edition, from system.toml [system] ros_edition
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,9 +18,12 @@ jobs:
   contract-check:
     runs-on: ubuntu-22.04
     timeout-minutes: 20
-    container: ros:humble-ros-base-jammy
+    container: ros:${{ inputs.ros-edition }}-ros-base
     env:
       PLAY_LAUNCH_VERSION: 0.35.0
+      ROS_EDITION: ${{ inputs.ros-edition }}
+      # Newer pip refuses system-wide installs without it; older pip ignores it.
+      PIP_BREAK_SYSTEM_PACKAGES: 1
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -29,14 +37,14 @@ jobs:
       - name: Build the message packages
         shell: bash
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           colcon build --base-paths src --packages-select autoware_safety_island_msgs \
             --build-base build/colcon --install-base build/install
 
       - name: Check the contracts
         shell: bash
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           source build/install/setup.bash
           scripts/check_contracts.sh
 

@@ -6,8 +6,8 @@ contracts. No board is needed.
 
 ## Before you start
 
-- Ubuntu 22.04 (ROS 2 Humble). Ubuntu 24.04 with Jazzy is expected to work
-  but is not what CI runs.
+- Ubuntu 22.04 with ROS 2 Humble, the default. Ubuntu 24.04 with Jazzy works
+  the same way once the bringup selects it (below).
 - About 10 GB of free disk for the toolchains and build trees.
 
 ## 1. Clone with the design submodule
@@ -31,6 +31,22 @@ sudo apt-get install -y python3-colcon-common-extensions ninja-build zstd \
 
 nano-ros generates the message bindings from this install; `nros run` starts the
 zenoh router of `ros-humble-rmw-zenoh-cpp`.
+
+### Switching the ROS 2 edition or the RMW
+
+Each is one line in `src/autoware_safety_island_bringup/system.toml`:
+
+```toml
+[system]
+rmw = "zenoh"          # or "cyclonedds", "xrce"
+ros_edition = "humble" # or "jazzy"
+```
+
+CI reads both from that file (`.github/scripts/read_system.py`): the
+container is `ros:<edition>-ros-base`, and the zenoh router is installed only
+when `rmw = "zenoh"`. Locally, install and source the matching ROS 2 edition,
+replace `humble` in the commands on this page, and install
+`ros-<edition>-rmw-zenoh-cpp` only for zenoh.
 
 ## 3. Install Rust
 

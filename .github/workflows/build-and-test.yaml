@@ -5,6 +5,15 @@ name: build-and-test
 
 on:
   workflow_call:
+    inputs:
+      ros-edition:
+        description: ROS 2 edition, from system.toml [system] ros_edition
+        required: true
+        type: string
+      rmw:
+        description: RMW, from system.toml [system] rmw
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -63,7 +72,7 @@ jobs:
   nros-images:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
-    container: ros:humble-ros-base-jammy
+    container: ros:${{ inputs.ros-edition }}-ros-base
     strategy:
       fail-fast: false
       matrix:
@@ -78,14 +87,19 @@ jobs:
             board: s32z270-freertos
     env:
       NROS_HOME: /github/home/.nros
+      ROS_EDITION: ${{ inputs.ros-edition }}
+      RMW: ${{ inputs.rmw }}
     steps:
       - name: Install host packages
         run: |
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends \
             git curl ca-certificates build-essential cmake ninja-build pkg-config \
-            python3 python3-dev zstd python3-catkin-pkg python3-empy python3-lark python3-yaml \
-            ros-humble-rmw-zenoh-cpp >/dev/null
+            python3 python3-dev zstd python3-catkin-pkg python3-empy python3-lark python3-yaml >/dev/null
+          # nros run starts the zenoh router of rmw_zenoh_cpp for a zenoh image.
+          if [ "$RMW" = zenoh ]; then
+            apt-get install -y -qq --no-install-recommends "ros-$ROS_EDITION-rmw-zenoh-cpp" >/dev/null
+          fi
 
       - name: Check out repository
         uses: actions/checkout@v4
@@ -98,7 +112,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NROS_HOME }}
-          key: nros-${{ steps.pin.outputs.version }}-${{ matrix.board }}
+          key: nros-${{ steps.pin.outputs.version }}-${{ inputs.ros-edition }}-${{ matrix.board }}
 
       - name: Install nano-ros ${{ steps.pin.outputs.version }}
         env:
@@ -116,7 +130,7 @@ jobs:
       - name: Provision ${{ matrix.board }}
         shell: bash
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           nros setup linux
           nros setup ${{ matrix.board }}
 
@@ -126,13 +140,13 @@ jobs:
         if: matrix.board != 'linux'
         shell: bash
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           nros configure --census autoware_safety_island_bringup:${{ matrix.image }}
 
       - name: Build image ${{ matrix.image }}
         shell: bash
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           nros build ${{ matrix.image }}
 
       # Run a host image: the C++ placeholder must receive
@@ -144,7 +158,7 @@ jobs:
         env:
           IMAGE: ${{ matrix.image }}
         run: |
-          source /opt/ros/humble/setup.bash
+          source "/opt/ros/$ROS_EDITION/setup.bash"
           branch=$(sed -n "/^\[image\.$IMAGE\]/,/^\[/s/^args = { branch = \"\(.*\)\" }/\1/p" \
             src/autoware_safety_island_bringup/system.toml)
           period=$(sed -n 's/^ *period_ms: *//p' \

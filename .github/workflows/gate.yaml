@@ -41,6 +41,22 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/spell-check-differential.yaml
 
+  # The ROS 2 edition and the RMW, from the bringup's system.toml: the one
+  # switch for each. The image and contract jobs take them as inputs.
+  system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      ros-edition: ${{ steps.read.outputs.ros_edition }}
+      rmw: ${{ steps.read.outputs.rmw }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read system.toml
+        id: read
+        run: python3 -B .github/scripts/read_system.py >> "$GITHUB_OUTPUT"
+
   # Checks of the tree: they run on every event.
   pre-commit:
     uses: ./.github/workflows/pre-commit.yaml
@@ -49,10 +65,17 @@ jobs:
     uses: ./.github/workflows/json-schema-check.yaml
 
   build-and-test:
+    needs: system
     uses: ./.github/workflows/build-and-test.yaml
+    with:
+      ros-edition: ${{ needs.system.outputs.ros-edition }}
+      rmw: ${{ needs.system.outputs.rmw }}
 
   contract-check:
+    needs: system
     uses: ./.github/workflows/contract-check.yaml
+    with:
+      ros-edition: ${{ needs.system.outputs.ros-edition }}
 
   gate:
     if: always()
@@ -60,6 +83,7 @@ jobs:
       - semantic-pull-request
       - dco
       - spell-check-differential
+      - system
       - pre-commit
       - json-schema-check
       - build-and-test
