@@ -125,3 +125,7 @@ local machine beyond `git push`.
 | [docs/design/implementation-conventions.md](docs/design/implementation-conventions.md) | How Autoware's conventions apply to the Rust and nano-ros code base: language rule, layout, sources of truth, gates (proposal) |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
 | [slides/L4SafetyIsland-ImplementationPlan.pdf](slides/L4SafetyIsland-ImplementationPlan.pdf) | Slide deck presenting the plan: phases, work packages, partitions, issues; every slide links back to these documents ([source](slides/L4SafetyIsland-ImplementationPlan.tex)) |
+
+## License
+
+Apache License 2.0 ([LICENSE](LICENSE)). Copyright 2026 The Autoware Foundation ([NOTICE](NOTICE)).
