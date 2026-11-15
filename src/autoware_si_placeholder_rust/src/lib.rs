@@ -73,6 +73,7 @@ impl ExecutableNode for Placeholder {
         if callback.as_str() == "on_tick" {
             let msg = HpcHeartbeat {
                 sequence: state.step(&(), Instant::default()),
+                self_test: HpcHeartbeat::SELF_TEST_PASS,
                 ..HpcHeartbeat::default()
             };
             let _ = ctx.publish_to_topic::<HpcHeartbeat, 64>(TOPIC, &msg);
