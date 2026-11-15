@@ -1,4 +1,4 @@
-# cspell:ignore colcon cuda DBUILD DCMAKE installdependencies libz networkx noninteractive nopasswd passwordless pipefail pkgxml procps psmisc rclcpp rosdep rosdistro runasroot rustup setuptools startswith tlsv yamale zstd
+# cspell:ignore agnocast colcon cuda DBUILD DCMAKE installdependencies libz networkx noninteractive nopasswd passwordless pipefail pkgxml procps psmisc rclcpp rosdep rosdistro runasroot rustup setuptools startswith tlsv yamale zstd
 # L4 Safety Island integration-test images.
 #
 # One Dockerfile, three stages; two of them are images you use:
@@ -31,7 +31,7 @@ USER root
 ARG ROS_DISTRO
 # swb: a commit of https://github.com/NEWSLabNTU/scenario-world-bridge (main).
 ARG SWB_REPO=https://github.com/NEWSLabNTU/scenario-world-bridge.git
-ARG SWB_REF=031d46294efe21e9e989be9d5c32b90d5faf61dd
+ARG SWB_REF=c2a28791c86a37e8644357f0ee6c53e6c87d743c
 
 ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo
 ENV PATH=/usr/local/cargo/bin:$PATH
@@ -56,11 +56,9 @@ RUN git clone --filter=blob:none "${SWB_REPO}" /opt/swb-ws \
 # message crates relative to it, and the install is copied to the same path.
 WORKDIR /opt/swb-ws
 # rosdep over the packages colcon builds (not --from-paths src: the components' deps/
-# copies hold templates rosdep refuses). Skipped keys: tier4_localization_launch, which
-# swb's Autoware profile names after Autoware 1.5.0 and 2.0.0 renamed
-# (autoware_localization_launch; see docs/testing/integration.md, Known gaps), and
-# python-yamale-pip, a pip key installed by pip here.
-ARG ROSDEP_SKIP_KEYS="tier4_localization_launch python-yamale-pip"
+# copies hold templates rosdep refuses). Skipped: python-yamale-pip, a pip key no apt
+# source resolves (swb's own setup skips it too); pip installs yamale here.
+ARG ROSDEP_SKIP_KEYS="python-yamale-pip"
 RUN pip3 install --no-cache-dir yamale
 RUN source "/opt/ros/${ROS_DISTRO}/setup.bash" \
     && source /opt/autoware/setup.bash \
@@ -102,7 +100,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 ARG ROS_DISTRO
 ARG AUTOWARE_VERSION
-ARG PLAY_LAUNCH_VERSION=0.34.0
+ARG PLAY_LAUNCH_VERSION=0.35.0
 ARG CARLA_VERSION=0.9.16
 # The nros CLI release (https://github.com/NEWSLabNTU/nano-ros/releases). A job pins the
 # exact toolchain its checkout declares (nros-toolchain.toml) at run time.
@@ -126,7 +124,7 @@ RUN apt-get update \
     && (rosdep update --rosdistro "${ROS_DISTRO}" || true) \
     && DEBIAN_FRONTEND=noninteractive rosdep install -y --rosdistro "${ROS_DISTRO}" \
         --from-paths /tmp/swb-pkgxml --ignore-src --dependency-types=exec \
-        --skip-keys "tier4_localization_launch python-yamale-pip $(ls /opt/autoware | tr '\n' ' ')" \
+        --skip-keys "python-yamale-pip $(ls /opt/autoware | tr '\n' ' ')" \
     && rm -rf /var/lib/apt/lists/* /tmp/swb-pkgxml
 
 # Python tools: play_launch (the launcher swb drives), the CARLA client (pose helper,
@@ -137,6 +135,14 @@ RUN pip3 install --no-cache-dir \
     && test "$(pip3 show play_launch | sed -n "s/^Version: //p")" = "${PLAY_LAUNCH_VERSION}"
 
 COPY --from=swb-build /opt/swb-ws/install /opt/swb-ws/install
+
+# play_launch's default (Rust) launch parser cannot evaluate Autoware 2.0.0's
+# agnocast_env.launch.py (`EnvironmentVariable` has no `perform`), and swb's stack starts
+# each pilot as a nested `play_launch launch`. This wrapper, first on PATH, adds
+# `--parser $L4SI_PLAY_LAUNCH_PARSER` (python) to `play_launch launch`; drop it once
+# play_launch's own parser handles 2.0.0.
+COPY --chmod=755 play_launch-wrapper.sh /opt/l4si/bin/play_launch
+ENV PATH=/opt/l4si/bin:$PATH L4SI_PLAY_LAUNCH_PARSER=python
 
 # Rust (for the island's host build) + just + the nros CLI, all under /opt, on PATH for
 # every user. Writable by the aw user so jobs can add a component or target.

@@ -8,6 +8,7 @@
 #   CARLA_HOST/PORT    the CARLA server (default: carla:2000, the compose service)
 #   L4SI_READY_TIMEOUT seconds the stack has to become ready (default 1200)
 #   L4SI_WITH_ISLAND   1: start the safety island (host build) before the stack
+#   L4SI_LOGS          swb's log root, as in its host settings (default: /var/lib/l4si/logs)
 #   L4SI_ENV           the environment script (default: /etc/l4si/env.sh, else ci/runner/env.sh)
 #
 # Exit codes, the same as `ros2 run swb run`: 0 passed, 1 a scenario failed, 2 the stack

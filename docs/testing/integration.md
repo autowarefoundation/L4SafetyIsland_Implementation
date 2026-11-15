@@ -1,4 +1,4 @@
-<!-- cspell:ignore carlasim rosbag rosdep -->
+<!-- cspell:ignore agnocast sigsegv carlasim rosbag rosdep -->
 
 # Integration tests
 
@@ -34,7 +34,8 @@ first the host build of this repository, later QEMU, then the S32Z2 board.
   life of the host: starting it takes minutes, and swb is built to reuse one.
 - **The stack** (swb's `swb.launch.xml`) brings up CARLA's world server, the bridge SSv2
   talks to, the agent relay, and the ego: Autoware with swb's Autoware profile for the
-  Tesla Model 3 in `sim_vehicle_spec`, on the simulator's lidar and cameras.
+  Tesla Model 3 in `sim_vehicle_spec`, on the simulator's lidar and cameras. `ci/project/swb.yaml` selects
+  Autoware 2.0.0 (`args: {autoware_release: "2.0.0"}`; the profile's default is 1.5.0).
 - **A run** (`ros2 run swb run`) starts SSv2 on a scenario against the stack, and exits
   with the verdict: 0 passed, 1 failed, 2 error (the stack could not judge the run),
   3 refused. `ci/scripts/integration.sh` exits with the same code, which is the job's.
@@ -86,7 +87,7 @@ NVIDIA container toolkit and a GPU:
 
 ```bash
 ci/runner/build.sh                                       # once
-docker compose -f ci/runner/compose.yaml up -d carla     # CARLA; wait until healthy
+docker compose -f ci/runner/compose.yaml up -d --wait carla   # CARLA, healthy
 docker compose -f ci/runner/compose.yaml run --rm local  # the smoke suite
 L4SI_WITH_ISLAND=1 docker compose -f ci/runner/compose.yaml run --rm local
 docker compose -f ci/runner/compose.yaml down            # CARLA too
@@ -129,16 +130,29 @@ The stack's web UI (every process and its log) is on `L4SI_WEB_ADDR`, default
 5. A new suite in CI: the workflow's `suite` input (dispatch), or change the default in
    `.github/workflows/integration.yaml`.
 
+## Status
+
+The smoke suite passes on CARLA 0.9.16 with the Autoware 2.0.0 ego (2026-11-15, one
+RTX 3090 host, `compose run --rm local`): `integration.sh` exit 0. `drive_to_goal`'s
+first attempt ended `error` (Autoware did not reach `WAITING_FOR_ROUTE` in SSv2's time on
+a cold start), the suite's `retry: {on: error}` ran it again and it passed (146 s). The
+artifacts of that run were about 170 MB (two runs at `capture: full` and the stack's process logs).
+
 ## Known gaps
 
-- **The ego does not start on Autoware 2.0.0 yet.** swb's Autoware profile
-  (`autoware_sim_profile` in swb's `autoware_sim_vehicle`) is written against Autoware
-  1.5.0 and includes the `tier4_{localization,perception,planning,control}_launch`
-  packages, which 2.0.0 renamed to `autoware_*_launch`. swb itself builds against 2.0.0
-  and the stack's simulator side comes up, but resolving the ego's launch stops at
-  `package 'tier4_perception_launch' not found`, so a run ends as `error` (exit 2) until
-  the profile is ported to 2.0.0 in swb. The image skips the one such key rosdep sees
-  (`tier4_localization_launch`, Dockerfile `ROSDEP_SKIP_KEYS`); drop it with the port.
+- **play_launch's default parser and Autoware 2.0.0.** The Rust parser cannot evaluate
+  2.0.0's `agnocast_env.launch.py` (`EnvironmentVariable` has no `perform`). The stack
+  image puts a `play_launch` wrapper first on `PATH` that adds `--parser python`
+  (`L4SI_PLAY_LAUNCH_PARSER`, `ci/runner/play_launch-wrapper.sh`); drop it once
+  play_launch handles 2.0.0.
+- **The first run after a stack start can time out** waiting for Autoware's
+  `WAITING_FOR_ROUTE`; the suites retry an `error` once.
+- **CARLA quality.** At `-quality-level=Low` CARLA 0.9.16 crashes (SIGSEGV after
+  `close: Bad file descriptor`) when a world loads; the compose file keeps Epic and starts
+  CARLA on Town01 (`CARLA_MAP`).
+- **GPU access.** The compose file uses the NVIDIA container runtime
+  (`runtime: nvidia`); on a host whose Docker takes `--gpus` instead, use a device
+  reservation (see the comment in `ci/runner/compose.yaml`).
 - The island's host binary does not exist yet: with `L4SI_WITH_ISLAND=1` the run is
   refused (exit 3) until `platforms/host` builds one.
 - The board (`l4si-hil`) is reserved, not wired.

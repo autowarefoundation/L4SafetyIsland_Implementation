@@ -86,9 +86,16 @@ prune)
     ;;
 loop)
     command -v jq >/dev/null || die "jq is required"
-    "${compose[@]}" up -d carla
     backoff=10
     while true; do
+        # CARLA has no restart policy: (re)start it and wait for its RPC port before
+        # taking a job, so a dead CARLA stops here instead of failing jobs.
+        if ! "${compose[@]}" up -d --wait --wait-timeout 600 carla; then
+            echo "register.sh: CARLA is not healthy; retry in ${backoff}s" >&2
+            sleep "$backoff"
+            backoff=$((backoff < 300 ? backoff * 2 : 300))
+            continue
+        fi
         if ! jit="$(jit_config)"; then
             echo "register.sh: no JIT config; retry in ${backoff}s" >&2
             sleep "$backoff"

@@ -1,4 +1,4 @@
-# cspell:ignore carlasim healthcheck jitconfig nosound
+# cspell:ignore sigsegv carlasim healthcheck jitconfig nosound
 # The integration host: CARLA (long-lived, GPU) + the runner (one job per container).
 #
 #   docker compose -f ci/runner/compose.yaml up -d carla        CARLA only
@@ -7,10 +7,12 @@
 #
 # Nothing here is privileged: the containers share a private bridge network (DDS stays
 # on each container's own loopback, swb's profile), CARLA gets the GPU through the
-# NVIDIA container runtime's device request, and the stack containers may raise thread
+# NVIDIA container runtime, and the stack containers may raise thread
 # priorities (SYS_NICE) and nothing else.
 name: l4si-integration
 
+# CARLA starts on the suites' town (CARLA_MAP); keep quality Epic: at Low, CARLA 0.9.16
+# crashes (SIGSEGV, `close: Bad file descriptor`) when a world loads.
 x-stack: &stack
   networks: [l4si]
   depends_on: [carla]
@@ -27,22 +29,22 @@ services:
   carla:
     image: carlasim/carla:${CARLA_VERSION:-0.9.16}
     command: >-
-      bash CarlaUE4.sh -RenderOffScreen -nosound -carla-rpc-port=2000
-      -quality-level=Epic
+      bash CarlaUE4.sh /Game/Carla/Maps/${CARLA_MAP:-Town01} -RenderOffScreen -nosound
+      -carla-rpc-port=2000 -quality-level=${CARLA_QUALITY:-Epic}
     networks: [l4si]
-    restart: unless-stopped
+    # No restart policy: a CARLA that dies is a visible failure, not a crash loop.
+    restart: "no"
     shm_size: 2gb
     environment:
       NVIDIA_VISIBLE_DEVICES: ${L4SI_CARLA_GPU:-all}
       NVIDIA_DRIVER_CAPABILITIES: all
-      VK_ICD_FILENAMES: /usr/share/vulkan/icd.d/nvidia_icd.json
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      # The image ships the NVIDIA ICD here (not under /usr/share/vulkan); a wrong path
+      # makes CARLA exit 1 with no output.
+      VK_ICD_FILENAMES: /etc/vulkan/icd.d/nvidia_icd.json
+    # The GPU through the NVIDIA container runtime (nvidia-ctk runtime configure). On a
+    # host whose Docker takes `--gpus` instead, replace this line with a deploy.resources
+    # device reservation (driver: nvidia, capabilities: [gpu]).
+    runtime: ${L4SI_CARLA_RUNTIME:-nvidia}
     healthcheck:
       test: [CMD, bash, -c, exec 3<>/dev/tcp/127.0.0.1/2000]
       interval: 15s

@@ -115,7 +115,7 @@ when its config expires.
 Without the loop, a single registration:
 
 ```bash
-docker compose -f ci/runner/compose.yaml up -d carla
+docker compose -f ci/runner/compose.yaml up -d --wait carla
 ACTIONS_RUNNER_JITCONFIG="$(ci/runner/register.sh jit)" \
     docker compose -f ci/runner/compose.yaml run --rm runner
 ```

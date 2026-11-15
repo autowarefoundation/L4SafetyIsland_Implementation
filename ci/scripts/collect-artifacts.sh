@@ -21,18 +21,17 @@ if [ -d "$L4SI_PROJECT" ]; then
     if [ -e runs ]; then
         cp -rL runs "$L4SI_ARTIFACTS/runs" 2>/dev/null || true
     fi
-    logs_root="$(readlink -f runs 2>/dev/null)"
-    if [ -n "$logs_root" ] && [ -d "$logs_root/../suites" ]; then
-        cp -rL "$logs_root/../suites" "$L4SI_ARTIFACTS/suites" 2>/dev/null || true
-    fi
-    if [ -n "$logs_root" ] && [ -d "$logs_root/../stacks" ]; then
-        # The stack's own record (stack.json, events) without its full process logs.
-        mkdir -p "$L4SI_ARTIFACTS/stacks"
-        for s in "$logs_root"/../stacks/*/; do
-            d="$L4SI_ARTIFACTS/stacks/$(basename "$s")"
-            mkdir -p "$d"
-            cp "$s"/stack.json "$s"/events.jsonl "$d/" 2>/dev/null || true
-        done
+    # swb's log directory of this project: <logs>/<project name>/{runs,suites,stacks}.
+    logs_dir="${L4SI_LOGS:-/var/lib/l4si/logs}/$(basename "$L4SI_PROJECT")"
+    # A suite's table and merged JUnit (its run links are the runs/ copied above).
+    for t in "$logs_dir"/suites/*/summary.csv "$logs_dir"/suites/*/junit.xml; do
+        [ -f "$t" ] || continue
+        d="$L4SI_ARTIFACTS/suites/$(basename "$(dirname "$t")")"
+        mkdir -p "$d" && cp "$t" "$d/"
+    done
+    # The stack's record and every process's log: what says why a stack never got ready.
+    if [ -d "$logs_dir/stacks" ]; then
+        cp -r "$logs_dir/stacks" "$L4SI_ARTIFACTS/stacks" 2>/dev/null || true
     fi
 fi
 du -sh "$L4SI_ARTIFACTS" 2>/dev/null | sed 's/^/[l4si] artifacts: /' >&2
