@@ -29,7 +29,7 @@ git clone --recurse-submodules https://github.com/autowarefoundation/L4SafetyIsl
 cd L4SafetyIsland_Implementation
 cargo test --workspace                       # shared Rust crates
 source /opt/ros/humble/setup.bash
-nros build --all                             # images: host, host_maximum_safety, s32z2
+nros build --all                             # images: host, host_maximum_safety, host_freertos, s32z2
 nros run autoware_safety_island_bringup:host
 ```
 

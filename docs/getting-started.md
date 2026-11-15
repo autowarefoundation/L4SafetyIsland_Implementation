@@ -55,6 +55,7 @@ uses it. Provision the two boards the images use:
 ```bash
 source /opt/ros/humble/setup.bash
 nros setup linux
+nros setup freertos-posix
 nros setup s32z270-freertos
 ```
 
@@ -73,7 +74,9 @@ The nano-ros images of `src/autoware_safety_island_bringup/system.toml`:
 source /opt/ros/humble/setup.bash
 nros build host                 # Linux process, Least-Cost branch
 nros build host_maximum_safety  # Linux process, Maximum-Safety branch
-nros build s32z2                # S32Z2, Cortex-R52, FreeRTOS (links; no board needed)
+nros configure --census autoware_safety_island_bringup:s32z2   # once; cross images need it
+nros build host_freertos        # FreeRTOS POSIX port, as a Linux process
+nros build s32z2                # S32Z2, Cortex-R52, FreeRTOS (no board needed)
 ```
 
 Run the host image against a zenoh router:
@@ -104,13 +107,13 @@ pre-commit install
 
 ## What runs without hardware
 
-| Target                                                      | Without the board                                                                                                                       |
-| :---------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `crates/`, `platforms/host`                                 | Built, tested                                                                                                                           |
-| `platforms/s32z2`, `no_std` crates for `armv8r-none-eabihf` | Type-checked with clippy                                                                                                                |
-| Image `host`, `host_maximum_safety`                         | Built and run as Linux processes                                                                                                        |
-| Image `s32z2`                                               | Built and linked (in-tree FreeRTOS `ARM_CRx_No_GIC` port). Booting needs the NXP GIC port, NETC driver and RTD configuration (WP1, #20) |
-| FreeRTOS POSIX image                                        | Not yet: nano-ros 0.6.0-nros8 fails a CMake-driven image on `freertos-posix`                                                            |
-| Cortex-R52 in QEMU (`mps3-an536-freertos`)                  | Not wired yet; candidate for a hardware-free run lane                                                                                   |
+| Target                                                      | Without the board                                                                                                                                                                            |
+| :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `crates/`, `platforms/host`                                 | Built, tested                                                                                                                                                                                |
+| `platforms/s32z2`, `no_std` crates for `armv8r-none-eabihf` | Type-checked with clippy                                                                                                                                                                     |
+| Image `host`, `host_maximum_safety`                         | Built and run as Linux processes                                                                                                                                                             |
+| Image `s32z2`                                               | Links (in-tree FreeRTOS `ARM_CRx_No_GIC` port); nano-ros 0.6.0-nros10's post-link stack-floor check then fails. Booting needs the NXP GIC port, NETC driver and RTD configuration (WP1, #20) |
+| Image `host_freertos` (FreeRTOS POSIX)                      | Links; the same stack-floor check fails                                                                                                                                                      |
+| Cortex-R52 in QEMU (`mps3-an536-freertos`)                  | Not wired yet; candidate for a hardware-free run lane                                                                                                                                        |
 
 See [testing.md](testing.md) for the test levels and CI lanes.

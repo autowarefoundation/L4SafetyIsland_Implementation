@@ -1,10 +1,10 @@
 # Implementation conventions: Autoware on a Rust and nano-ros island
 
-|                 |                                                                                                                                                                                                                              |
-| :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status          | **Decided**: the implementation team owns the layout and keeps the plan's names and structure where nano-ros allows; the scaffold pull request implements it                                                                 |
-| Design baseline | Release V1.0 (version 20261023), pinned as the submodule [`design/RFC_L4_SafetyIslandDesign`](../../design/RFC_L4_SafetyIslandDesign) at tag `v1.0`                                                                          |
-| Inputs          | [ARCHITECTURE.md](../ARCHITECTURE.md), [PLAN-S32Z2.md](../PLAN-S32Z2.md), [WP0-WP3-SafetyFloor.md](../WP0-WP3-SafetyFloor.md), [MILESTONES.md](../MILESTONES.md), the Autoware contribution guidelines, nano-ros 0.6.0-nros8 |
+|                 |                                                                                                                                                                                                                               |
+| :-------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status          | **Decided**: the implementation team owns the layout and keeps the plan's names and structure where nano-ros allows; the scaffold pull request implements it                                                                  |
+| Design baseline | Release V1.0 (version 20261023), pinned as the submodule [`design/RFC_L4_SafetyIslandDesign`](../../design/RFC_L4_SafetyIslandDesign) at tag `v1.0`                                                                           |
+| Inputs          | [ARCHITECTURE.md](../ARCHITECTURE.md), [PLAN-S32Z2.md](../PLAN-S32Z2.md), [WP0-WP3-SafetyFloor.md](../WP0-WP3-SafetyFloor.md), [MILESTONES.md](../MILESTONES.md), the Autoware contribution guidelines, nano-ros 0.6.0-nros10 |
 
 This note records how the repository applies Autoware's conventions to a code
 base whose island side is `no_std` Rust and ported C++ on nano-ros, and which
@@ -44,33 +44,36 @@ package it came from, and Autoware's own tests remain an equivalence check.
 This states Q8 as a rule. `I16` (vehicle interface) is new code for the golf
 cart and therefore Rust.
 
-**Verified (nano-ros 0.6.0-nros8).** One image holds C++ and Rust components:
+**Verified (nano-ros 0.6.0-nros10).** One image holds C++ and Rust components:
 when an image has a C or C++ package, nano-ros builds it with CMake and the
 Rust packages build inside it through Corrosion. The scaffold's image holds a
 Rust placeholder (`autoware_si_placeholder_rust`) and a C++ placeholder
-(`autoware_si_placeholder_cpp`); it links for `linux` and for
-`s32z270-freertos` (Cortex-R52, the in-tree `ARM_CRx_No_GIC` port). Two
-constraints found on the way:
+(`autoware_si_placeholder_cpp`). The `host` image builds and runs: the C++
+node receives the Rust node's heartbeat. Constraints of this release:
 
-- a Rust package in a mixed image carries a three-line `CMakeLists.txt`
+- a Rust package in a mixed image carries a short `CMakeLists.txt`
   (`nano_ros_node_register(... LANGUAGE RUST)`) and `nros_cmake` as its build
   type; without it the generated entry reports "no matching component";
-- a CMake-driven image on board `freertos-posix` fails in this release
-  (`FREERTOS_PORT not set`), so the host FreeRTOS image row is commented out
-  in `system.toml` until a release fixes it.
 - a C++ class whose header is not `<pkg>/<Class>.hpp` names it with
   `HEADER` in `nano_ros_add_node`, which keeps Autoware's
   `include/autoware/<name>/` layout;
-- a Rust node reads a launch value with `ctx.param()`; in this release the
-  value resolves (the model shows it) but does not reach the node, and the
-  census does not count the read as a declaration. The bringup waives that one
-  census row in `system.toml`, with the reason.
+- a cross image (`host_freertos`, `s32z2`) is checked against a census of
+  the native image: `nros configure --census <bringup>:<image>` takes it, and
+  needs `ninja`;
+- the post-link stack-floor check fails on the cross images (a missing or
+  unreadable LLVM IR file), after the image has linked; to be reported to nano-ros;
+- a Rust node reads a launch value with `ctx.param()`; the value resolves
+  (the model shows it) but does not reach the node, and the census does not
+  count the read as a declaration. The bringup waives that one census row in
+  `system.toml`, with the reason.
 
 ## 3. Layout
 
 ARCHITECTURE.md's layout holds Rust crates only. Ported C++ packages, message
-packages and deployments need ROS-shaped packages, and nano-ros (0.6.0-nros8)
-finds packages only one level below `src/`. Proposed layout:
+packages and deployments need ROS-shaped packages. nano-ros 0.6.0-nros8 found
+packages only one level below `src/`, hence the flat `src/`; 0.6.0-nros10 also
+searches nested directories and `nros.toml` `package_paths`, so a nested
+layout is possible if the team wants one. Proposed layout:
 
 ```text
 .
