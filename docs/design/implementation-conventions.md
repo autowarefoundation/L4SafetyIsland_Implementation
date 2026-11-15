@@ -172,9 +172,8 @@ Applying the ruleset needs an administrator; see
 - The Arm `autoware-safety-island` repository, `nano-ros` branch of the
   NEWSLabNTU fork (open point P4): already runs `I9`-`I12` (C++) with FreeRTOS
   targets for the S32Z2 and the X5H, the latter needing NXP-licensed inputs.
-  Proposal: port `I9`-`I12` from it as C++ packages under `src/` (#2) rather
-  than starting the repository from it, so the island's layout and gates stay
-  this repository's.
+  **Decided:** `I9`-`I12` are imported from it as C++ packages under `src/`
+  (#2); the repository does not start from it. See [asi-reuse.md](asi-reuse.md).
 - nano-ros board crates: `s32z270-freertos` (Cortex-R52, build-only, licensed
   GIC port and NETC driver consumer-side) and `mps3-an536-freertos` (QEMU
   Cortex-R52, boots and schedules). The latter is the candidate for a

@@ -14,6 +14,7 @@
     "cffi",
     "clippy",
     "codegen",
+    "devicetree",
     "eabihf",
     "empy",
     "idents",
