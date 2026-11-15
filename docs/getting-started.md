@@ -26,10 +26,11 @@ Follow the [ROS 2 Humble installation](https://docs.ros.org/en/humble/Installati
 
 ```bash
 sudo apt-get install -y python3-colcon-common-extensions ninja-build zstd \
-  python3-catkin-pkg python3-empy python3-lark python3-yaml
+  python3-catkin-pkg python3-empy python3-lark python3-yaml ros-humble-rmw-zenoh-cpp
 ```
 
-nano-ros generates the message bindings from this install.
+nano-ros generates the message bindings from this install; `nros run` starts the
+zenoh router of `ros-humble-rmw-zenoh-cpp`.
 
 ## 3. Install Rust
 
