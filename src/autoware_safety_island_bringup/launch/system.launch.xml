@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Design branch: least_cost or maximum_safety (ARCHITECTURE.md section 2). -->
+  <arg name="branch" default="least_cost"/>
+
+  <node pkg="autoware_si_placeholder_rust" exec="si_placeholder_rust" name="si_placeholder_rust">
+    <param from="$(dirname)/../config/$(var branch)/si_placeholder_rust.param.yaml"/>
+  </node>
+  <node pkg="autoware_si_placeholder_cpp" exec="si_placeholder_cpp" name="si_placeholder_cpp"/>
+</launch>

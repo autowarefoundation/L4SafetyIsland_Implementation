@@ -1,0 +1,3 @@
+[submodule "design/RFC_L4_SafetyIslandDesign"]
+	path = design/RFC_L4_SafetyIslandDesign
+	url = https://github.com/autowarefoundation/RFC_L4_SafetyIslandDesign.git

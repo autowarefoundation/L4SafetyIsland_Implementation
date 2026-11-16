@@ -1,0 +1,5 @@
+# island: the same drive with the safety island (host build) in the loop.
+# ci/scripts/stack-up.sh starts the island before the stack when L4SI_WITH_ISLAND=1.
+# Island-specific scenarios (MRM, pull-over) are added here as they land.
+scenarios: [scenarios/drive_to_goal.xosc]
+retry: { on: error, times: 1 }

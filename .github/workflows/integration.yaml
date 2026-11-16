@@ -1,0 +1,114 @@
+# Integration lane: Autoware on the HPC side, the safety island and the
+# scenario world bridge, on a self-hosted runner. Not part of the merge gate
+# yet. ci/ holds its runner setup and suite (ci/runner/README.md,
+# docs/testing/integration.md).
+#
+# The job runs only where an administrator registered a runner with the
+# `l4si-integration` label and set the repository variable
+# L4SI_INTEGRATION_RUNNER to `true`; everywhere else (forks included) it is
+# skipped, instead of waiting for a runner that never comes. Set
+# L4SI_INTEGRATION_IN_MERGE_QUEUE to `true` as well to run it on queued
+# batches. docs/ci/repository-setup.md describes both.
+#
+# A maintainer can also run it for one pull request with the label
+# `run-integration` (branches of this repository only: a fork's code never
+# reaches the runner).
+
+name: integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: swb suite or scenario, relative to ci/project
+        default: ""
+        type: string
+      with_island:
+        description: start the safety island (host build) before the stack
+        default: false
+        type: boolean
+  schedule:
+    - cron: 0 18 * * * # nightly, 02:00 in Taiwan
+  pull_request:
+    types: [labeled, synchronize]
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    if: >-
+      vars.L4SI_INTEGRATION_RUNNER == 'true' && (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'schedule' ||
+        (github.event_name == 'merge_group' && vars.L4SI_INTEGRATION_IN_MERGE_QUEUE == 'true') ||
+        (github.event_name == 'pull_request' &&
+          contains(github.event.pull_request.labels.*.name, 'run-integration') &&
+          github.event.pull_request.head.repo.full_name == github.repository)
+      )
+    runs-on: [self-hosted, l4si-integration]
+    timeout-minutes: 120
+    env:
+      L4SI_WITH_ISLAND: ${{ inputs.with_island && '1' || '0' }}
+      L4SI_SUITE: ${{ inputs.suite }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Versions
+        run: |
+          echo "L4SI_WORK=$RUNNER_TEMP/l4si-integration" >> "$GITHUB_ENV"
+          cat /etc/l4si/versions
+
+      # The exit code is the verdict: 0 passed, 1 failed, 2 error, 3 refused.
+      - name: Run the integration suite
+        id: run
+        run: |
+          if [ -n "$L4SI_SUITE" ]; then
+            ci/scripts/integration.sh "$L4SI_SUITE"
+          else
+            ci/scripts/integration.sh
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### integration: ${{ steps.run.outcome }}"
+            echo '```'
+            cat "$L4SI_WORK/artifacts/runs.txt" 2>/dev/null || echo "no runs"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.L4SI_WORK }}/artifacts
+          retention-days: 14
+          if-no-files-found: warn
+
+  # The real board on a hardware runner (S32Z280-400EVB). Reserved: no runner
+  # carries the label yet; set L4SI_HIL_RUNNER=true once one does.
+  hil:
+    if: vars.L4SI_HIL_RUNNER == 'true' && github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, l4si-hil]
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Run the integration suite on the board
+        env:
+          L4SI_WITH_ISLAND: "1"
+          L4SI_ISLAND_TARGET: hil
+        run: ci/scripts/integration.sh suites/island.yaml

@@ -1,0 +1,27 @@
+# Developer Certificate of Origin: every commit of the pull request carries a
+# `Signed-off-by:` line of its author (`git commit -s`). Autoware checks this
+# with the DCO GitHub App; this workflow makes it part of the merge gate.
+
+name: dco
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check sign-off of every commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 -B .github/scripts/check_dco.py "$BASE_SHA" "$HEAD_SHA"

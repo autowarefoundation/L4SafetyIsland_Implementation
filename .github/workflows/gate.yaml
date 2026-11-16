@@ -1,0 +1,77 @@
+# The merge gate. Every check a pull request must pass runs from here, and the
+# `gate` job at the end is the one required status check of the main branch
+# ruleset (.github/rulesets/main.json), so the ruleset names a stable check
+# while the checks behind it change.
+#
+# It runs on pull_request (admission to the merge queue) AND on merge_group
+# (the queued batch). A required check that does not report for a merge group
+# freezes the queue, so no trigger here carries a path filter.
+
+name: gate
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  merge_group:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  # Never cancel a merge-group run: the queue would eject untested pull requests.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Checks of the pull request itself: they judge its title and commits, which
+  # a merge group does not change, so they run on pull requests only.
+  semantic-pull-request:
+    if: github.event_name == 'pull_request'
+    uses: autowarefoundation/autoware-github-actions/.github/workflows/semantic-pull-request.yaml@v1
+
+  dco:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/dco.yaml
+
+  spell-check-differential:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/spell-check-differential.yaml
+
+  # Checks of the tree: they run on every event.
+  pre-commit:
+    uses: ./.github/workflows/pre-commit.yaml
+
+  json-schema-check:
+    uses: ./.github/workflows/json-schema-check.yaml
+
+  build-and-test:
+    uses: ./.github/workflows/build-and-test.yaml
+
+  contract-check:
+    uses: ./.github/workflows/contract-check.yaml
+
+  gate:
+    if: always()
+    needs:
+      - semantic-pull-request
+      - dco
+      - spell-check-differential
+      - pre-commit
+      - json-schema-check
+      - build-and-test
+      - contract-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Require every check to have passed
+        env:
+          EVENT: ${{ github.event_name }}
+          NEEDS: ${{ toJSON(needs) }}
+        run: python3 -B .github/scripts/check_gate.py
