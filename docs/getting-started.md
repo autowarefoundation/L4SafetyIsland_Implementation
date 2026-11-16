@@ -123,13 +123,13 @@ pre-commit install
 
 ## What runs without hardware
 
-| Target                                                      | Without the board                                                                                                                                                                            |
-| :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `crates/`, `platforms/host`                                 | Built, tested                                                                                                                                                                                |
-| `platforms/s32z2`, `no_std` crates for `armv8r-none-eabihf` | Type-checked with clippy                                                                                                                                                                     |
-| Image `host`, `host_maximum_safety`                         | Built and run as Linux processes                                                                                                                                                             |
-| Image `s32z2`                                               | Links (in-tree FreeRTOS `ARM_CRx_No_GIC` port); nano-ros 0.6.0-nros10's post-link stack-floor check then fails. Booting needs the NXP GIC port, NETC driver and RTD configuration (WP1, #20) |
-| Image `host_freertos` (FreeRTOS POSIX)                      | Links; the same stack-floor check fails                                                                                                                                                      |
-| Cortex-R52 in QEMU (`mps3-an536-freertos`)                  | Not wired yet; candidate for a hardware-free run lane                                                                                                                                        |
+| Target                                                      | Without the board                                                                                                                                            |
+| :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `crates/`, `platforms/host`                                 | Built, tested                                                                                                                                                |
+| `platforms/s32z2`, `no_std` crates for `armv8r-none-eabihf` | Type-checked with clippy                                                                                                                                     |
+| Image `host`, `host_maximum_safety`                         | Built and run as Linux processes                                                                                                                             |
+| Image `s32z2`                                               | Built and linked, stack floor checked (in-tree FreeRTOS `ARM_CRx_No_GIC` port). Booting needs the NXP GIC port, NETC driver and RTD configuration (WP1, #20) |
+| Image `host_freertos` (FreeRTOS POSIX)                      | Built and linked, stack floor checked                                                                                                                        |
+| Cortex-R52 in QEMU (`mps3-an536-freertos`)                  | Not wired yet; candidate for a hardware-free run lane                                                                                                        |
 
 See [testing.md](testing.md) for the test levels and CI lanes.

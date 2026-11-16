@@ -4,7 +4,7 @@
 | :-------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status          | **Decided**: the implementation team owns the layout and keeps the plan's names and structure where nano-ros allows; the scaffold pull request implements it                                                                  |
 | Design baseline | Release V1.0 (version 20261023), pinned as the submodule [`design/RFC_L4_SafetyIslandDesign`](../../design/RFC_L4_SafetyIslandDesign) at tag `v1.0`                                                                           |
-| Inputs          | [ARCHITECTURE.md](../ARCHITECTURE.md), [PLAN-S32Z2.md](../PLAN-S32Z2.md), [WP0-WP3-SafetyFloor.md](../WP0-WP3-SafetyFloor.md), [MILESTONES.md](../MILESTONES.md), the Autoware contribution guidelines, nano-ros 0.6.0-nros10 |
+| Inputs          | [ARCHITECTURE.md](../ARCHITECTURE.md), [PLAN-S32Z2.md](../PLAN-S32Z2.md), [WP0-WP3-SafetyFloor.md](../WP0-WP3-SafetyFloor.md), [MILESTONES.md](../MILESTONES.md), the Autoware contribution guidelines, nano-ros 0.6.0-nros11 |
 
 This note records how the repository applies Autoware's conventions to a code
 base whose island side is `no_std` Rust and ported C++ on nano-ros, and which
@@ -44,34 +44,34 @@ package it came from, and Autoware's own tests remain an equivalence check.
 This states Q8 as a rule. `I16` (vehicle interface) is new code for the golf
 cart and therefore Rust.
 
-**Verified (nano-ros 0.6.0-nros10).** One image holds C++ and Rust components:
+**Verified (nano-ros 0.6.0-nros11).** One image holds C++ and Rust components:
 when an image has a C or C++ package, nano-ros builds it with CMake and the
-Rust packages build inside it through Corrosion. The scaffold's image holds a
+Rust packages build inside it through Corrosion. The scaffold's images hold a
 Rust placeholder (`autoware_si_placeholder_rust`) and a C++ placeholder
-(`autoware_si_placeholder_cpp`). The `host` image builds and runs: the C++
-node receives the Rust node's heartbeat. Constraints of this release:
+(`autoware_si_placeholder_cpp`). All four images build, and on the host
+images the C++ node receives the Rust node's heartbeat at the period the
+branch's parameter file sets. What the packages and the build rely on:
 
-- a Rust package in a mixed image carries a short `CMakeLists.txt`
-  (`nano_ros_node_register(... LANGUAGE RUST)`) and `nros_cmake` as its build
-  type; without it the generated entry reports "no matching component";
+- a Rust package is a plain cargo package (`nros_cargo`) in a mixed image
+  too; nano-ros registers it from its `[[component]]` row in `system.toml`;
 - a C++ class whose header is not `<pkg>/<Class>.hpp` names it with
   `HEADER` in `nano_ros_add_node`, which keeps Autoware's
   `include/autoware/<name>/` layout;
+- a C++ component that prints makes `stdout` unbuffered in `configure`, so
+  its lines reach the console `nros run` records;
 - a cross image (`host_freertos`, `s32z2`) is checked against a census of
   the native image: `nros configure --census <bringup>:<image>` takes it, and
   needs `ninja`;
-- the post-link stack-floor check fails on the cross images (a missing or
-  unreadable LLVM IR file), after the image has linked; to be reported to nano-ros;
-- a Rust node reads a launch value with `ctx.param()`; the value resolves
-  (the model shows it) but does not reach the node, and the census does not
-  count the read as a declaration. The bringup waives that one census row in
-  `system.toml`, with the reason.
+- the post-link stack-floor check of the FreeRTOS images reads the LLVM tools
+  of the pinned Rust toolchain (`llvm-tools` in `rust-toolchain.toml`);
+- a Rust node reads a launch value, including one from a `<param from>` file,
+  with `ctx.param()`.
 
 ## 3. Layout
 
 ARCHITECTURE.md's layout holds Rust crates only. Ported C++ packages, message
 packages and deployments need ROS-shaped packages. nano-ros 0.6.0-nros8 found
-packages only one level below `src/`, hence the flat `src/`; 0.6.0-nros10 also
+packages only one level below `src/`, hence the flat `src/`; 0.6.0-nros10 and later also
 searches nested directories and `nros.toml` `package_paths`, so a nested
 layout is possible if the team wants one. Proposed layout:
 

@@ -27,5 +27,5 @@ defaults in [config/si_placeholder_rust.param.yaml](config/si_placeholder_rust.p
 | :---------- | :------ | :---------------------------------- | :------ |
 | `period_ms` | integer | Publication period of the heartbeat | 100     |
 
-nano-ros 0.6.0-nros10 resolves the launch value but does not deliver it to
-`ctx.param()` yet, so the node runs on its built-in default of 100 ms.
+The node reads it with `ctx.param()`; the bringup's branch file sets it
+(`config/<branch>/si_placeholder_rust.param.yaml`).
