@@ -1,0 +1,46 @@
+# Integration lane: Autoware on the HPC side, the safety island and the
+# scenario world bridge, on a self-hosted runner. Not part of the merge gate
+# yet. ci/ holds its runner setup and suite.
+#
+# The job runs only where an administrator registered a runner with the
+# `l4si-integration` label and set the repository variable
+# L4SI_INTEGRATION_RUNNER to `true`; everywhere else (forks included) it is
+# skipped, instead of waiting for a runner that never comes. Set
+# L4SI_INTEGRATION_IN_MERGE_QUEUE to `true` as well to run it on queued
+# batches. docs/ci/repository-setup.md describes both.
+
+name: integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 18 * * * # nightly, 02:00 in Taiwan
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    if: >-
+      vars.L4SI_INTEGRATION_RUNNER == 'true' &&
+      (github.event_name != 'merge_group' || vars.L4SI_INTEGRATION_IN_MERGE_QUEUE == 'true')
+    runs-on: [self-hosted, l4si-integration]
+    timeout-minutes: 120
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run the integration suite
+        run: |
+          if [ -x ci/integration/run.sh ]; then
+            ci/integration/run.sh
+          else
+            echo "No integration suite yet (ci/integration/run.sh)."
+          fi

@@ -1,0 +1,1 @@
+doc-valid-idents = ["FreeRTOS", "CycloneDDS", "R-Car", "..", "S32Z2", "S32Z280"]

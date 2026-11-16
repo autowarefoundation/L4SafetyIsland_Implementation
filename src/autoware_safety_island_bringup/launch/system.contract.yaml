@@ -1,0 +1,30 @@
+# Node contract of the island image: what each node declares, its rates and
+# its paths. play_launch checks it (`play_launch check --locked --strict`);
+# nano-ros sizes the image from it. Rates, budgets, FTTIs and monitors are
+# stated here and nowhere else.
+
+version: 1
+
+nodes:
+  si_placeholder_rust:
+    params:
+      period_ms: { type: integer }
+    paths:
+      on_tick:
+        trigger: { timer: { rate: 10Hz } }
+        output: [heartbeat]
+    pub:
+      heartbeat:
+        qos:
+          durability: volatile
+
+  si_placeholder_cpp:
+    params: {}
+    sub:
+      heartbeat: {}
+
+topics:
+  /si/placeholder/heartbeat:
+    type: autoware_safety_island_msgs/msg/HpcHeartbeat
+    pub: [si_placeholder_rust/heartbeat]
+    sub: [si_placeholder_cpp/heartbeat]

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>autoware_si_placeholder_rust</name>
+  <version>0.1.0</version>
+  <description>Placeholder of a new island node (N*) in Rust: shows the package shape until the first real node replaces it</description>
+  <maintainer email="jerry73204@gmail.com">Hsiang-Jui Lin</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>cargo</buildtool_depend>
+
+  <depend>autoware_safety_island_msgs</depend>
+  <depend>nros</depend>
+
+  <export>
+    <build_type>nros_cargo</build_type>
+  </export>
+</package>

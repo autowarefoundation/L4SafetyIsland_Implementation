@@ -1,0 +1,52 @@
+# The safety island's deployments. Each [image.<id>] is one platform build of
+# the same node set; the branch (Least-Cost / Maximum-Safety) is a launch
+# argument, so a branch is configuration, never a code switch
+# (docs/ARCHITECTURE.md section 2).
+
+[system]
+name = "autoware_safety_island"
+rmw = "zenoh"
+ros_edition = "humble"
+domain_id = 0
+default_launch = "system.launch.xml"
+
+[[component]]
+pkg = "autoware_si_placeholder_rust"
+class = "autoware_si_placeholder_rust::Placeholder"
+name = "si_placeholder_rust"
+
+[[component]]
+pkg = "autoware_si_placeholder_cpp"
+class = "autoware_si_placeholder_cpp::Placeholder"
+name = "si_placeholder_cpp"
+
+# The branch profiles: one resolved model per branch of the launch file.
+[[model]]
+launch = "system.launch.xml"
+out = "least_cost_model.yaml"
+args = { branch = "least_cost" }
+
+[[model]]
+launch = "system.launch.xml"
+out = "maximum_safety_model.yaml"
+args = { branch = "maximum_safety" }
+
+# Host, Linux process: software in the loop, both branches.
+[image.host]
+board = "linux"
+args = { branch = "least_cost" }
+
+[image.host_maximum_safety]
+board = "linux"
+args = { branch = "maximum_safety" }
+
+# Host, FreeRTOS POSIX port: the kernel the board runs, as a Linux process.
+[image.host_freertos]
+board = "freertos-posix"
+args = { branch = "least_cost" }
+
+# NXP S32Z2 (Cortex-R52, FreeRTOS). Builds without the board; the NXP
+# GIC port, NETC driver and RTD configuration are WP1 inputs.
+[image.s32z2]
+board = "s32z270-freertos"
+args = { branch = "least_cost" }

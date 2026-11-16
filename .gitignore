@@ -25,3 +25,10 @@ log/
 # Python
 __pycache__/
 *.pyc
+# Tool caches
+node_modules/
+# nano-ros generated (nros build / nros sync)
+.cargo/
+generated/
+src/*/metadata/
+nros-sdk.lock

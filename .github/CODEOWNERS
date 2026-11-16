@@ -1,0 +1,10 @@
+# Code owners: a pull request touching a path requests review from its owners.
+#
+# Placeholder. The repository administrator fills it in when the working group
+# assigns owners; until then no rule is active and reviewers are requested by
+# hand. One line per path, most specific last, for example:
+#
+# *                              @<maintainer>
+# /crates/                       @<rust-owner>
+# /src/autoware_safety_island_msgs/  @<interface-owner>
+# /.github/                      @<ci-owner>

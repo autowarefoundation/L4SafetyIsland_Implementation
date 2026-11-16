@@ -1,0 +1,16 @@
+[package]
+name = "si-platform-host"
+description = "Host (POSIX) platform of the safety island: si-hal on std, for tests and simulation."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+si-hal = { workspace = true }
+si-nodes = { workspace = true }
+
+[lints]
+workspace = true

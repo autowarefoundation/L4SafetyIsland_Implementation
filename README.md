@@ -19,6 +19,32 @@ Node identifiers used in this repository (`I*` migrated Autoware nodes, `N*` new
 **Importing the Autoware nodes onto the S32Z2 island** (S32Z280-400EVB, FreeRTOS + nano-ros). The
 plan is in [docs/](docs/); the work is tracked in GitHub issues (below).
 
+## Quick start
+
+On Ubuntu 22.04 with ROS 2 Humble, Rust (rustup) and nano-ros installed as
+[docs/getting-started.md](docs/getting-started.md) shows:
+
+```bash
+git clone --recurse-submodules https://github.com/autowarefoundation/L4SafetyIsland_Implementation.git
+cd L4SafetyIsland_Implementation
+cargo test --workspace                       # shared Rust crates
+source /opt/ros/humble/setup.bash
+nros build --all                             # images: host, host_maximum_safety, host_freertos, s32z2
+nros run autoware_safety_island_bringup:host
+```
+
+| Path | Content |
+| :-- | :-- |
+| `crates/` | Shared `no_std` Rust: `si-core`, `si-hal`, `si-nodes` (node logic as pure step functions), `si-sensors` |
+| `platforms/` | Per-platform Rust: `host`, `s32z2` |
+| `src/` | nano-ros packages: messages (`autoware_safety_island_msgs`), node packages (new nodes in Rust, ported Autoware nodes in C++), the bringup with images, launch, contract and branch parameters |
+| `design/` | The design baseline, submodule at tag `v1.0` |
+| `ci/` | Self-hosted integration lane |
+
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) (pull requests, merge queue,
+DCO, gates). Conventions: [docs/design/implementation-conventions.md](docs/design/implementation-conventions.md).
+Testing: [docs/testing.md](docs/testing.md).
+
 ## Progress
 
 GitHub keeps the live state: an open issue is work still to do, a closed one is done. The links
@@ -85,6 +111,8 @@ local machine beyond `git push`.
 | [Update progress counts](.github/workflows/update-progress.yml) | On issue changes, daily | Recounts the Progress section above |
 | [Sync milestones](.github/workflows/sync-milestones.yml) | On a push that changes `.github/milestones/` | Applies [`milestones.json`](.github/milestones/milestones.json): milestones, issue assignment, label moves |
 | [Edit issues](.github/workflows/edit-issues.yml) | By hand, from the Actions tab | Replaces a phrase in issue titles and bodies; dry run by default |
+| [gate](.github/workflows/gate.yaml) | On pull requests, the merge queue and pushes to `main` | Every code check; the one required status check ([CONTRIBUTING.md](CONTRIBUTING.md)) |
+| [integration](.github/workflows/integration.yaml) | By hand, nightly | Autoware + island + scenario world bridge on a self-hosted runner ([docs/testing.md](docs/testing.md)) |
 
 ## Planning documents
 
@@ -94,5 +122,10 @@ local machine beyond `git push`.
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
 | [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; pull-over island first, then guardian and ODD degradation; lane hold last |
 | [docs/PLATFORM-CHOICE.md](docs/PLATFORM-CHOICE.md) | Why the S32Z280-400EVB is the Least-Cost board; the S32K389EVB-Q437 assessed and not chosen |
+| [docs/design/implementation-conventions.md](docs/design/implementation-conventions.md) | How Autoware's conventions apply to the Rust and nano-ros code base: language rule, layout, sources of truth, gates (proposal) |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
 | [slides/L4SafetyIsland-ImplementationPlan.pdf](slides/L4SafetyIsland-ImplementationPlan.pdf) | Slide deck presenting the plan: phases, work packages, partitions, issues; every slide links back to these documents ([source](slides/L4SafetyIsland-ImplementationPlan.tex)) |
+
+## License
+
+Apache License 2.0 ([LICENSE](LICENSE)). Copyright 2026 The Autoware Foundation ([NOTICE](NOTICE)).

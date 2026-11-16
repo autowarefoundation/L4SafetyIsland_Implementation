@@ -1,0 +1,33 @@
+{
+  "ignorePaths": [
+    "**/Cargo.lock",
+    "*.html",
+    "design/**",
+    "slides/**"
+  ],
+  "ignoreRegExpList": [],
+  "words": [
+    "ALLGREEN",
+    "amannn",
+    "armv",
+    "bringups",
+    "cffi",
+    "clippy",
+    "codegen",
+    "devicetree",
+    "eabihf",
+    "empy",
+    "geofence",
+    "idents",
+    "ifdef",
+    "NETC",
+    "NROS",
+    "nros",
+    "rclrs",
+    "Renesas",
+    "requalified",
+    "rustdoc",
+    "RUSTDOCFLAGS",
+    "xrce"
+  ]
+}
