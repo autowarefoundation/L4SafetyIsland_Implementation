@@ -50,9 +50,3 @@ args = { branch = "least_cost" }
 [image.s32z2]
 board = "s32z270-freertos"
 args = { branch = "least_cost" }
-
-# The Rust placeholder reads period_ms with ctx.param(), which the census of
-# nano-ros 0.6.0-nros10 does not count as a declaration. Drop this waiver
-# when a release does.
-[census.waive."si_placeholder_rust:param:period_ms"]
-reason = "read through ctx.param(), which the 0.6.0-nros10 census does not count"

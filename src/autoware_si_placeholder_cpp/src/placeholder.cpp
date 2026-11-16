@@ -29,6 +29,8 @@ void Placeholder::on_heartbeat(const ::autoware_safety_island_msgs::msg::HpcHear
 
 ::rclcpp::Result Placeholder::configure(::rclcpp::Node & node)
 {
+  // Unbuffered, so each line reaches the console when a runner captures it.
+  ::setvbuf(stdout, nullptr, _IONBF, 0);
   return ::rclcpp::bind_subscription<
     ::autoware_safety_island_msgs::msg::HpcHeartbeat, Placeholder, &Placeholder::on_heartbeat>(
     node, "/si/placeholder/heartbeat", this);

@@ -2,4 +2,4 @@
 # command run in this tree to this release, installing it on first use.
 # Move it with `nros pin <version>` in its own pull request.
 [toolchain]
-version = "0.6.0-nros10"
+version = "0.6.0-nros11"

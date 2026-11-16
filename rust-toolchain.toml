@@ -3,6 +3,6 @@
 # Bump both in the same pull request.
 [toolchain]
 channel = "1.99.0"
-components = ["rustfmt", "clippy"]
+components = ["rustfmt", "clippy", "llvm-tools"]
 # Cortex-R52 (S32Z2 RTU and R-Car X5H safety cluster), hard-float.
 targets = ["armv8r-none-eabihf"]

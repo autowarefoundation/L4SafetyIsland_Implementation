@@ -13,6 +13,6 @@
   <depend>nros</depend>
 
   <export>
-    <build_type>nros_cmake</build_type>
+    <build_type>nros_cargo</build_type>
   </export>
 </package>
