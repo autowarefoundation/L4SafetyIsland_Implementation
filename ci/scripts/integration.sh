@@ -23,6 +23,15 @@ trap 'exit 130' INT TERM
 "$here/stack-up.sh" || exit $?
 "$here/run-scenarios.sh" "$suite"
 code=$?
+# L4SI_ISLAND_CHECK: the island's own pass checks, run after the suite while the island
+# still runs. It can only make a passed run fail (exit 1); its log is an artifact.
+if [ "$L4SI_WITH_ISLAND" = 1 ] && [ -n "${L4SI_ISLAND_CHECK:-}" ]; then
+    log "island checks: $L4SI_ISLAND_CHECK"
+    if ! L4SI_STATE="$L4SI_STATE" bash -c "$L4SI_ISLAND_CHECK" 2>&1 | tee "$L4SI_STATE/island-check.log"; then
+        log "island checks failed"
+        [ "$code" = 0 ] && code=1
+    fi
+fi
 case $code in
 0) log "verdict: passed" ;;
 1) log "verdict: failed" ;;

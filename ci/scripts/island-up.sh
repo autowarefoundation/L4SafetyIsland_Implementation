@@ -7,7 +7,10 @@
 # It joins the ego's ROS domain (seat 0's first pilot domain) with swb's DDS profile, so
 # it sees the ego Autoware's topics as a separate ECU would.
 #
-#   L4SI_ISLAND_TARGET  host (default) | qemu | hil
+#   L4SI_ISLAND_TARGET  host (default) | qemu | external | hil
+#                       external is an island another repository builds: it brings its
+#                       own L4SI_ISLAND_CMD (and L4SI_ISLAND_BUILD, if any), mounted
+#                       into the container by a compose override of its own.
 #                       hil is the real board on a `l4si-hil` runner: not wired yet.
 #   L4SI_ISLAND_BUILD   the build command (default: the host platform's cargo build)
 #   L4SI_ISLAND_CMD     the command that runs the island (default: the built binary)
@@ -25,8 +28,8 @@ host)
     fi
     build="${L4SI_ISLAND_BUILD:-cargo build --release --manifest-path $host_dir/Cargo.toml}"
     ;;
-qemu)
-    [ -n "${L4SI_ISLAND_CMD:-}" ] || die 3 "L4SI_ISLAND_TARGET=qemu needs L4SI_ISLAND_CMD"
+qemu | external)
+    [ -n "${L4SI_ISLAND_CMD:-}" ] || die 3 "L4SI_ISLAND_TARGET=$target needs L4SI_ISLAND_CMD"
     build="${L4SI_ISLAND_BUILD:-true}"
     ;;
 hil)
@@ -55,7 +58,7 @@ fi
 # The ego's domain and swb's DDS profile (the same exports `swb seat env 0` gives a shell).
 eval "$(ros2 run swb seat env 0)"
 log "starting the island: $cmd (ROS_DOMAIN_ID=$ROS_DOMAIN_ID)"
-setsid bash -c "exec $cmd" >"$L4SI_STATE/island.log" 2>&1 </dev/null &
+L4SI_STATE="$L4SI_STATE" setsid bash -c "exec $cmd" >"$L4SI_STATE/island.log" 2>&1 </dev/null &
 echo $! >"$L4SI_STATE/island.pid"
 sleep 2
 kill -0 "$(cat "$L4SI_STATE/island.pid")" 2>/dev/null ||

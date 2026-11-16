@@ -119,6 +119,8 @@ RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip zstd xz-utils file jq procps iproute2 psmisc build-essential pkg-config \
         "ros-${ROS_DISTRO}-example-interfaces" "ros-${ROS_DISTRO}-test-msgs" \
+        # domain_bridge: carries topics between the ego's domain and an island's own
+        "ros-${ROS_DISTRO}-domain-bridge" \
     && source "/opt/ros/${ROS_DISTRO}/setup.bash" \
     && source /opt/autoware/setup.bash \
     && (rosdep update --rosdistro "${ROS_DISTRO}" || true) \
