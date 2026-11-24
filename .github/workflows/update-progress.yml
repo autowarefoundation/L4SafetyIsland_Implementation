@@ -15,7 +15,10 @@ name: Update progress counts
 # the bot branch with workflow_dispatch. The gate's check runs attach to the
 # branch head, which is the pull request's head, and satisfy the required
 # `gate` check. The pull-request-only checks (title, DCO, spelling) are
-# skipped on a dispatch, as on a merge group. See docs/ci/repository-setup.md.
+# skipped on a dispatch, as on a merge group. Because of that, the gate fails
+# a dispatched run unless the ref is bot/update-progress-counts and the branch
+# changes README.md and nothing else against main, so a dispatch cannot turn
+# any other branch's `gate` green. See docs/ci/repository-setup.md.
 
 on:
   issues:

@@ -47,7 +47,11 @@ workflow token may still start a `workflow_dispatch` run, so the progress
 workflow dispatches the gate on the bot branch. That run's `gate` check
 attaches to the pull request's head commit and satisfies the required check;
 the pull-request-only checks (title, DCO, spelling) are skipped there, as in
-a merge group, and the gate accepts them as skipped. The bot's commit carries
+a merge group, and the gate accepts them as skipped. So that a dispatch cannot
+turn another branch's `gate` green without those checks, the gate fails every
+dispatched run except one on `bot/update-progress-counts` whose only change
+against `main` is `README.md` (`git diff --name-only origin/main...HEAD`).
+Runs on `pull_request`, `merge_group` and pushes to `main` are unaffected. The bot's commit carries
 no `Signed-off-by:`; the DCO check does not run on it for that reason.
 
 If the merge queue does not start a `merge_group` run for the bot's pull
