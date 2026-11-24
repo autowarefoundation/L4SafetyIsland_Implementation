@@ -15,7 +15,7 @@ This page lists what is specific to it. The conventions behind it are in
 4. Run the fast lane locally ([docs/testing.md](docs/testing.md)).
 5. Open a pull request with the template filled in. Open it as a draft until
    it is ready for review.
-6. A reviewer approves. Then add the pull request to the merge queue
+6. Resolve the review threads. Then add the pull request to the merge queue
    ("Merge when ready"). The queue rebases it onto `main`, runs the gate on the
    batch, and merges it only if the batch passes.
 
@@ -54,7 +54,8 @@ passes:
 
 ## Review
 
-- At least one approving review from someone other than the author.
+- The ruleset requires no approving review; ask for one and wait for it when
+  the change needs another pair of eyes.
 - A new push dismisses earlier approvals; unresolved review threads block the
   merge.
 - Reviewers check the change against the design section or issue it cites.

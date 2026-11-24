@@ -150,10 +150,10 @@ are the starting point for #18.
 ## 6. Merge flow and gates
 
 - Every change goes through a pull request; `main` is protected by
-  [`.github/rulesets/main.json`](../../.github/rulesets/main.json): one
-  approving review, linear history, no force push or deletion, merge queue
-  (rebase, all-green grouping, up to 5 entries), and one required status
-  check, `gate`.
+  [`.github/rulesets/main.json`](../../.github/rulesets/main.json): no
+  approving review required (review threads must be resolved), linear
+  history, no force push or deletion, merge queue (rebase, all-green
+  grouping, up to 5 entries), and one required status check, `gate`.
 - `gate` ([`.github/workflows/gate.yaml`](../../.github/workflows/gate.yaml))
   runs on `pull_request`, `merge_group` and pushes to `main`, with no path
   filter, and needs every check job. Pull-request-only checks (title, DCO,
@@ -162,11 +162,11 @@ are the starting point for #18.
   on a self-hosted `l4si-integration` runner, manual and nightly (and in the
   merge queue once enabled), and is skipped where no such runner is
   registered.
-- The progress workflow commits the README counts straight to `main` with
-  the workflow token. The ruleset blocks that push, and GitHub does not accept
-  GitHub Actions as a bypass actor (tested on the fork). The workflow needs a
-  token that is on the bypass list, or must open a pull request instead
-  (open question C7).
+- The progress workflow does not push to `main`. It opens (or updates) a pull
+  request from the bot branch `bot/update-progress-counts`, dispatches the
+  gate on it (a pull request made with the workflow token starts no
+  `pull_request` run) and enables auto-merge, so the README goes through the
+  gate and the merge queue (C7).
 
 Applying the ruleset needs an administrator; see
 [ci/repository-setup.md](../ci/repository-setup.md).
@@ -185,11 +185,11 @@ Applying the ruleset needs an administrator; see
 
 ## 8. Open questions and decisions
 
-| #   | Question                                                                                                                                                                       | Status                                                                                                                                                                                                                                           |
-| :-- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C2  | Repository license                                                                                                                                                             | **Decided**: Apache License 2.0, as Autoware Foundation work. `LICENSE` and `NOTICE` at the root; sources carry the header `Copyright <year> The Autoware Foundation` with the Apache boilerplate                                                |
-| C3  | RMW of the images (the HPC boundary of WP1 is Cyclone DDS)                                                                                                                     | **Decided**: zenoh is the default and the RMW is configuration. `[system] rmw` in the bringup's `system.toml` is the one switch (`zenoh`, `xrce` or `cyclonedds`); CI reads it and installs the zenoh router only for `zenoh`. #22 may switch it |
-| C4  | ROS 2 edition for codegen and the HPC                                                                                                                                          | **Decided**: Humble is the default and the edition is configuration. `[system] ros_edition` in `system.toml` is the one switch (`humble` or `jazzy`); CI derives its container (`ros:<edition>-ros-base`) and `/opt/ros/<edition>` from it       |
-| C5  | The X5H platform crate and its RTOS (P1)                                                                                                                                       | Open, plan owner                                                                                                                                                                                                                                 |
-| C6  | AI trailers in commits                                                                                                                                                         | **Decided**: no AI `Co-authored-by` or session trailers, as Autoware's AI contribution policy asks; the human author signs off (`git commit -s`) and discloses AI use in the pull request                                                        |
-| C7  | How the progress workflow updates `README.md` once `main` is protected: a GitHub App token on the ruleset's bypass list (smallest change), or a pull request through the queue | Open, plan owner                                                                                                                                                                                                                                 |
+| #   | Question                                                                                                                                                                       | Status                                                                                                                                                                                                                                                                                                                                                       |
+| :-- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C2  | Repository license                                                                                                                                                             | **Decided**: Apache License 2.0, as Autoware Foundation work. `LICENSE` and `NOTICE` at the root; sources carry the header `Copyright <year> The Autoware Foundation` with the Apache boilerplate                                                                                                                                                            |
+| C3  | RMW of the images (the HPC boundary of WP1 is Cyclone DDS)                                                                                                                     | **Decided**: zenoh is the default and the RMW is configuration. `[system] rmw` in the bringup's `system.toml` is the one switch (`zenoh`, `xrce` or `cyclonedds`); CI reads it and installs the zenoh router only for `zenoh`. #22 may switch it                                                                                                             |
+| C4  | ROS 2 edition for codegen and the HPC                                                                                                                                          | **Decided**: Humble is the default and the edition is configuration. `[system] ros_edition` in `system.toml` is the one switch (`humble` or `jazzy`); CI derives its container (`ros:<edition>-ros-base`) and `/opt/ros/<edition>` from it                                                                                                                   |
+| C5  | The X5H platform crate and its RTOS (P1)                                                                                                                                       | Open, plan owner                                                                                                                                                                                                                                                                                                                                             |
+| C6  | AI trailers in commits                                                                                                                                                         | **Decided**: no AI `Co-authored-by` or session trailers, as Autoware's AI contribution policy asks; the human author signs off (`git commit -s`) and discloses AI use in the pull request                                                                                                                                                                    |
+| C7  | How the progress workflow updates `README.md` once `main` is protected: a GitHub App token on the ruleset's bypass list (smallest change), or a pull request through the queue | **Decided** (2026-11-25, by the user): a pull request through the queue. The workflow opens or updates a pull request from `bot/update-progress-counts` with the workflow token, dispatches the gate on it and enables auto-merge; the ruleset has no bypass actor and requires no approving review. See [ci/repository-setup.md](../ci/repository-setup.md) |
