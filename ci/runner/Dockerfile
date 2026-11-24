@@ -104,7 +104,7 @@ ARG PLAY_LAUNCH_VERSION=0.35.0
 ARG CARLA_VERSION=0.9.16
 # The nros CLI release (https://github.com/NEWSLabNTU/nano-ros/releases). A job pins the
 # exact toolchain its checkout declares (nros-toolchain.toml) at run time.
-ARG NROS_VERSION=0.6.0-nros8
+ARG NROS_VERSION=0.6.0-nros11
 ARG JUST_VERSION=1.59.0
 # The repository's rust-toolchain.toml channel, baked in so a job downloads nothing.
 ARG RUST_TOOLCHAIN=1.99.0
@@ -151,7 +151,7 @@ ENV PATH=/opt/l4si/bin:$PATH L4SI_PLAY_LAUNCH_PARSER=python
 ENV RUSTUP_HOME=/opt/rust/rustup CARGO_HOME=/opt/rust/cargo NROS_HOME=/opt/nros
 ENV PATH=/opt/nros/bin:/opt/rust/cargo/bin:$PATH
 RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --no-modify-path \
-        --default-toolchain "${RUST_TOOLCHAIN}" -c rustfmt,clippy -t armv8r-none-eabihf \
+        --default-toolchain "${RUST_TOOLCHAIN}" -c rustfmt,clippy,llvm-tools -t armv8r-none-eabihf \
     && curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh \
         | bash -s -- --tag "${JUST_VERSION}" --to /usr/local/bin \
     && curl -fsSL https://raw.githubusercontent.com/NEWSLabNTU/nano-ros/main/scripts/install.sh \
