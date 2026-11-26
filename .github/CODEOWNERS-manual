@@ -1,0 +1,6 @@
+# Owners of the paths that have no package.xml. update-codeowners-from-packages
+# appends this file to the owners it reads from the package.xml maintainers.
+crates/** @jerry73204
+platforms/** @jerry73204
+ci/** @jerry73204
+.github/** @jerry73204
