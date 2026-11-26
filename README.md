@@ -109,8 +109,6 @@ local machine beyond `git push`.
 | Workflow | Runs | Does |
 | :-- | :-- | :-- |
 | [Update progress counts](.github/workflows/update-progress.yml) | On issue changes, daily | Recounts the Progress section above |
-| [Sync milestones](.github/workflows/sync-milestones.yml) | On a push that changes `.github/milestones/` | Applies [`milestones.json`](.github/milestones/milestones.json): milestones, issue assignment, label moves |
-| [Edit issues](.github/workflows/edit-issues.yml) | By hand, from the Actions tab | Replaces a phrase in issue titles and bodies; dry run by default |
 | [gate](.github/workflows/gate.yaml) | On pull requests, the merge queue and pushes to `main` | Every code check; the one required status check ([CONTRIBUTING.md](CONTRIBUTING.md)) |
 | [integration](.github/workflows/integration.yaml) | By hand, nightly | Autoware + island + scenario world bridge on a self-hosted runner ([docs/testing.md](docs/testing.md)) |
 
@@ -120,7 +118,7 @@ local machine beyond `git push`.
 | :-- | :-- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
-| [docs/MILESTONES.md](docs/MILESTONES.md) | Milestones M0–M7: each closes when a design phase is reached and its demo (D1–D5) is shown; pull-over island first, then guardian and ODD degradation; lane hold last |
+| [docs/MILESTONES.md](docs/MILESTONES.md) | Index of the milestones M0–M7 and their tracking issues on GitHub |
 | [docs/PLATFORM-CHOICE.md](docs/PLATFORM-CHOICE.md) | Why the S32Z280-400EVB is the Least-Cost board; the S32K389EVB-Q437 assessed and not chosen |
 | [docs/design/implementation-conventions.md](docs/design/implementation-conventions.md) | How Autoware's conventions apply to the Rust and nano-ros code base: language rule, layout, sources of truth, gates (proposal) |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |
