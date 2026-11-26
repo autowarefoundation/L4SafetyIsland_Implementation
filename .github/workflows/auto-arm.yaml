@@ -1,0 +1,43 @@
+# Arm auto-merge (squash) on a pull request that a maintainer marks ready:
+# not a draft, no tag:no-auto-merge label, and an author with the maintain
+# or admin role. The merge queue then runs the gate on the merged result.
+# docs/design/work-management.md section 7 describes the flow.
+#
+# pull_request_target runs this file from the base branch with a token that
+# can write. It never checks out or runs the pull request's code; it reads
+# the event and calls the API only.
+
+name: auto-arm
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-arm:
+    if: >-
+      !github.event.pull_request.draft &&
+      !contains(github.event.pull_request.labels.*.name, 'tag:no-auto-merge')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Arm auto-merge for a maintainer's pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          role=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$AUTHOR/permission" --jq .role_name || echo none)
+          echo "Author $AUTHOR has the role: $role"
+          case "$role" in
+            maintain | admin)
+              gh pr merge --auto --squash --repo "$GITHUB_REPOSITORY" "$PR"
+              ;;
+            *)
+              echo "Not armed: the author is not a maintainer."
+              ;;
+          esac
