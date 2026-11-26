@@ -1,83 +1,103 @@
 # Repository setup for administrators
 
-The workflows are in the repository; four settings are not, because they need
-administrator rights. Apply them once.
+The workflows are in the repository; the settings below are not, because they
+need administrator rights. Apply them once.
+[design/work-management.md](../design/work-management.md) explains why each
+one exists.
 
-## 1. Protect `main` with the ruleset
+## 1. Settings
 
-[`.github/rulesets/main.json`](../../.github/rulesets/main.json) protects the
-default branch:
+- **Settings > General > Pull Requests**: allow squash merging only (turn
+  merge commits and rebase merging off), with the pull request title as the
+  default commit message; enable "Allow auto-merge" (`auto-arm` and the bot
+  pull requests use it) and "Always suggest updating pull request branches".
+- **Settings > General > Features**: enable Discussions. Keep the categories
+  Q&A (`q-a`) and Ideas (`ideas`), and add Feature requests (slug
+  `feature-requests`) and Design: the issue forms' `config.yml` links to the
+  first three.
+- **Settings > Actions > General**: allow GitHub Actions and the actions of
+  `autowarefoundation/*`, `actions/*`, `pre-commit/*`,
+  `streetsidesoftware/*`, `amannn/*`, `EmbarkStudios/*`, `tibdex/*` and
+  `peter-evans/*`, or all actions. Require approval for first-time
+  contributors' workflow runs.
+- **Settings > Actions > General > Workflow permissions**: check "Allow
+  GitHub Actions to create and approve pull requests". The default token
+  permission may stay read-only; each workflow asks for what it needs.
+- **Settings > Collaborators and teams**: give outside participants the
+  Triage role (label, assign, close duplicates); Write and Maintain stay with
+  the core team.
 
-| Rule                  | Setting                                                                                                                 |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------- |
-| Pull request          | required; no approving review required; stale approvals dismissed on push; review threads resolved                      |
-| Merge queue           | rebase, all-green grouping, up to 5 entries built and merged together, 5 min wait to fill a group, 60 min check timeout |
-| Required status check | `gate` from GitHub Actions                                                                                              |
-| History               | linear; no force push; no deletion                                                                                      |
-| Bypass                | none, the progress workflow included (below)                                                                            |
+## 2. Protect `main` with the two rulesets
 
-Apply it with the GitHub CLI:
+| Ruleset                                                          | Rules                                                                                                                                                                                                                         | Bypass                           |
+| :--------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| A, [`main.json`](../../.github/rulesets/main.json)               | Pull request required, review threads resolved; merge queue: squash, all-green grouping, up to 5 entries, 5 min wait to fill a group, 60 min check timeout; required check `gate`; linear history; no force push; no deletion | none                             |
+| B, [`main-review.json`](../../.github/rulesets/main-review.json) | One approving review from a code owner; stale approvals dismissed on push                                                                                                                                                     | Maintain role, for pull requests |
+
+Apply them with the GitHub CLI:
 
 ```bash
-gh api -X POST repos/autowarefoundation/L4SafetyIsland_Implementation/rulesets \
-  --input .github/rulesets/main.json
+repo=autowarefoundation/L4SafetyIsland_Implementation
+gh api -X POST "repos/$repo/rulesets" --input .github/rulesets/main-review.json
 ```
 
-To update it later, find its id and send the file again:
+and, for `main`, create it (`-X POST` as above) or, if it exists already,
+update it in place:
 
 ```bash
-id=$(gh api repos/autowarefoundation/L4SafetyIsland_Implementation/rulesets --jq '.[] | select(.name == "main") | .id')
-gh api -X PUT "repos/autowarefoundation/L4SafetyIsland_Implementation/rulesets/$id" \
-  --input .github/rulesets/main.json
+id=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name == "main") | .id')
+gh api -X PUT "repos/$repo/rulesets/$id" --input .github/rulesets/main.json
 ```
 
 Or in the web interface: **Settings > Rules > Rulesets > New ruleset > Import
-a ruleset**, choose `main.json`, check the rules listed above, and save with
+a ruleset**, choose the file, check the rules listed above, and save with
 enforcement **Active**.
 
-**The progress workflow.** `update-progress.yml` does not push to `main`. When
-a count changed, it rebuilds the branch `bot/update-progress-counts` from
-`main` with the new README, opens a pull request from it (or updates the open
-one), and enables auto-merge on it, so the README goes through the gate and
-the merge queue like any other change. The ruleset needs no bypass actor.
+**The Maintain role's id.** A bypass actor of type `RepositoryRole` names a
+base role by number. GitHub's REST reference does not list the numbers; the
+GitHub Terraform provider documents them as `maintain` = 2, `write` = 4,
+`admin` = 5
+([`docs/resources/repository_ruleset.md`](https://github.com/integrations/terraform-provider-github/blob/main/docs/resources/repository_ruleset.md),
+section `bypass_actors`). `main-review.json` uses 2. After applying it,
+check that the web interface lists "Maintain" in the ruleset's bypass list.
 
-A pull request opened or pushed with the workflow token (`GITHUB_TOKEN`)
-starts no `pull_request` workflow, so the gate would never report on it. The
-workflow token may still start a `workflow_dispatch` run, so the progress
-workflow dispatches the gate on the bot branch. That run's `gate` check
-attaches to the pull request's head commit and satisfies the required check;
-the pull-request-only checks (title, DCO, spelling) are skipped there, as in
-a merge group, and the gate accepts them as skipped. So that a dispatch cannot
-turn another branch's `gate` green without those checks, the gate fails every
-dispatched run except one on `bot/update-progress-counts` whose only change
-against `main` is `README.md` (`git diff --name-only origin/main...HEAD`).
-Runs on `pull_request`, `merge_group` and pushes to `main` are unaffected. The bot's commit carries
-no `Signed-off-by:`; the DCO check does not run on it for that reason.
+**Before relying on ruleset B**, test that auto-merge honours the bypass:
+open a scratch pull request as a maintainer, let `auto-arm` arm it, and check
+that the queue takes it without an approval. Auto-arm enables auto-merge
+with the workflow token, so GitHub may judge the bypass for
+`github-actions[bot]` rather than the author. If the pull request waits for
+a review, disable ruleset B (enforcement **Disabled**); maintainers then
+review outside pull requests and arm them by hand, and ruleset A still
+requires no approval.
 
-If the merge queue does not start a `merge_group` run for the bot's pull
-request, the queue times out after 60 minutes and removes it. Then give the
-workflow a token from a GitHub App instead
-(`actions/create-github-app-token`, with contents and pull requests write
-access): pull requests and pushes made with an App token start workflows as a
-person's do, and the dispatch step can stay or go. The App needs no place on
-the ruleset's bypass list.
+## 3. Labels
 
-## 2. Allow the merge queue's prerequisites
+[`.github/labels.yaml`](../../.github/labels.yaml) lists the labels and the
+old names each replaces. Check the plan, then apply it; renames keep the
+labels on their issues:
 
-- **Settings > General > Pull Requests**: allow rebase merging (the queue's
-  method), enable "Allow auto-merge" (the progress workflow queues its pull
-  request with it) and enable "Always suggest updating pull request
-  branches".
-- **Settings > Actions > General**: allow GitHub Actions and the actions of
-  `autowarefoundation/*`, `actions/*`, `pre-commit/*`,
-  `streetsidesoftware/*`, `amannn/*` and `EmbarkStudios/*`, or all actions.
-  Require approval for first-time contributors' workflow runs.
-- **Settings > Actions > General > Workflow permissions**: check "Allow
-  GitHub Actions to create and approve pull requests", or the progress
-  workflow cannot open its pull request. The default token permission may
-  stay read-only; the workflow asks for what it needs.
+```bash
+python3 .github/scripts/sync_labels.py           # dry run
+python3 .github/scripts/sync_labels.py --apply
+```
 
-## 3. Register the integration runner
+It needs `gh` with a token that may edit labels, and PyYAML. Labels the file
+does not know (`duplicate`, `invalid`) are left as they are.
+
+## 4. Organization App secrets
+
+`sync-files` and `update-codeowners-from-packages` open their pull requests
+with a GitHub App token, as in every Autoware repository, and skip until it
+exists. Ask the organization's administrators to install the Autoware bot App
+on this repository (contents and pull requests: write) and to make the
+organization secrets `APP_ID` and `PRIVATE_KEY` available to it. Their pull
+requests carry `tag:bot` and arm auto-merge themselves; ruleset B makes them
+wait for a code owner's approval.
+
+The stale bot reads [`.github/stale.yml`](../../.github/stale.yml) where the
+organization has the Stale app installed; include this repository there.
+
+## 5. Register the integration runner
 
 The `integration` workflow runs on a self-hosted runner and is skipped until
 one exists.
@@ -88,14 +108,19 @@ one exists.
 2. **Settings > Secrets and variables > Actions > Variables**: add
    `L4SI_INTEGRATION_RUNNER` = `true`.
 3. To run it on every merge-queue batch too, add
-   `L4SI_INTEGRATION_IN_MERGE_QUEUE` = `true`, then add `integration` to the
-   ruleset's required checks once it has been green for a week.
+   `L4SI_INTEGRATION_IN_MERGE_QUEUE` = `true`, then add `integration` to
+   ruleset A's required checks once it has been green for a week.
 
-## 4. Code owners and DCO
+A pull request runs it when a maintainer adds `run:integration` and its
+branch is in this repository; fork pull requests run it in the merge queue.
 
-- Fill in [`.github/CODEOWNERS`](../../.github/CODEOWNERS) when the working
-  group assigns owners, then set `require_code_owner_review` to `true` in the
-  ruleset.
+## 6. Code owners and DCO
+
+- [`.github/CODEOWNERS`](../../.github/CODEOWNERS) is generated from the
+  `package.xml` maintainers and
+  [`.github/CODEOWNERS-manual`](../../.github/CODEOWNERS-manual); edit the
+  latter for paths without a package. A maintainer named by email must have
+  that address verified on their GitHub account.
 - The DCO is checked by the `dco` job of the gate. Installing the
   [DCO GitHub App](https://github.com/apps/dco), as other Autoware
   repositories do, is optional; it duplicates that job.
