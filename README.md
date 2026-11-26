@@ -47,27 +47,11 @@ Testing: [docs/testing.md](docs/testing.md).
 
 ## Progress
 
-GitHub keeps the live state: an open issue is work still to do, a closed one is done. The links
-below open the current lists.
-
-<!-- progress-counts:start -->
-The counts in brackets are (completed / open) issues, recounted by the
-[progress workflow](.github/workflows/update-progress.yml) whenever an issue changes
-(last update: <!-- progress-counts:date -->2026-11-13).
-
-| View | Link (completed / open) |
-| :-- | :-- |
-| Tracking issue: pickup order, dependencies, open decisions | [#1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues/1) |
-| Milestones M0–M7 (phase + demo; see [MILESTONES.md](docs/MILESTONES.md)) | [milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/milestones) |
-| **All open issues** | [open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen) (0 / 63) |
-| Open imported-node issues | [open `imported-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aimported-node) (0 / 14) |
-| Open issues by work package | [WP1](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp1) (0 / 5) · [WP2](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp2) (0 / 11) · [WP3](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp3) (0 / 9) · [WP4](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp4) (0 / 3) · [WP5](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp5) (0 / 7) · [WP7](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Awp7) (0 / 9) |
-| Open new island-node issues (`N*`) | [open `island-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Aisland-node) (0 / 26) |
-| Open HPC-side node issues (`H*`) | [open `hpc-node`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ahpc-node) (0 / 9) |
-| Demos D1–D5 | [open `demo`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3Ademo) (0 / 5) |
-| Open issues in the safety core (partition P0) | [open `P0`](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aopen+label%3AP0) (0 / 14) |
-| Completed | [closed issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues?q=is%3Aissue+is%3Aclosed) (0 / 63) |
-<!-- progress-counts:end -->
+GitHub keeps the live state: an open issue is work still to do, a closed one is done. Each
+milestone has a tracking issue whose sub-issues show its progress
+([docs/MILESTONES.md](docs/MILESTONES.md)); #1 tracks the import of the Autoware nodes. See the
+[milestones](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/milestones) and the
+[open issues](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/issues).
 
 ### Imported Autoware nodes (S32Z2)
 
@@ -103,14 +87,17 @@ Two safety-island platforms, one shared code base (design §9.5, D10):
 
 ## Automation
 
-GitHub Actions keep the repository's GitHub side in step with the files. Nothing needs to run on a
-local machine beyond `git push`.
+GitHub Actions run the checks and the repository's housekeeping
+([docs/design/work-management.md](docs/design/work-management.md)).
 
 | Workflow | Runs | Does |
 | :-- | :-- | :-- |
-| [Update progress counts](.github/workflows/update-progress.yml) | On issue changes, daily | Recounts the Progress section above |
 | [gate](.github/workflows/gate.yaml) | On pull requests, the merge queue and pushes to `main` | Every code check; the one required status check ([CONTRIBUTING.md](CONTRIBUTING.md)) |
-| [integration](.github/workflows/integration.yaml) | By hand, nightly | Autoware + island + scenario world bridge on a self-hosted runner ([docs/testing.md](docs/testing.md)) |
+| [integration](.github/workflows/integration.yaml) | By hand, nightly, the merge queue, pull requests labelled `run:integration` | Autoware + island + scenario world bridge on a self-hosted runner ([docs/testing.md](docs/testing.md)) |
+| [auto-arm](.github/workflows/auto-arm.yaml) | When a pull request is opened or marked ready | Arms auto-merge (squash) for a maintainer's pull request |
+| [claim](.github/workflows/claim.yaml), [claim-expiry](.github/workflows/claim-expiry.yaml) | On `/claim` and `/unclaim` comments; daily | Assigns a ready issue to the commenter; drops claims idle for 14 days |
+| [pr-labeler](.github/workflows/pr-labeler.yaml) | On pull requests | Labels by path ([labeler.yaml](.github/labeler.yaml)) |
+| [sync-files](.github/workflows/sync-files.yaml), [update-codeowners-from-packages](.github/workflows/update-codeowners-from-packages.yaml) | Daily, once the App secrets are set | Autoware's shared files; CODEOWNERS from `package.xml` |
 
 ## Planning documents
 
@@ -118,7 +105,7 @@ local machine beyond `git push`.
 | :-- | :-- |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the two platforms share code: layers, rules, node placement, open points |
 | [docs/WP0-WP3-SafetyFloor.md](docs/WP0-WP3-SafetyFloor.md) | WP0–WP3 node by node: messages, the WP1 partition map and board setup, inputs/outputs, build tasks, tests, demo D1 |
-| [docs/MILESTONES.md](docs/MILESTONES.md) | Index of the milestones M0–M7 and their tracking issues on GitHub |
+| [docs/MILESTONES.md](docs/MILESTONES.md) | Index of the milestones M0-M7 and their tracking issues on GitHub |
 | [docs/PLATFORM-CHOICE.md](docs/PLATFORM-CHOICE.md) | Why the S32Z280-400EVB is the Least-Cost board; the S32K389EVB-Q437 assessed and not chosen |
 | [docs/design/implementation-conventions.md](docs/design/implementation-conventions.md) | How Autoware's conventions apply to the Rust and nano-ros code base: language rule, layout, sources of truth, gates (proposal) |
 | [docs/PLAN-S32Z2.md](docs/PLAN-S32Z2.md) | Implementation and demo plan on NXP S32Z2: node inventory, node dependency order, work packages, tests, demos |

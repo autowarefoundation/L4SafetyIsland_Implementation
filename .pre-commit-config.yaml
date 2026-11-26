@@ -1,9 +1,8 @@
 # Autoware's pre-commit hooks (sync-file-templates, as in autoware_core) that
 # apply to this repository, plus the Rust formatter.
 #
-# Files owned by the planning automation (README progress counts, the plan
-# documents and slides) are excluded: their owner formats them, and the
-# progress workflow rewrites README.md on main.
+# The plan documents, README.md and the slides are excluded: their owner
+# formats them.
 
 ci:
   autofix_commit_msg: "style(pre-commit): autofix"
@@ -14,9 +13,7 @@ exclude: |
   (?x)^(
     README\.(md|html)|
     docs/(ARCHITECTURE|MILESTONES|PLATFORM-CHOICE|PLAN-S32Z2|WP0-WP3-SafetyFloor)\.(md|html)|
-    slides/.*|
-    \.github/scripts/update_progress_counts\.py|
-    \.github/workflows/update-progress\.yml
+    slides/.*
   )$
 
 repos:

@@ -15,7 +15,6 @@ on:
   merge_group:
   push:
     branches: [main]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -93,29 +92,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # A dispatched run skips the title, DCO and spelling checks, yet reports
-      # the required `gate` check at the dispatched commit. Admit a dispatch
-      # only for the progress workflow's pull request: its bot branch, changing
-      # README.md and nothing else against main (update-progress.yml).
-      - name: Admit a dispatch only for the progress counts
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          REF: ${{ github.ref }}
-        run: |
-          if [ "$REF" != "refs/heads/bot/update-progress-counts" ]; then
-            echo "gate: FAILED -- a dispatched gate runs only on bot/update-progress-counts, not $REF"
-            exit 1
-          fi
-          git fetch --no-tags origin main
-          changed="$(git diff --name-only origin/main...HEAD)"
-          echo "Changed against main: ${changed:-nothing}"
-          if [ "$changed" != "README.md" ]; then
-            echo "gate: FAILED -- a dispatched gate admits a change to README.md only"
-            exit 1
-          fi
 
       - name: Require every check to have passed
         env:
