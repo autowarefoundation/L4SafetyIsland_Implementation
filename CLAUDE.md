@@ -6,21 +6,35 @@ CONTRIBUTING.md wins and this file is out of date.
 
 ## Flow
 
-- Every change goes through a pull request and the merge queue. Never push to
-  `main`, never merge `main` into a branch that is in the queue, never
-  force-push a branch whose pull request is under review without the human
-  author's agreement.
+- Work on an issue labelled `status:ready` that your operator claimed
+  (`/claim`). Its acceptance tests are your stopping condition; an issue
+  without them is not ready. One issue per pull request.
+- Every change goes through a pull request and the merge queue, which
+  squash-merges it. Never push to `main`, never merge `main` into a branch
+  that is in the queue, never force-push a branch once its review has
+  started; add commits instead.
 - One required check, `gate`. Run the fast lane before pushing:
   `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`,
   the Cortex-R52 clippy line of [docs/testing.md](docs/testing.md),
   `pre-commit run --all-files`, and `nros build --all` when `src/` changed.
-- Do not sign off commits; the human author signs off. Never sign off as
-  yourself, and add no `Co-authored-by` or session trailer for an AI tool.
-  Disclose AI use in the pull request's "AI usage" section.
-- Pull request titles: Conventional Commits, lower-case description. Fill in
-  the template, including "AI usage" with a verification statement.
-- Keep pull requests small; open only what the operator can shepherd. Do not
-  post issues, comments or reviews without the operator reviewing each one.
+- Never sign off as yourself and add no `Co-authored-by` or session trailer
+  for an AI tool. Add the operator's sign-off (`git commit -s` with the
+  operator's git identity) only when the operator instructs it; the
+  certification is theirs.
+- Pull request titles: Conventional Commits, lower-case description; the
+  title becomes the commit subject on `main`. Fill in the template, including
+  "AI usage" with a verification statement (tool, extent, self-review,
+  tests run) for the operator to edit.
+- Nothing is posted unattended. Push branches; the operator opens the pull
+  request, or reviews a draft you opened at their request, and marks it
+  ready, which also arms auto-merge (whether agents may open drafts is still
+  open: [work-management.md](docs/design/work-management.md) section 8).
+  Never mark a pull request ready or arm auto-merge yourself.
+  Draft issues, comments and reviews for the operator to review before they
+  are posted.
+- An operator has at most 5 ready pull requests at a time; keep further work
+  as drafts or local branches. Bulk work runs only as sub-issues of a
+  tracking issue the maintainers agreed on.
 
 ## Sources of truth
 
@@ -57,6 +71,7 @@ writes them.
 - English, keyboard ASCII in commits, pull requests and docs.
 - Cite the design by section of `design/RFC_L4_SafetyIslandDesign` (tag
   `v1.0`) and the plan by file and section.
-- Do not edit the plan documents, slides, or the milestone and progress
-  automation unless the change is asked for; the progress workflow owns the
-  counts in `README.md`.
+- Keep generated text minimal: no comments that narrate the code, no
+  narration of your process in commits or pull requests.
+- Do not edit the plan documents or the slides unless the change is asked
+  for.
