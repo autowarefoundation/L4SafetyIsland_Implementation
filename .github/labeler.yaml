@@ -1,0 +1,19 @@
+# Path labels for pull requests (pr-labeler.yaml), as autoware_universe does.
+# docs/design/work-management.md section 4 lists them.
+
+"component:island":
+  - src/autoware_si_*/**/*
+"component:msgs":
+  - src/autoware_safety_island_msgs/**/*
+"component:bringup":
+  - src/autoware_safety_island_bringup/**/*
+"component:contracts":
+  - "**/*.contract.yaml"
+"component:platform":
+  - crates/**/*
+  - platforms/**/*
+"type:ci":
+  - .github/**/*
+  - ci/**/*
+"type:documentation":
+  - docs/**/*

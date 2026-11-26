@@ -1,0 +1,27 @@
+# Label a pull request by the paths it changes (.github/labeler.yaml), as
+# autoware_universe does. pull_request_target, so it can label fork pull
+# requests; the labeler reads the configuration of the base branch and does
+# not check out the pull request's code.
+
+name: pr-labeler
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yaml
