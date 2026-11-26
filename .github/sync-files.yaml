@@ -1,0 +1,20 @@
+# Files kept in step with autowarefoundation/sync-file-templates by the
+# sync-files workflow. Only files this repository uses unchanged are listed;
+# docs/design/work-management.md section 4 names the ones left out and why.
+
+- repository: autowarefoundation/sync-file-templates
+  source-dir: sources
+  files:
+    - source: .github/ISSUE_TEMPLATE/bug.yaml
+    - source: .github/ISSUE_TEMPLATE/config.yml
+      pre-commands: |
+        sd "autowarefoundation/autoware/discussions" "autowarefoundation/L4SafetyIsland_Implementation/discussions" {source}
+    - source: .github/ISSUE_TEMPLATE/task.yaml
+    - source: .github/stale.yml
+    - source: .github/workflows/sync-files.yaml
+    - source: .github/workflows/update-codeowners-from-packages.yaml
+    - source: .markdownlint.yaml
+    - source: .prettierignore
+    - source: .prettierrc.yaml
+    - source: .yamllint.yaml
+    - source: CODE_OF_CONDUCT.md
