@@ -1,7 +1,8 @@
 # Label a pull request by the paths it changes (.github/labeler.yaml), as
-# autoware_universe does. pull_request_target, so it can label fork pull
-# requests; the labeler reads the configuration of the base branch and does
-# not check out the pull request's code.
+# autoware_universe does, with labeler v6 instead of v4 (whose Node 16
+# runtime GitHub no longer runs). pull_request_target, so it can label fork
+# pull requests; the labeler reads the configuration of the base branch and
+# does not check out the pull request's code.
 
 name: pr-labeler
 
@@ -21,7 +22,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/labeler@v4
+      - uses: actions/labeler@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yaml

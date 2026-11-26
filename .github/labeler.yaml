@@ -1,19 +1,25 @@
-# Path labels for pull requests (pr-labeler.yaml), as autoware_universe does.
+# Path labels for pull requests (pr-labeler.yaml), as autoware_universe does,
+# in the configuration format of actions/labeler v5 and later.
 # docs/design/work-management.md section 4 lists them.
 
 "component:island":
-  - src/autoware_si_*/**/*
+  - changed-files:
+      - any-glob-to-any-file: src/autoware_si_*/**
 "component:msgs":
-  - src/autoware_safety_island_msgs/**/*
+  - changed-files:
+      - any-glob-to-any-file: src/autoware_safety_island_msgs/**
 "component:bringup":
-  - src/autoware_safety_island_bringup/**/*
+  - changed-files:
+      - any-glob-to-any-file: src/autoware_safety_island_bringup/**
 "component:contracts":
-  - "**/*.contract.yaml"
+  - changed-files:
+      - any-glob-to-any-file: "**/*.contract.yaml"
 "component:platform":
-  - crates/**/*
-  - platforms/**/*
+  - changed-files:
+      - any-glob-to-any-file: [crates/**, platforms/**]
 "type:ci":
-  - .github/**/*
-  - ci/**/*
+  - changed-files:
+      - any-glob-to-any-file: [.github/**, ci/**]
 "type:documentation":
-  - docs/**/*
+  - changed-files:
+      - any-glob-to-any-file: docs/**
