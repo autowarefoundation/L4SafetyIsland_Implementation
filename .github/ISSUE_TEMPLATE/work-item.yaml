@@ -1,0 +1,72 @@
+name: Work item
+description: Plan a node, a port or a work-package task of the L4 Safety Island plan
+labels: [type:task, status:needs-design]
+body:
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      description: Confirm the following items before proceeding. If one cannot be satisfied, create a discussion thread instead.
+      options:
+        - label: I've read the [contribution guidelines](https://github.com/autowarefoundation/L4SafetyIsland_Implementation/blob/main/CONTRIBUTING.md).
+          required: true
+        - label: I've searched other issues and no duplicate issues were found.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Behaviour
+      description: What the island or the HPC side does when this is done, in terms of the design's behaviours (B1-B6) where they apply.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Nodes
+      description: The node identifiers of the design (I* ported, N* new island, H* new HPC), or "none".
+      placeholder: N3, I7
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Work package
+      options:
+        - WP0
+        - WP1
+        - WP2
+        - WP3
+        - WP4
+        - WP5
+        - WP6
+        - WP7
+        - WP8
+        - WP9
+        - WP10
+        - none
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Acceptance tests
+      description: The checks that decide when this is done. A maintainer marks the issue status:ready only when they are named.
+      placeholder: |-
+        - [ ] cargo test -p si-nodes passes a test that ...
+        - [ ] the host image prints ... within ... ms
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Design references
+      description: Sections of design/RFC_L4_SafetyIslandDesign (tag v1.0) and of the plan documents.
+      placeholder: RFC section 9.4; PLAN-S32Z2.md section 3.1
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Dependencies on other issues, open questions, anything else.
+    validations:
+      required: false
