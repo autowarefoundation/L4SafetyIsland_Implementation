@@ -1,0 +1,43 @@
+# Daily: drop a claim made by the claim workflow when it is 14 days old and
+# no open pull request is linked to the issue, and comment why. Assignments
+# made by people stay. The logic is .github/scripts/claim.py.
+
+name: claim-expiry
+
+on:
+  schedule:
+    - cron: 30 1 * * *
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Only print the claims that would be dropped
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  expire:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Drop expired claims
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python3 -B .github/scripts/claim.py expire --dry-run
+          else
+            python3 -B .github/scripts/claim.py expire
+          fi

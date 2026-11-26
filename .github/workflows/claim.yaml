@@ -1,0 +1,36 @@
+# /claim on an issue labelled status:ready with no assignee assigns the
+# commenter; /unclaim releases it. The logic is .github/scripts/claim.py;
+# docs/design/work-management.md section 5 describes the flow.
+#
+# issue_comment runs the workflow of the default branch, never code of a
+# pull request.
+
+name: claim
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  claim:
+    if: >-
+      !github.event.issue.pull_request &&
+      (contains(github.event.comment.body, '/claim') || contains(github.event.comment.body, '/unclaim'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Act on the comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/claim.py comment
