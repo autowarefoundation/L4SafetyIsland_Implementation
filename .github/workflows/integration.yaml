@@ -8,6 +8,12 @@
 # skipped, instead of waiting for a runner that never comes. Set
 # L4SI_INTEGRATION_IN_MERGE_QUEUE to `true` as well to run it on queued
 # batches. docs/ci/repository-setup.md describes both.
+#
+# On a pull request it runs only with the run:integration label, checked
+# with Autoware's require-label workflow, and only for a branch of this
+# repository: Triage can apply labels, and a fork's code must not reach the
+# self-hosted runner before review. Fork pull requests are tested in the
+# merge queue.
 
 name: integration
 
@@ -16,19 +22,43 @@ on:
   schedule:
     - cron: 0 18 * * * # nightly, 02:00 in Taiwan
   merge_group:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: false
+  # A newer push or label supersedes a pull request run; never cancel a
+  # merge-group or nightly run.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  integration:
+  require-label:
     if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      pull-requests: read
+    uses: autowarefoundation/autoware-github-actions/.github/workflows/require-label.yaml@v1
+    with:
+      label: run:integration
+      # Without the label the check is skipped, not failed: integration is
+      # not a required check on pull requests.
+      run-condition: ${{ contains(github.event.pull_request.labels.*.name, 'run:integration') }}
+
+  integration:
+    needs: require-label
+    if: >-
+      !cancelled() &&
       vars.L4SI_INTEGRATION_RUNNER == 'true' &&
-      (github.event_name != 'merge_group' || vars.L4SI_INTEGRATION_IN_MERGE_QUEUE == 'true')
+      (
+        (github.event_name == 'pull_request' && needs.require-label.outputs.result == 'true') ||
+        (github.event_name == 'merge_group' && vars.L4SI_INTEGRATION_IN_MERGE_QUEUE == 'true') ||
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: [self-hosted, l4si-integration]
     timeout-minutes: 120
     steps:
