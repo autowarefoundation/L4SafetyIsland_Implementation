@@ -1,0 +1,214 @@
+# The repository's labels, in Autoware's namespaces
+# (docs/design/work-management.md section 4.1). `replaces` lists the old
+# names: .github/scripts/sync_labels.py renames an old label to the new
+# name, so the issues and pull requests keep it.
+#
+#   python3 .github/scripts/sync_labels.py            # dry run
+#   python3 .github/scripts/sync_labels.py --apply
+
+labels:
+  # type: what kind of change
+  - name: type:bug
+    color: d73a4a
+    description: Something does not work
+    replaces: [bug]
+  - name: type:new-feature
+    color: a2eeef
+    description: New feature or capability
+    replaces: [enhancement]
+  - name: type:improvement
+    color: a2eeef
+    description: Improvement of something that works
+  - name: type:documentation
+    color: 0075ca
+    description: Documentation
+    replaces: [documentation]
+  - name: type:ci
+    color: 0075ca
+    description: Continuous integration and repository automation
+  - name: type:testing
+    color: 0075ca
+    description: Tests and the test harness
+  - name: type:build
+    color: 0075ca
+    description: Build system and toolchains
+  - name: type:task
+    color: bfd4f2
+    description: Work-package task
+    replaces: [work-item]
+  - name: type:demo
+    color: e99695
+    description: Milestone demo (D1-D5)
+    replaces: [demo]
+  - name: type:github-actions
+    color: 0075ca
+    description: GitHub Actions dependency update (dependabot)
+  - name: type:cargo
+    color: 0075ca
+    description: Cargo dependency update (dependabot)
+
+  # component: which part of the system
+  - name: component:island
+    color: 5319e7
+    description: Safety-island node (N*, ported I*)
+    replaces: [island-node]
+  - name: component:hpc
+    color: 0052cc
+    description: HPC-side node on Autoware (H*)
+    replaces: [hpc-node]
+  - name: component:msgs
+    color: 5319e7
+    description: Message package autoware_safety_island_msgs
+  - name: component:platform
+    color: 5319e7
+    description: Shared Rust crates and platform crates
+  - name: component:bringup
+    color: 5319e7
+    description: Bringup package, images and launch
+  - name: component:contracts
+    color: 5319e7
+    description: Node contracts (rates, budgets, FTTIs, monitors)
+
+  # status: where the work stands
+  - name: status:needs-design
+    color: fbca04
+    description: Design or acceptance tests still to be decided
+  - name: status:ready
+    color: 0e8a16
+    description: Acceptance tests and design references named; open to /claim
+  - name: status:blocked
+    color: b60205
+    description: Waiting on another issue or decision
+  - name: status:info-needed
+    color: d876e3
+    description: Further information is requested
+    replaces: [question]
+  - name: status:help-wanted
+    color: 008672
+    description: Extra attention is needed
+    replaces: [help wanted]
+  - name: status:stale
+    color: cccccc
+    description: No recent activity
+  - name: status:wont-fix
+    color: ffffff
+    description: This will not be worked on
+    replaces: [wontfix]
+
+  # partition: the plan's partitions
+  - name: partition:p0
+    color: b60205
+    description: "Partition P0: safety core"
+    replaces: [P0]
+  - name: partition:p1
+    color: d93f0b
+    description: "Partition P1: supervision and fallback"
+    replaces: [P1]
+  - name: partition:p2
+    color: fbca04
+    description: "Partition P2: safety sensing"
+    replaces: [P2]
+  - name: partition:p3
+    color: 0e8a16
+    description: "Partition P3: nominal control"
+    replaces: [P3]
+  - name: partition:p3s
+    color: 0e8a16
+    description: "Partition P3s: tele-operation streaming"
+    replaces: [P3s]
+  - name: partition:p4
+    color: cccccc
+    description: "Partition P4: non-real-time"
+    replaces: [P4]
+
+  # wp: the plan's work packages
+  - name: wp:0
+    color: c2e0c6
+    description: "Work package 0: foundations"
+    replaces: [wp0]
+  - name: wp:1
+    color: c2e0c6
+    description: "Work package 1: phase 0 on the board"
+    replaces: [wp1]
+  - name: wp:2
+    color: c2e0c6
+    description: "Work package 2: base layer"
+    replaces: [wp2]
+  - name: wp:3
+    color: c2e0c6
+    description: "Work package 3: authority core and B4"
+    replaces: [wp3]
+  - name: wp:4
+    color: c2e0c6
+    description: "Work package 4: fallback control tier"
+    replaces: [wp4]
+  - name: wp:5
+    color: c2e0c6
+    description: "Work package 5: island sensing chain"
+    replaces: [wp5]
+  - name: wp:6
+    color: c2e0c6
+    description: "Work package 6: B3 pull over"
+    replaces: [wp6]
+  - name: wp:7
+    color: c2e0c6
+    description: "Work package 7: guardian role and B1"
+    replaces: [wp7]
+  - name: wp:8
+    color: c2e0c6
+    description: "Work package 8: B6 joystick and B5 tele-operation"
+    replaces: [wp8]
+  - name: wp:9
+    color: c2e0c6
+    description: "Work package 9: B2 lane hold"
+    replaces: [wp9]
+  - name: wp:10
+    color: c2e0c6
+    description: "Work package 10: audit and options"
+    replaces: [wp10]
+
+  # platform: where it runs
+  - name: platform:s32z2
+    color: bfdadc
+    description: NXP S32Z2 / S32Z280-400EVB
+    replaces: [s32z2]
+  - name: platform:x5h
+    color: bfdadc
+    description: R-Car X5H
+  - name: platform:host
+    color: bfdadc
+    description: Host build (Linux, POSIX FreeRTOS)
+  - name: simulator:carla
+    color: bfdadc
+    description: CARLA scenario runs
+
+  # tag: everything else
+  - name: tag:tracking
+    color: 5319e7
+    description: Tracking issue; its sub-issues are the work
+    replaces: [tracking]
+  - name: tag:imported-node
+    color: 1d76db
+    description: Autoware node migrated to the safety island (I*)
+    replaces: [imported-node]
+  - name: tag:good-first-issue
+    color: 7057ff
+    description: Good for newcomers
+    replaces: [good first issue]
+  - name: tag:bot
+    color: ededed
+    description: Opened by automation
+  - name: tag:sync-files
+    color: ededed
+    description: Opened by sync-files
+  - name: tag:update-codeowners-from-packages
+    color: ededed
+    description: Opened by update-codeowners-from-packages
+  - name: tag:no-auto-merge
+    color: e4e669
+    description: Do not arm auto-merge on this pull request
+
+  # run: costly CI on a pull request
+  - name: run:integration
+    color: f9d0c4
+    description: Run the integration lane on this pull request (maintainers apply it)
