@@ -9,6 +9,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+si-core = { workspace = true }
 si-hal = { workspace = true }
 si-nodes = { workspace = true }
 
