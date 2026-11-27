@@ -15,6 +15,8 @@
 //! Host platform: `si-hal` implemented on `std`, for unit tests,
 //! software-in-the-loop runs and the WP0 test harness.
 
+pub mod harness;
+
 use std::time::Instant as StdInstant;
 
 use si_hal::{Clock, Instant};
