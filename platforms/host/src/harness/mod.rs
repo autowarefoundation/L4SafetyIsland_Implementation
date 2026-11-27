@@ -16,15 +16,19 @@
 //!
 //! Time is simulated: a run is deterministic and measures no timing.
 
+mod golden;
 mod publisher;
 mod script;
+mod trace;
 
 use core::time::Duration;
 
 use si_hal::Instant;
 
+pub use golden::{GoldenMismatch, assert_golden, compare_with_golden};
 pub use publisher::{Delivery, Fault, Frame, Publisher};
 pub use script::Script;
+pub use trace::{Trace, TraceLine, format_millis};
 
 /// The instant `ms` milliseconds after the start of a run.
 #[must_use]
