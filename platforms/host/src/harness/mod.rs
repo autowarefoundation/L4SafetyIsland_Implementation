@@ -14,10 +14,17 @@
 
 //! The WP0 test harness (WP0-WP3-SafetyFloor.md section 1.2).
 //!
+//! A node test builds its inputs from [`Publisher`]s (periodic streams with
+//! injectable faults), [`Script`]s (events at set times) and the [`HpcStub`];
+//! a [`Runner`] steps the node in simulated time and a [`Rig`] moves samples
+//! in and outputs out, writing what happened to a [`Trace`]. The trace is
+//! compared against a golden file with [`assert_golden`].
+//!
 //! Time is simulated: a run is deterministic and measures no timing.
 
 mod golden;
 mod hpc_stub;
+mod inputs;
 mod publisher;
 mod runner;
 mod script;
@@ -29,6 +36,7 @@ use si_hal::Instant;
 
 pub use golden::{GoldenMismatch, assert_golden, compare_with_golden};
 pub use hpc_stub::{E2eProfile, HpcFrame, HpcStub, HpcTopic};
+pub use inputs::{InputSpec, Rate, SECTION_3_INPUTS, inputs_of};
 pub use publisher::{Delivery, Fault, Frame, Publisher};
 pub use runner::{Rig, Runner};
 pub use script::Script;
