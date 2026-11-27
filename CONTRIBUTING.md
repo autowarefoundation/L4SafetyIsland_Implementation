@@ -72,15 +72,15 @@ passes:
 
 ## Where things go
 
-| Change                                | Place                                                                                                                                                |
-| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| New island node (`N*`)                | Logic in `crates/si-nodes` (Rust, `no_std`, a `StepNode`); its package `src/autoware_si_<name>/`                                                     |
-| Ported Autoware node (`I*`)           | `src/<autoware package name>/`, C++ as in Autoware, on the nano-ros rclcpp-compatible API                                                            |
-| Message type                          | `.msg` in `src/autoware_safety_island_msgs/msg/`, every string and sequence bounded. Never a hand-written message struct                             |
-| Parameter                             | `schema/<node>.schema.json` + `config/<node>.param.yaml` in the node package; branch values in `src/autoware_safety_island_bringup/config/<branch>/` |
-| Rate, budget, FTTI, priority, monitor | The contract `src/autoware_safety_island_bringup/launch/system.contract.yaml`                                                                        |
-| Image, board, node set                | `src/autoware_safety_island_bringup/system.toml` and its launch file                                                                                 |
-| Platform code                         | `platforms/<platform>/` only. Shared crates never depend on it                                                                                       |
+| Change                                | Place                                                                                                                                                           |
+| :------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New island node (`N*`)                | Logic in `crates/si-nodes` (Rust, `no_std`, a `StepNode`); its package `src/autoware_si_<name>/`                                                                |
+| Ported Autoware node (`I*`)           | `src/<autoware package name>/`, C++ as in Autoware, on the nano-ros rclcpp-compatible API                                                                       |
+| Message type                          | `.msg` in `src/autoware_safety_island_msgs/msg/`, every string and sequence bounded. Never a hand-written message struct                                        |
+| Parameter                             | `schema/<node>.schema.json` + `config/<node>.param.yaml` in the node package; branch values in `src/autoware_safety_island_bringup/config/<branch>/`            |
+| Rate, budget, FTTI, priority, monitor | The node's contract `src/autoware_safety_island_bringup/launch/nodes/<node>.contract.yaml`; a hazard in the contract of the launch file that includes the nodes |
+| Image, board, node set                | `src/autoware_safety_island_bringup/system.toml` and its launch file                                                                                            |
+| Platform code                         | `platforms/<platform>/` only. Shared crates never depend on it                                                                                                  |
 
 Each fact has one source; do not restate a number in code or docs that a
 contract, schema or message file already states.
