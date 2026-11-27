@@ -1,0 +1,3 @@
+# smoke: the stack drives at all. Autoware only, no safety island.
+scenarios: [scenarios/drive_to_goal.xosc]
+retry: { on: error, times: 1 }

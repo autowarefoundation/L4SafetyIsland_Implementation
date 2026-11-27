@@ -1,0 +1,12 @@
+# swb's host settings inside the CI images (/etc/swb/host.yaml).
+# ci/scripts/stack-up.sh writes the per-run part (CARLA's address) to the user file,
+# which overrides this one key by key.
+logs: /var/lib/l4si/logs
+cache: /var/lib/l4si/cache
+autoware: { setup: /opt/autoware/setup.bash }
+# CARLA runs in its own container and outlives every job: never start or stop it.
+carla: { host: carla, port: 2000, start: external }
+# One stack per container: seat 0 only, the GPU the container was given.
+seat: 0
+seats:
+  count: 1
