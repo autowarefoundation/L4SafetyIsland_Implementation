@@ -17,6 +17,7 @@
 //! Time is simulated: a run is deterministic and measures no timing.
 
 mod golden;
+mod hpc_stub;
 mod publisher;
 mod runner;
 mod script;
@@ -27,6 +28,7 @@ use core::time::Duration;
 use si_hal::Instant;
 
 pub use golden::{GoldenMismatch, assert_golden, compare_with_golden};
+pub use hpc_stub::{E2eProfile, HpcFrame, HpcStub, HpcTopic};
 pub use publisher::{Delivery, Fault, Frame, Publisher};
 pub use runner::{Rig, Runner};
 pub use script::Script;
