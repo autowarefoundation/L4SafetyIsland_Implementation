@@ -33,7 +33,7 @@ jobs:
         run: rustup show active-toolchain || rustup toolchain install
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -109,7 +109,7 @@ jobs:
         run: echo "version=$(sed -n 's/^version = "\(.*\)"/\1/p' nros-toolchain.toml)" >> "$GITHUB_OUTPUT"
 
       - name: Cache the nano-ros SDK store
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.NROS_HOME }}
           key: nros-${{ steps.pin.outputs.version }}-${{ inputs.ros-edition }}-${{ matrix.board }}
