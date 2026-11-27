@@ -18,6 +18,7 @@
 
 mod golden;
 mod publisher;
+mod runner;
 mod script;
 mod trace;
 
@@ -27,6 +28,7 @@ use si_hal::Instant;
 
 pub use golden::{GoldenMismatch, assert_golden, compare_with_golden};
 pub use publisher::{Delivery, Fault, Frame, Publisher};
+pub use runner::{Rig, Runner};
 pub use script::Script;
 pub use trace::{Trace, TraceLine, format_millis};
 
