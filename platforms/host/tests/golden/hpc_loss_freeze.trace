@@ -1,0 +1,29 @@
+# HPC stub freezes the heartbeat at 105 ms: H7 resends its last frame
+# (counter 11, stamp 100 ms); a stale resend is not a heartbeat, so the
+# placeholder N2 declares HPC_LIVENESS_LOST at 130 ms.
+# Format: <time ms> <source> <event>. Regenerate: SI_BLESS_GOLDEN=1 cargo test.
+    0.000 H7 heartbeat counter=1 stamp=0.000
+    0.000 H2 capability counter=1 stamp=0.000
+   10.000 H7 heartbeat counter=2 stamp=10.000
+   20.000 H7 heartbeat counter=3 stamp=20.000
+   30.000 H7 heartbeat counter=4 stamp=30.000
+   40.000 H7 heartbeat counter=5 stamp=40.000
+   50.000 H7 heartbeat counter=6 stamp=50.000
+   60.000 H7 heartbeat counter=7 stamp=60.000
+   70.000 H7 heartbeat counter=8 stamp=70.000
+   80.000 H7 heartbeat counter=9 stamp=80.000
+   90.000 H7 heartbeat counter=10 stamp=90.000
+  100.000 H7 heartbeat counter=11 stamp=100.000
+  100.000 H2 capability counter=2 stamp=100.000
+  110.000 H7 heartbeat counter=11 stamp=100.000
+  120.000 H7 heartbeat counter=11 stamp=100.000
+  130.000 H7 heartbeat counter=11 stamp=100.000
+  130.000 N2 fault HPC_LIVENESS_LOST
+  140.000 H7 heartbeat counter=11 stamp=100.000
+  150.000 H7 heartbeat counter=11 stamp=100.000
+  160.000 H7 heartbeat counter=11 stamp=100.000
+  170.000 H7 heartbeat counter=11 stamp=100.000
+  180.000 H7 heartbeat counter=11 stamp=100.000
+  190.000 H7 heartbeat counter=11 stamp=100.000
+  200.000 H7 heartbeat counter=11 stamp=100.000
+  200.000 H2 capability counter=3 stamp=200.000
