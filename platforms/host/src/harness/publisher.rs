@@ -92,7 +92,10 @@ impl<T: Clone> Publisher<T> {
         period: Duration,
         payload: impl FnMut(u32, Instant) -> T + 'static,
     ) -> Self {
-        assert!(!period.is_zero(), "publisher {name}: the period must not be zero");
+        assert!(
+            !period.is_zero(),
+            "publisher {name}: the period must not be zero"
+        );
         Self {
             name: name.to_owned(),
             period,
@@ -190,7 +193,9 @@ mod tests {
     }
 
     fn ten_ms() -> Publisher<u32> {
-        Publisher::new("test", Duration::from_millis(10), |counter, _| counter * 100)
+        Publisher::new("test", Duration::from_millis(10), |counter, _| {
+            counter * 100
+        })
     }
 
     #[test]
@@ -215,7 +220,10 @@ mod tests {
     fn stop_sends_nothing_and_the_counter_resumes() {
         let mut publisher = ten_ms();
         publisher.inject(Fault::Stop, millis(10), Some(millis(30)));
-        assert_eq!(counters(&mut publisher, 30), vec![(0, 1, true), (30, 2, true)]);
+        assert_eq!(
+            counters(&mut publisher, 30),
+            vec![(0, 1, true), (30, 2, true)]
+        );
     }
 
     #[test]
@@ -259,6 +267,9 @@ mod tests {
     #[test]
     fn starting_at_delays_the_first_frame() {
         let mut publisher = ten_ms().starting_at(millis(5));
-        assert_eq!(counters(&mut publisher, 15), vec![(5, 1, true), (15, 2, true)]);
+        assert_eq!(
+            counters(&mut publisher, 15),
+            vec![(5, 1, true), (15, 2, true)]
+        );
     }
 }
