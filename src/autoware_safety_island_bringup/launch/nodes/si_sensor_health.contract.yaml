@@ -1,0 +1,47 @@
+# N17 si_sensor_health, reduced for WP3 (camera only): partition P2 (design
+# V1.0 sections 6.2, 9.1; WP0-WP3-SafetyFloor.md section 3).
+# Declares the camera blackout (SENSING_BLACKOUT to N8, C20) once the frame
+# stream has been silent past the debounce, and publishes IslandSensorHealth
+# at 5 Hz (section 8.2).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_sensor_health:
+    sub:
+      camera:
+        # PROVISIONAL: the blackout debounce is open decision 15
+        # (WP0-WP3-SafetyFloor.md section 3, N17).
+        max_age: 200ms
+        on_violation:
+          on: [omission]
+          mechanism: application
+          reaction: declare_blackout
+    pub:
+      sensor_validity: {}
+      fault_event: { aperiodic: true }
+      sensor_health: {}
+    paths:
+      declare_blackout:
+        trigger: { input: [camera] }
+        output: [sensor_validity, fault_event]
+      report:
+        trigger: { timer: { rate: 5Hz } }
+        output: [sensor_health]
+
+topics:
+  /si/internal/sensor_health:
+    type: autoware_safety_island_msgs/msg/IslandSensorHealth
+    pub: [si_sensor_health/sensor_health]
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [si_sensor_health/fault_event]
+  /si/internal/sensor_validity:
+    type: autoware_safety_island_msgs/msg/SensorValidity
+    pub: [si_sensor_health/sensor_validity]
+  /si/sensing/camera/image:
+    type: sensor_msgs/msg/Image
+    external: pub
+    rate: 10Hz
+    sub: [si_sensor_health/camera]

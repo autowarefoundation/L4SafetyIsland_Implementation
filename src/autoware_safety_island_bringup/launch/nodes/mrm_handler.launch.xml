@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Changed from Autoware's 0.5 s, which gives 540 ms against the 70 ms FTTI
+       (docs/WP0-WP3-SafetyFloor.md section 4, I7; ../safety_floor.expect keeps that case).
+       PROVISIONAL: 0.03 s is three missed 100 Hz availability messages, the heartbeat rule of
+       design V1.0 section 9.2; the plan names no value. It moves to the I7 package's
+       parameter file when the port lands. -->
+  <arg name="timeout_operation_mode_availability" default="0.03"/>
+  <node pkg="autoware_mrm_handler" exec="mrm_handler" name="mrm_handler">
+    <param name="timeout_operation_mode_availability" value="$(var timeout_operation_mode_availability)"/>
+  </node>
+</launch>

@@ -1,0 +1,33 @@
+# N9 si_actuator_supervisor: partition P1 (design V1.0 sections 6.1, 9.1).
+# Commanded (F6, from I1) against achieved (F5, from I16's status);
+# ACTUATOR_NOT_TRACKING and non-response to N8 (D22).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_actuator_supervisor:
+    sub:
+      commanded: { state: true }
+      velocity_status: {}
+      steering_status: { state: true }
+    pub:
+      fault_event: { aperiodic: true }
+    paths:
+      compare:
+        trigger: { input: [velocity_status] }
+        output: [fault_event]
+
+topics:
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [si_actuator_supervisor/fault_event]
+  /si/command/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    sub: [si_actuator_supervisor/commanded]
+  /vehicle/status/velocity_status:
+    type: autoware_vehicle_msgs/msg/VelocityReport
+    sub: [si_actuator_supervisor/velocity_status]
+  /vehicle/status/steering_status:
+    type: autoware_vehicle_msgs/msg/SteeringReport
+    sub: [si_actuator_supervisor/steering_status]

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_golf_cart_interface" exec="vehicle_interface" name="vehicle_interface"/>
+</launch>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_sensor_health" exec="si_sensor_health" name="si_sensor_health"/>
+</launch>

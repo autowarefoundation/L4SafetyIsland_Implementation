@@ -1,0 +1,27 @@
+# I3 command_mode_switcher (Autoware, C++ port, static configuration):
+# partition P0 (design V1.0 sections 4.3, 9.1). Source selection to I1 (D21).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  command_mode_switcher:
+    sub:
+      command_mode: {}
+    pub:
+      command_source: {}
+    paths:
+      switch:
+        trigger: { input: [command_mode] }
+        output: [command_source]
+        max_latency: 4ms
+
+topics:
+  /si/internal/command_mode:
+    # PROVISIONAL type: the I4 command-mode types come with the I2 port.
+    type: tier4_system_msgs/msg/CommandModeStatus
+    sub: [command_mode_switcher/command_mode]
+  /si/internal/command_source:
+    # PROVISIONAL type: as above.
+    type: tier4_system_msgs/msg/CommandSourceStatus
+    pub: [command_mode_switcher/command_source]

@@ -1,0 +1,41 @@
+# N3 si_state_machine: partition P0, 100 Hz (design V1.0 sections 6.1, 9.1).
+# Single owner of island mode: IslandMode to I2 (D15) and I7 (D16),
+# IslandState toward the HPC through N1 (section 8.2, 50 Hz). The ODD
+# status is latched for v_odd (section 6.1).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_state_machine:
+    sub:
+      fault_verdict: {}
+      odd_status: { state: true }
+    pub:
+      island_mode: {}
+      island_state: {}
+    paths:
+      transition:
+        trigger: { input: [fault_verdict] }
+        output: [island_mode]
+        max_latency: 4ms
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [island_mode]
+      report:
+        trigger: { timer: { rate: 50Hz } }
+        output: [island_state]
+
+topics:
+  /si/verified/odd_status:
+    type: autoware_safety_island_msgs/msg/OddStatus
+    sub: [si_state_machine/odd_status]
+  /si/internal/island_state:
+    type: autoware_safety_island_msgs/msg/IslandState
+    pub: [si_state_machine/island_state]
+  /si/internal/fault_verdict:
+    type: autoware_safety_island_msgs/msg/FaultVerdict
+    sub: [si_state_machine/fault_verdict]
+  /si/internal/island_mode:
+    type: autoware_safety_island_msgs/msg/IslandMode
+    pub: [si_state_machine/island_mode]

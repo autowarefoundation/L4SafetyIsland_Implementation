@@ -1,0 +1,66 @@
+# The safety floor (WP2 and WP3): the hazard hpc_loss over the node set of
+# safety_floor.launch.xml. Each node's endpoints, topics, rates, age limits
+# and path budgets are in its own nodes/<node>.contract.yaml; play_launch
+# merges them and checks the whole (`play_launch check --locked --strict`).
+#
+# THE BUDGET (design V1.0 section 9.2; the island reaction is <= 70 ms)
+#
+#   detection  N2 heartbeat lease, 3 missed 100 Hz heartbeats         30 ms
+#   decision   N2 -> N8 -> N3 -> I2 -> I3, 4 ms each                  20 ms
+#   command    I1 -> I16 -> CAN FD, one P0 cycle (10 ms) each         20 ms
+#
+# The stage totals are the design's. The split of each stage across its
+# nodes is this contract's and PROVISIONAL: the design gives "2 cycles" for
+# the decision and nothing per node. I7 and I6 take the MRM branch
+# (N3 -> I7 -> I6 -> I1) beside I2 and I3, with the same 8 ms.
+#
+# The actuator response is vehicle-specific (section 9.2): I16's safe state
+# has no settle, so the total is the island's reaction alone.
+#
+# PROVISIONAL topic names: the design names the HPC-link topics (sections
+# 8.1, 8.2); the island-internal ones (/si/verified/*, /si/internal/*,
+# /si/command/*, /si/ego/*, /si/sensing/*, /si/can/*) are the node
+# contracts'.
+
+rlm: v0.3.21
+version: 1
+use: { iso26262: ^1 }
+
+hazards:
+  hpc_loss:
+    # PROVISIONAL: no HARA yet; ASIL_D is the target integrity of tier T0
+    # (design V1.0 section 2.2).
+    integrity: ASIL_D
+    description: >-
+      The HPC stops: its heartbeat goes silent, so nothing outside the island
+      is planning. The island must have its own stop command on the CAN FD
+      bus within the section 9.2 budget.
+    # I7 notices the same loss on its own availability input (D1); both
+    # detectors must fit the budget.
+    monitors: [/si/verified/heartbeat, /system/operation_mode/availability]
+    on: omission
+    ftti: 70ms
+    reaction: hpc_loss_stop
+
+event_chains:
+  hpc_loss_stop:
+    trigger: { input: [/si/verified/heartbeat] }
+    output: [/si/can/actuation_cmd]
+
+acknowledged:
+  - rule: reaction-unbudgeted
+    at: hazards.hpc_loss.reaction
+    reason: >-
+      The actuator response is vehicle-specific (design V1.0 section 9.2); the
+      70 ms budget is the island's reaction, which ends on the CAN FD bus.
+  - rule: reaction-unguarded
+    at: hazards.hpc_loss.reaction
+    reason: >-
+      The CAN FD frames are consumed by the actuator gateway, outside the
+      island; N9 supervises their effect through the actuator feedback.
+  - rule: causal-dag-global
+    at: graph
+    reason: >-
+      Node-level cycles through the feedback edges F5/F6 (I16 and I1 to N9 to
+      N8) and through N1, whose ingress and egress are separate paths; no path
+      feeds itself (docs/WP0-WP3-SafetyFloor.md section 5).

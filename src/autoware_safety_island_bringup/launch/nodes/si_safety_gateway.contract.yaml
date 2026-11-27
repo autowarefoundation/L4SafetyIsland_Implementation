@@ -1,0 +1,155 @@
+# N1 si_safety_gateway: partition P0 (design V1.0 sections 6.1, 8.4, 9.1).
+# Verifies every HPC -> island signal (E2E and age, section 8.1) and forwards
+# it to the island; egress of the section 8.2 signals; every verification
+# failure becomes a FaultEvent for N8. Runs per message: no timer.
+# The age limits are section 8.1's column; the rates are on the topics in
+# ../safety_floor.contract.yaml.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_safety_gateway:
+    sub:
+      heartbeat: { max_age: 20ms }
+      capability: { max_age: 300ms }
+      odd_status: { max_age: 300ms }
+      kinematic_state: { max_age: 60ms }
+      acceleration: { max_age: 60ms }
+      gear_cmd: { max_age: 300ms }
+      turn_indicators_cmd: { max_age: 300ms }
+      hazard_lights_cmd: { max_age: 300ms }
+      # A3 from N12: a lost time base invalidates every age check above.
+      time_base: { state: true }
+      island_state: {}
+      sensor_health: {}
+    pub:
+      verified_heartbeat: {}
+      verified_capability: {}
+      verified_odd_status: {}
+      verified_kinematic_state: {}
+      verified_acceleration: {}
+      verified_gear_cmd: {}
+      verified_turn_indicators_cmd: {}
+      verified_hazard_lights_cmd: {}
+      fault_event: { aperiodic: true }
+      out_state: {}
+      out_sensor_health: {}
+    paths:
+      forward_heartbeat:
+        trigger: { input: [heartbeat] }
+        output: [verified_heartbeat, fault_event]
+      forward_capability:
+        trigger: { input: [capability] }
+        output: [verified_capability, fault_event]
+      forward_odd_status:
+        trigger: { input: [odd_status] }
+        output: [verified_odd_status, fault_event]
+      forward_kinematic_state:
+        trigger: { input: [kinematic_state] }
+        output: [verified_kinematic_state, fault_event]
+      forward_acceleration:
+        trigger: { input: [acceleration] }
+        output: [verified_acceleration, fault_event]
+      forward_gear_cmd:
+        trigger: { input: [gear_cmd] }
+        output: [verified_gear_cmd, fault_event]
+      forward_turn_indicators_cmd:
+        trigger: { input: [turn_indicators_cmd] }
+        output: [verified_turn_indicators_cmd, fault_event]
+      forward_hazard_lights_cmd:
+        trigger: { input: [hazard_lights_cmd] }
+        output: [verified_hazard_lights_cmd, fault_event]
+      egress_state:
+        trigger: { input: [island_state] }
+        output: [out_state]
+      egress_sensor_health:
+        trigger: { input: [sensor_health] }
+        output: [out_sensor_health]
+
+topics:
+  /si/in/heartbeat:
+    type: autoware_safety_island_msgs/msg/HpcHeartbeat
+    external: pub
+    rate: 100Hz
+    sub: [si_safety_gateway/heartbeat]
+  /si/in/capability:
+    type: autoware_safety_island_msgs/msg/HpcCapability
+    external: pub
+    rate: 10Hz
+    sub: [si_safety_gateway/capability]
+  /si/in/odd_status:
+    type: autoware_safety_island_msgs/msg/OddStatus
+    external: pub
+    rate: 10Hz
+    sub: [si_safety_gateway/odd_status]
+  /localization/kinematic_state:
+    type: nav_msgs/msg/Odometry
+    external: pub
+    rate: 50Hz
+    sub: [si_safety_gateway/kinematic_state]
+  /localization/acceleration:
+    type: geometry_msgs/msg/AccelWithCovarianceStamped
+    external: pub
+    rate: 50Hz
+    sub: [si_safety_gateway/acceleration]
+  /control/command/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    external: pub
+    rate: 10Hz
+    sub: [si_safety_gateway/gear_cmd]
+  /control/command/turn_indicators_cmd:
+    type: autoware_vehicle_msgs/msg/TurnIndicatorsCommand
+    external: pub
+    rate: 10Hz
+    sub: [si_safety_gateway/turn_indicators_cmd]
+  /control/command/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    external: pub
+    rate: 10Hz
+    sub: [si_safety_gateway/hazard_lights_cmd]
+  /si/verified/heartbeat:
+    type: autoware_safety_island_msgs/msg/HpcHeartbeat
+    pub: [si_safety_gateway/verified_heartbeat]
+  /si/verified/capability:
+    type: autoware_safety_island_msgs/msg/HpcCapability
+    pub: [si_safety_gateway/verified_capability]
+  /si/verified/odd_status:
+    type: autoware_safety_island_msgs/msg/OddStatus
+    pub: [si_safety_gateway/verified_odd_status]
+  /si/verified/kinematic_state:
+    type: nav_msgs/msg/Odometry
+    pub: [si_safety_gateway/verified_kinematic_state]
+  /si/verified/acceleration:
+    type: geometry_msgs/msg/AccelWithCovarianceStamped
+    pub: [si_safety_gateway/verified_acceleration]
+  /si/verified/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    pub: [si_safety_gateway/verified_gear_cmd]
+  /si/verified/turn_indicators_cmd:
+    type: autoware_vehicle_msgs/msg/TurnIndicatorsCommand
+    pub: [si_safety_gateway/verified_turn_indicators_cmd]
+  /si/verified/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    pub: [si_safety_gateway/verified_hazard_lights_cmd]
+  /si/internal/time_base:
+    # PROVISIONAL type: A3 has no message in autoware_safety_island_msgs yet.
+    type: std_msgs/msg/Bool
+    sub: [si_safety_gateway/time_base]
+  /si/internal/island_state:
+    type: autoware_safety_island_msgs/msg/IslandState
+    sub: [si_safety_gateway/island_state]
+  /si/out/state:
+    type: autoware_safety_island_msgs/msg/IslandState
+    external: sub
+    pub: [si_safety_gateway/out_state]
+  /si/internal/sensor_health:
+    type: autoware_safety_island_msgs/msg/IslandSensorHealth
+    sub: [si_safety_gateway/sensor_health]
+  /si/out/sensor_health:
+    type: autoware_safety_island_msgs/msg/IslandSensorHealth
+    external: sub
+    pub: [si_safety_gateway/out_sensor_health]
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [si_safety_gateway/fault_event]

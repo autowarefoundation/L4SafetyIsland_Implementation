@@ -1,0 +1,67 @@
+# I7 mrm_handler (Autoware, C++, already ported in the evaluation island):
+# partition P0 (design V1.0 sections 4.1, 9.1; WP0-WP3-SafetyFloor.md
+# section 4). Availability comes from N2 (D1); the MRM request is N3's
+# IslandMode (D16). Calls OperateMrm on I6 (D12), hazard lamps to I1 (E9),
+# MrmState toward the HPC (section 8.2, 10 Hz).
+#
+# call_mrm runs on arrival: the evaluation island's port added that direct
+# path; stock Autoware acts only on its update_rate timer.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  mrm_handler:
+    params:
+      timeout_operation_mode_availability: { type: double }
+    sub:
+      availability:
+        # mrm_handler treats the availability as lost once it is older than
+        # this parameter, checked on its own clock.
+        max_age: $(param timeout_operation_mode_availability) s
+        on_violation:
+          on: [omission]
+          mechanism: application
+          reaction: call_mrm
+      island_mode: {}
+      emergency_stop_status: { state: true }
+    cli:
+      operate_emergency_stop: {}
+    pub:
+      hazard_lights_cmd: {}
+      mrm_state: {}
+    paths:
+      call_mrm:
+        trigger: { input: [availability, island_mode] }
+        output: [operate_emergency_stop, hazard_lights_cmd]
+        max_latency: 4ms
+      tick:
+        # The P0 cycle (design V1.0 section 9.1). The availability age is
+        # checked on this tick, so its period adds to the detection; at
+        # Autoware's update_rate of 10 Hz it would add 100 ms. PROVISIONAL:
+        # MrmState is a 10 Hz signal in section 8.2.
+        trigger: { timer: { rate: 100Hz } }
+        output: [mrm_state]
+
+topics:
+  /system/mrm/emergency_stop/status:
+    type: tier4_system_msgs/msg/MrmBehaviorStatus
+    sub: [mrm_handler/emergency_stop_status]
+  /system/fail_safe/mrm_state:
+    type: autoware_adapi_v1_msgs/msg/MrmState
+    external: sub
+    pub: [mrm_handler/mrm_state]
+  /si/internal/island_mode:
+    type: autoware_safety_island_msgs/msg/IslandMode
+    sub: [mrm_handler/island_mode]
+  /system/operation_mode/availability:
+    type: tier4_system_msgs/msg/OperationModeAvailability
+    sub: [mrm_handler/availability]
+  /system/emergency/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    pub: [mrm_handler/hazard_lights_cmd]
+
+services:
+  /system/mrm/emergency_stop/operate:
+    type: tier4_system_msgs/srv/OperateMrm
+    client: [mrm_handler/operate_emergency_stop]

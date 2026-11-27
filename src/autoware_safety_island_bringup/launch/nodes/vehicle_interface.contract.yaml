@@ -1,0 +1,79 @@
+# I16 vehicle interface (golf cart; C++, Autoware's vehicle-interface pattern,
+# new per vehicle): partition P0 (design V1.0 sections 4.1, 8.3, 9.1).
+# CAN FD to the actuator gateway at 100 Hz, SI-E2E/B (F4); actuator feedback
+# from the bus (A13); vehicle status (badge V); achieved values to N9 (F5);
+# E2E/B failures on the bus to N8.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  vehicle_interface:
+    sub:
+      control_cmd: {}
+      gear_cmd: { state: true }
+      turn_indicators_cmd: { state: true }
+      hazard_lights_cmd: { state: true }
+      actuator_feedback: {}
+    pub:
+      actuation_cmd: {}
+      velocity_status: {}
+      steering_status: {}
+      gear_status: {}
+      control_mode_status: {}
+      fault_event: { aperiodic: true }
+    paths:
+      transmit:
+        trigger: { input: [control_cmd] }
+        output: [actuation_cmd]
+        # Command stage, second P0 cycle: I16 -> CAN FD.
+        max_latency: 10ms
+        # No settle: the actuator response is vehicle-specific (section 9.2).
+        safe_state: { emits: actuation_cmd }
+      report:
+        trigger: { input: [actuator_feedback] }
+        output: [velocity_status, steering_status, gear_status, control_mode_status, fault_event]
+
+topics:
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [vehicle_interface/fault_event]
+  /si/command/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    sub: [vehicle_interface/control_cmd]
+  /si/command/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    sub: [vehicle_interface/gear_cmd]
+  /si/command/turn_indicators_cmd:
+    type: autoware_vehicle_msgs/msg/TurnIndicatorsCommand
+    sub: [vehicle_interface/turn_indicators_cmd]
+  /si/command/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    sub: [vehicle_interface/hazard_lights_cmd]
+  /vehicle/status/velocity_status:
+    type: autoware_vehicle_msgs/msg/VelocityReport
+    pub: [vehicle_interface/velocity_status]
+  /vehicle/status/steering_status:
+    type: autoware_vehicle_msgs/msg/SteeringReport
+    pub: [vehicle_interface/steering_status]
+  # Badge H: to the HPC (design V1.0 section 8.2).
+  /vehicle/status/gear_status:
+    type: autoware_vehicle_msgs/msg/GearReport
+    external: sub
+    pub: [vehicle_interface/gear_status]
+  /vehicle/status/control_mode:
+    type: autoware_vehicle_msgs/msg/ControlModeReport
+    external: sub
+    pub: [vehicle_interface/control_mode_status]
+  # CAN FD frames (design V1.0 section 8.3), carried as topics so that the
+  # reaction ends on the bus. PROVISIONAL type: the frame layout is the
+  # vehicle's.
+  /si/can/actuator_feedback:
+    type: autoware_control_msgs/msg/Control
+    external: pub
+    rate: 100Hz
+    sub: [vehicle_interface/actuator_feedback]
+  /si/can/actuation_cmd:
+    type: autoware_control_msgs/msg/Control
+    external: sub
+    pub: [vehicle_interface/actuation_cmd]

@@ -5,14 +5,14 @@ says where each level lives and which CI lane runs it.
 
 ## Levels
 
-| Level                    | What                                                                                        | Where                                                               | Lane                                           |
-| :----------------------- | :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------ | :--------------------------------------------- |
-| Unit (T1)                | Node logic as pure step functions; HAL types                                                | `#[cfg(test)]` in `crates/*`, `platforms/host/tests/`               | `build-and-test` (hosted)                      |
-| Static                   | Message bounds, parameter files against schemas, contract rates and budgets                 | `src/*/msg`, `src/*/schema`, `src/*_bringup/launch/*.contract.yaml` | `json-schema-check`, `contract-check` (hosted) |
-| Image build              | Every image of the bringup builds and links, host and S32Z2                                 | `src/autoware_safety_island_bringup/system.toml`                    | `build-and-test` (hosted)                      |
-| Host integration (T2/T3) | Images run as Linux processes against scripted publishers; golden traces (WP0 harness, #19) | to come with #19                                                    | `build-and-test`                               |
-| System integration       | Autoware on the HPC side + the island + the scenario world bridge                           | `ci/`                                                               | `integration` (self-hosted)                    |
-| HIL (T4)                 | S32Z280-400EVB + HPC PC + CAN FD vehicle simulator (#23)                                    | `ci/`                                                               | `integration` (self-hosted, board attached)    |
+| Level                    | What                                                                                        | Where                                                                  | Lane                                           |
+| :----------------------- | :------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------- | :--------------------------------------------- |
+| Unit (T1)                | Node logic as pure step functions; HAL types                                                | `#[cfg(test)]` in `crates/*`, `platforms/host/tests/`                  | `build-and-test` (hosted)                      |
+| Static                   | Message bounds, parameter files against schemas, contract rates and budgets                 | `src/*/msg`, `src/*/schema`, `src/*_bringup/launch/**/*.contract.yaml` | `json-schema-check`, `contract-check` (hosted) |
+| Image build              | Every image of the bringup builds and links, host and S32Z2                                 | `src/autoware_safety_island_bringup/system.toml`                       | `build-and-test` (hosted)                      |
+| Host integration (T2/T3) | Images run as Linux processes against scripted publishers; golden traces (WP0 harness, #19) | to come with #19                                                       | `build-and-test`                               |
+| System integration       | Autoware on the HPC side + the island + the scenario world bridge                           | `ci/`                                                                  | `integration` (self-hosted)                    |
+| HIL (T4)                 | S32Z280-400EVB + HPC PC + CAN FD vehicle simulator (#23)                                    | `ci/`                                                                  | `integration` (self-hosted, board attached)    |
 
 ## Running the fast lane locally
 

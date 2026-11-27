@@ -1,0 +1,34 @@
+# N8 si_fault_manager: partition P0, 100 Hz (design V1.0 sections 6.1, 9.1).
+# One FaultEvent topic from every connected source (N1, N2, N9, N17, I16 in
+# WP3); the single FaultVerdict for N3 (D13) and I2 (D14), 100 Hz. The FSI
+# SOC_ERROR line (A12, section 8.5) is a GPIO, not a topic.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_fault_manager:
+    sub:
+      fault_event: {}
+      sensor_validity: { state: true }
+    pub:
+      fault_verdict: {}
+    paths:
+      verdict:
+        trigger: { input: [fault_event] }
+        output: [fault_verdict]
+        max_latency: 4ms
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [fault_verdict]
+
+topics:
+  /si/internal/sensor_validity:
+    type: autoware_safety_island_msgs/msg/SensorValidity
+    sub: [si_fault_manager/sensor_validity]
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    sub: [si_fault_manager/fault_event]
+  /si/internal/fault_verdict:
+    type: autoware_safety_island_msgs/msg/FaultVerdict
+    pub: [si_fault_manager/fault_verdict]

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_stop_mode_operator" exec="stop_mode_operator" name="stop_mode_operator"/>
+</launch>

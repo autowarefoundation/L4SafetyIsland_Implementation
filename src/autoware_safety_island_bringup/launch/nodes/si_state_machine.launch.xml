@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_state_machine" exec="si_state_machine" name="si_state_machine"/>
+</launch>

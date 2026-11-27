@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_vehicle_state_estimator" exec="si_vehicle_state_estimator" name="si_vehicle_state_estimator"/>
+</launch>

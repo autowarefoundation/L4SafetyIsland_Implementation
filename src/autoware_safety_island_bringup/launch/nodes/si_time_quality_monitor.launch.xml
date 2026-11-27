@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_time_quality_monitor" exec="si_time_quality_monitor" name="si_time_quality_monitor"/>
+</launch>
