@@ -1,0 +1,7 @@
+# Negative cases of safety_floor.launch.xml (scripts/check_contracts.sh):
+# <rule> [launch arguments]
+#
+# Autoware's own timeout_operation_mode_availability, 0.5 s: detection
+# 500 ms + reaction 40 ms = 540 ms against the 70 ms FTTI
+# (docs/WP0-WP3-SafetyFloor.md section 4, I7).
+fault-reaction-time timeout_operation_mode_availability:=0.5

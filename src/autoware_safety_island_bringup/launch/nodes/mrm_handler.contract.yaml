@@ -36,7 +36,11 @@ nodes:
         output: [operate_emergency_stop, hazard_lights_cmd]
         max_latency: 4ms
       tick:
-        trigger: { timer: { rate: 10Hz } }
+        # The P0 cycle (design V1.0 section 9.1). The availability age is
+        # checked on this tick, so its period adds to the detection; at
+        # Autoware's update_rate of 10 Hz it would add 100 ms. PROVISIONAL:
+        # MrmState is a 10 Hz signal in section 8.2.
+        trigger: { timer: { rate: 100Hz } }
         output: [mrm_state]
 
 topics:
