@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- The WP2 and WP3 node set (docs/WP0-WP3-SafetyFloor.md sections 3 and 4).
+       One launch file and one contract per node under nodes/; the wiring and the
+       hazard are in safety_floor.contract.yaml. -->
+  <include file="$(dirname)/nodes/vehicle_interface.launch.xml"/>
+  <include file="$(dirname)/nodes/si_time_quality_monitor.launch.xml"/>
+  <include file="$(dirname)/nodes/si_sensor_health.launch.xml"/>
+  <include file="$(dirname)/nodes/si_safety_gateway.launch.xml"/>
+  <include file="$(dirname)/nodes/si_actuator_supervisor.launch.xml"/>
+  <include file="$(dirname)/nodes/stop_mode_operator.launch.xml"/>
+  <include file="$(dirname)/nodes/si_hpc_supervisor.launch.xml"/>
+  <include file="$(dirname)/nodes/si_vehicle_state_estimator.launch.xml"/>
+  <include file="$(dirname)/nodes/si_fault_manager.launch.xml"/>
+  <include file="$(dirname)/nodes/si_state_machine.launch.xml"/>
+  <include file="$(dirname)/nodes/command_mode_decider.launch.xml"/>
+  <include file="$(dirname)/nodes/mrm_handler.launch.xml"/>
+  <include file="$(dirname)/nodes/command_mode_switcher.launch.xml"/>
+  <include file="$(dirname)/nodes/mrm_emergency_stop_operator.launch.xml"/>
+  <include file="$(dirname)/nodes/control_command_gate.launch.xml"/>
+</launch>

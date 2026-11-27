@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_command_mode_switcher" exec="command_mode_switcher" name="command_mode_switcher"/>
+</launch>

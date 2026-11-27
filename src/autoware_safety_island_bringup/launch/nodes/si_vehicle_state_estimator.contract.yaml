@@ -1,0 +1,55 @@
+# N4 si_vehicle_state_estimator: partition P0, 100 Hz (design V1.0 sections
+# 6.1, 9.1). Island odometry (badge E) from the chassis (A4, through I16's
+# status), the island IMU (A4) and the HPC reference (B9), cross-checked;
+# divergence or loss to N8.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_vehicle_state_estimator:
+    sub:
+      velocity_status: { state: true }
+      steering_status: { state: true }
+      imu: { state: true }
+      reference_kinematic_state: { state: true }
+      reference_acceleration: { state: true }
+    pub:
+      kinematic_state: {}
+      acceleration: {}
+      fault_event: { aperiodic: true }
+    paths:
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [kinematic_state, acceleration, fault_event]
+
+topics:
+  /si/verified/kinematic_state:
+    type: nav_msgs/msg/Odometry
+    sub: [si_vehicle_state_estimator/reference_kinematic_state]
+  /si/verified/acceleration:
+    type: geometry_msgs/msg/AccelWithCovarianceStamped
+    sub: [si_vehicle_state_estimator/reference_acceleration]
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [si_vehicle_state_estimator/fault_event]
+  /vehicle/status/velocity_status:
+    type: autoware_vehicle_msgs/msg/VelocityReport
+    sub: [si_vehicle_state_estimator/velocity_status]
+  /vehicle/status/steering_status:
+    type: autoware_vehicle_msgs/msg/SteeringReport
+    sub: [si_vehicle_state_estimator/steering_status]
+  # Badge E: the consumers (I9, N5, N7, ...) come in later work packages.
+  /si/ego/kinematic_state:
+    type: nav_msgs/msg/Odometry
+    external: sub
+    pub: [si_vehicle_state_estimator/kinematic_state]
+  /si/ego/acceleration:
+    type: geometry_msgs/msg/AccelWithCovarianceStamped
+    external: sub
+    pub: [si_vehicle_state_estimator/acceleration]
+  /si/sensing/imu:
+    type: sensor_msgs/msg/Imu
+    external: pub
+    rate: 100Hz
+    sub: [si_vehicle_state_estimator/imu]

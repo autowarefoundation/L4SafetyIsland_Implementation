@@ -1,0 +1,29 @@
+# I5 stop_mode_operator (Autoware, C++, already ported in the evaluation
+# island): partition P0 (design V1.0 sections 4.1, 9.1). Stop command and
+# gear P at standstill to I1 (E10, 100 Hz) from the vehicle status (badge V).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  stop_mode_operator:
+    sub:
+      velocity_status: { state: true }
+    pub:
+      control_cmd: {}
+      gear_cmd: {}
+    paths:
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [control_cmd, gear_cmd]
+
+topics:
+  /system/stop_mode/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    pub: [stop_mode_operator/control_cmd]
+  /system/stop_mode/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    pub: [stop_mode_operator/gear_cmd]
+  /vehicle/status/velocity_status:
+    type: autoware_vehicle_msgs/msg/VelocityReport
+    sub: [stop_mode_operator/velocity_status]

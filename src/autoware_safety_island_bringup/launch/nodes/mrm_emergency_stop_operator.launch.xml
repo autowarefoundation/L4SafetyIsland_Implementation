@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_mrm_emergency_stop_operator" exec="mrm_emergency_stop_operator" name="mrm_emergency_stop_operator"/>
+</launch>

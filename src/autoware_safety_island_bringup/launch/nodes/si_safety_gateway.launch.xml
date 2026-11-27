@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_safety_gateway" exec="si_safety_gateway" name="si_safety_gateway"/>
+</launch>

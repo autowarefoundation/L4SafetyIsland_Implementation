@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Stock Autoware value 0.5 s. -->
+  <arg name="timeout_operation_mode_availability" default="0.5"/>
+  <node pkg="autoware_mrm_handler" exec="mrm_handler" name="mrm_handler">
+    <param name="timeout_operation_mode_availability" value="$(var timeout_operation_mode_availability)"/>
+  </node>
+</launch>

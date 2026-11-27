@@ -1,0 +1,75 @@
+# I1 control_command_gate (Autoware, C++ port): partition P0 (design V1.0
+# sections 4.1, 9.1, 10.4). The arbiter: the one publisher of the command to
+# I16 (F3), echoed toward the HPC (section 8.2) and to N9 (F6).
+# WP3 connects I3 (D21), I6 (E8), I7 (E9), I5 (E10), I9 (E1) and N1 (E3).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  control_command_gate:
+    sub:
+      command_source: {}
+      emergency_control_cmd: {}
+      stop_control_cmd: { state: true }
+      nominal_control_cmd: { state: true }
+      stop_gear_cmd: { state: true }
+      emergency_hazard_lights_cmd: { state: true }
+      hpc_gear_cmd: { state: true }
+      hpc_turn_indicators_cmd: { state: true }
+      hpc_hazard_lights_cmd: { state: true }
+    pub:
+      control_cmd: {}
+      gear_cmd: {}
+      turn_indicators_cmd: {}
+      hazard_lights_cmd: {}
+    paths:
+      select:
+        trigger: { input: [command_source, emergency_control_cmd] }
+        output: [control_cmd, gear_cmd, turn_indicators_cmd, hazard_lights_cmd]
+        # Command stage, first P0 cycle (see ../safety_floor.contract.yaml).
+        max_latency: 10ms
+
+topics:
+  /si/verified/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    sub: [control_command_gate/hpc_gear_cmd]
+  /si/verified/turn_indicators_cmd:
+    type: autoware_vehicle_msgs/msg/TurnIndicatorsCommand
+    sub: [control_command_gate/hpc_turn_indicators_cmd]
+  /si/verified/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    sub: [control_command_gate/hpc_hazard_lights_cmd]
+  /si/internal/command_source:
+    # PROVISIONAL type: the I4 command-mode types come with the I2 port.
+    type: tier4_system_msgs/msg/CommandSourceStatus
+    sub: [control_command_gate/command_source]
+  /system/emergency/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    sub: [control_command_gate/emergency_control_cmd]
+  /system/emergency/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    sub: [control_command_gate/emergency_hazard_lights_cmd]
+  /system/stop_mode/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    sub: [control_command_gate/stop_control_cmd]
+  /system/stop_mode/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    sub: [control_command_gate/stop_gear_cmd]
+  /control/trajectory_follower/control_cmd:
+    # E1: I9, the phase-0 nominal controller, is outside this node set.
+    type: autoware_control_msgs/msg/Control
+    external: pub
+    sub: [control_command_gate/nominal_control_cmd]
+  /si/command/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    pub: [control_command_gate/control_cmd]
+  /si/command/gear_cmd:
+    type: autoware_vehicle_msgs/msg/GearCommand
+    pub: [control_command_gate/gear_cmd]
+  /si/command/turn_indicators_cmd:
+    type: autoware_vehicle_msgs/msg/TurnIndicatorsCommand
+    pub: [control_command_gate/turn_indicators_cmd]
+  /si/command/hazard_lights_cmd:
+    type: autoware_vehicle_msgs/msg/HazardLightsCommand
+    pub: [control_command_gate/hazard_lights_cmd]

@@ -1,0 +1,39 @@
+# I6 mrm_emergency_stop_operator (Autoware, C++, already ported in the
+# evaluation island): partition P0 (design V1.0 sections 4.1, 9.1).
+# Serves OperateMrm (D12); the emergency-stop command to I1 at 100 Hz (E8).
+#
+# on_operate publishes the first braking command in the request's callback:
+# the evaluation island's port added that direct path; stock Autoware waits
+# for its update_rate timer.
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  mrm_emergency_stop_operator:
+    srv:
+      operate: {}
+    pub:
+      control_cmd: {}
+      status: {}
+    paths:
+      on_operate:
+        trigger: { input: [operate] }
+        output: [control_cmd]
+        max_latency: 4ms
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [control_cmd, status]
+
+topics:
+  /system/mrm/emergency_stop/status:
+    type: tier4_system_msgs/msg/MrmBehaviorStatus
+    pub: [mrm_emergency_stop_operator/status]
+  /system/emergency/control_cmd:
+    type: autoware_control_msgs/msg/Control
+    pub: [mrm_emergency_stop_operator/control_cmd]
+
+services:
+  /system/mrm/emergency_stop/operate:
+    type: tier4_system_msgs/srv/OperateMrm
+    server: [mrm_emergency_stop_operator/operate]

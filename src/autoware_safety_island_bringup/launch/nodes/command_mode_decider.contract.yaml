@@ -1,0 +1,30 @@
+# I2 command_mode_decider (Autoware, C++ port, plugins replaced by a static
+# table): partition P0 (design V1.0 sections 4.3, 9.1).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  command_mode_decider:
+    sub:
+      island_mode: {}
+      fault_verdict: { state: true }
+    pub:
+      command_mode: {}
+    paths:
+      decide:
+        trigger: { input: [island_mode] }
+        output: [command_mode]
+        max_latency: 4ms
+
+topics:
+  /si/internal/fault_verdict:
+    type: autoware_safety_island_msgs/msg/FaultVerdict
+    sub: [command_mode_decider/fault_verdict]
+  /si/internal/island_mode:
+    type: autoware_safety_island_msgs/msg/IslandMode
+    sub: [command_mode_decider/island_mode]
+  /si/internal/command_mode:
+    # PROVISIONAL type: the I4 command-mode types come with the I2 port.
+    type: tier4_system_msgs/msg/CommandModeStatus
+    pub: [command_mode_decider/command_mode]

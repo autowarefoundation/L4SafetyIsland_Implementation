@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_actuator_supervisor" exec="si_actuator_supervisor" name="si_actuator_supervisor"/>
+</launch>

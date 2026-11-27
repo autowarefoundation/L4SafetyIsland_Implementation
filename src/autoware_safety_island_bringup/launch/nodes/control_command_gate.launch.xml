@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_control_command_gate" exec="control_command_gate" name="control_command_gate"/>
+</launch>

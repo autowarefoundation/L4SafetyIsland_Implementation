@@ -1,0 +1,21 @@
+# N12 si_time_quality_monitor: partition P1 (design V1.0 sections 6.1, 9.1).
+# Reads the gPTP sync state (A2, 802.1AS, not a ROS topic) and declares the
+# time base valid or invalid to N1 (A3, 1 Hz, section 6.1's rate).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_time_quality_monitor:
+    pub:
+      time_base: {}
+    paths:
+      tick:
+        trigger: { timer: { rate: 1Hz } }
+        output: [time_base]
+
+topics:
+  /si/internal/time_base:
+    # PROVISIONAL type: A3 has no message in autoware_safety_island_msgs yet.
+    type: std_msgs/msg/Bool
+    pub: [si_time_quality_monitor/time_base]

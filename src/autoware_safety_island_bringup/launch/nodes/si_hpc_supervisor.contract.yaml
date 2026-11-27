@@ -1,0 +1,51 @@
+# N2 si_hpc_supervisor: partition P0, 100 Hz (design V1.0 sections 6.1, 9.1).
+# The detector of the hazard hpc_loss: three missed 100 Hz heartbeats
+# (section 9.2, detection <= 30 ms). Publishes the island-local
+# OperationModeAvailability for I7 (D1, 100 Hz) and HPC_LIVENESS_LOST /
+# HPC_COMMAND_INVALID to N8 (D3).
+
+rlm: v0.3.21
+version: 1
+
+nodes:
+  si_hpc_supervisor:
+    sub:
+      heartbeat:
+        # Section 9.2: 3 missed 100 Hz heartbeats = 30 ms.
+        qos: { depth: 1, liveliness: manual_by_topic, lease_duration: 30ms }
+        on_violation:
+          on: [omission]
+          reaction: declare_hpc_lost
+          within: 30ms
+      capability: { state: true }
+      # Badge V, for compliance supervision (WP7).
+      velocity_status: { state: true }
+    pub:
+      availability: {}
+      fault_event: { aperiodic: true }
+    paths:
+      declare_hpc_lost:
+        trigger: { input: [heartbeat] }
+        output: [fault_event, availability]
+        # Decision stage, first share (see ../safety_floor.contract.yaml).
+        max_latency: 4ms
+      tick:
+        trigger: { timer: { rate: 100Hz } }
+        output: [availability]
+
+topics:
+  /si/verified/heartbeat:
+    type: autoware_safety_island_msgs/msg/HpcHeartbeat
+    sub: [si_hpc_supervisor/heartbeat]
+  /si/verified/capability:
+    type: autoware_safety_island_msgs/msg/HpcCapability
+    sub: [si_hpc_supervisor/capability]
+  /si/internal/fault_event:
+    type: autoware_safety_island_msgs/msg/FaultEvent
+    pub: [si_hpc_supervisor/fault_event]
+  /system/operation_mode/availability:
+    type: tier4_system_msgs/msg/OperationModeAvailability
+    pub: [si_hpc_supervisor/availability]
+  /vehicle/status/velocity_status:
+    type: autoware_vehicle_msgs/msg/VelocityReport
+    sub: [si_hpc_supervisor/velocity_status]

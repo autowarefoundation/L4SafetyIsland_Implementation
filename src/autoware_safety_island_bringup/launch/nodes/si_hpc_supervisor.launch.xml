@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="autoware_si_hpc_supervisor" exec="si_hpc_supervisor" name="si_hpc_supervisor"/>
+</launch>
